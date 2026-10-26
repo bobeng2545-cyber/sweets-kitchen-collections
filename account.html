@@ -1,0 +1,231 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Account | SWEET's KITCHEN & COLLECTIONS</title>
+
+    <link rel="stylesheet" href="./style.css">
+
+    <style>
+        .account-page {
+            max-width: 650px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .account-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .account-card h1 {
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+
+        .account-intro {
+            color: #676768;
+            margin-bottom: 25px;
+        }
+
+        .account-detail {
+            padding: 15px 0;
+            border-bottom: 1px solid #e5e7eb;
+            overflow-wrap: anywhere;
+        }
+
+        .account-detail strong {
+            display: block;
+            margin-bottom: 6px;
+            color: #555;
+        }
+
+        .account-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .account-actions a,
+        .account-actions button {
+            display: inline-block;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .home-link {
+            background: #2563eb;
+            color: white;
+        }
+
+        .logout-button {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .account-message {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        @media (max-width: 600px) {
+            .account-page {
+                margin: 20px auto;
+                padding: 12px;
+            }
+
+            .account-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <a href="./index.html" class="logo">
+            SWEET'S <span>KITCHEN & COLLECTIONS</span>
+        </a>
+    </header>
+
+    <main class="account-page">
+        <section class="account-card">
+            <h1>My Account</h1>
+            <p class="account-intro">
+                View your customer account information.
+            </p>
+
+            <p id="accountMessage" class="account-message">
+                Checking your account...
+            </p>
+
+            <div class="account-detail">
+                <strong>Full Name</strong>
+                <span id="accountFullName">Loading...</span>
+            </div>
+
+            <div class="account-detail">
+                <strong>Email Address</strong>
+                <span id="accountEmail">Loading...</span>
+            </div>
+
+            <div class="account-detail">
+                <strong>Account ID</strong>
+                <span id="accountId">Loading...</span>
+            </div>
+
+            <div class="account-actions">
+                <a href="./index.html" class="home-link">
+                    Back to Shop
+                </a>
+
+                <button
+                    type="button"
+                    id="accountLogoutButton"
+                    class="logout-button"
+                >
+                    Log Out
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    
+<script>
+    const SUPABASE_URL =
+        "https://vbrlprrbtumonmroybdv.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+        "sb_publishable_QN5w738LNyUrYy2X93M1OQ_md6F2xTN";
+
+    const client = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+    );
+
+    const accountMessage = document.getElementById("accountMessage");
+    const accountFullName = document.getElementById("accountFullName");
+    const accountEmail = document.getElementById("accountEmail");
+    const accountId = document.getElementById("accountId");
+    const logoutButton = document.getElementById("accountLogoutButton");
+
+    async function loadAccount() {
+        accountMessage.textContent = "Checking your account...";
+
+        try {
+            const { data, error } = await client.auth.getUser();
+
+            if (error || !data.user) {
+                window.location.replace("./login.html");
+                return;
+            }
+
+            const user = data.user;
+
+            accountFullName.textContent =
+                user.user_metadata?.full_name || "Not provided";
+
+            accountEmail.textContent =
+                user.email || "Not available";
+
+            accountId.textContent =
+                user.id || "Not available";
+
+            accountMessage.textContent =
+                "You are signed in successfully.";
+
+        } catch (error) {
+            console.error("Account loading error:", error);
+
+            accountMessage.textContent =
+                "Unable to load your account. Please refresh the page and try again.";
+        }
+    }
+
+    logoutButton.addEventListener("click", async function () {
+        logoutButton.disabled = true;
+        logoutButton.textContent = "Logging out...";
+
+        try {
+            const { error } = await client.auth.signOut();
+
+            if (error) {
+                throw error;
+            }
+
+            window.location.replace("./login.html");
+
+        } catch (error) {
+            console.error("Logout error:", error);
+
+            accountMessage.textContent =
+                "Logout failed. Please try again.";
+
+            logoutButton.disabled = false;
+            logoutButton.textContent = "Log Out";
+        }
+    });
+
+    loadAccount();
+</script>
+
+
+</body>
+</html>
