@@ -500,27 +500,44 @@ document.addEventListener("DOMContentLoaded", function () {
         paymentOverlay.hidden = true;
     }
 
-    checkoutButton.addEventListener("click", function (event) {
-        event.preventDefault();
+    
+checkoutButton.addEventListener("click", async function (event) {
+    event.preventDefault();
 
-        if (!Array.isArray(cart) || cart.length === 0) {
-            alert("Your cart is empty. Add a product before checkout.");
-            return;
-        }
+    // First, check whether the cart contains products
+    if (!Array.isArray(cart) || cart.length === 0) {
+        alert("Your cart is empty. Add a product before checkout.");
+        return;
+    }
 
-        const subtotal = cart.reduce((sum, item) => {
-            return sum + Number(item.price) * Number(item.quantity);
-        }, 0);
+    // Check the customer's Supabase sign-in status
+    const { data, error } = await window.sweetSupabase.auth.getUser();
 
-        const total = subtotal + subtotal * 0.01;
+    if (error || !data.user) {
+        // Save the cart so it can be restored after sign-in
+        localStorage.setItem("sweetKitchenCart", JSON.stringify(cart));
 
-        paymentTotal.textContent = "GH₵" + total.toFixed(2);
-        paymentReference.textContent = "Generated securely when checkout starts.";
+        // Redirect the customer to the existing login page
+        window.location.href = "./login.html?redirect=checkout";
+        return;
+    }
 
-        paymentNetwork.value = "";
-        paymentOverlay.hidden = false;
-        paymentOverlay.style.display = "flex";
-    });
+    // Continue checkout for signed-in customers
+    const subtotal = cart.reduce((sum, item) => {
+        return sum + Number(item.price) * Number(item.quantity);
+    }, 0);
+
+    const total = subtotal + subtotal * 0.01;
+
+    paymentTotal.textContent = "GH₵" + total.toFixed(2);
+    paymentReference.textContent =
+        "Generated securely when checkout starts.";
+
+    paymentNetwork.value = "";
+    paymentOverlay.hidden = false;
+    paymentOverlay.style.display = "flex";
+});
+
 
     confirmButton.addEventListener("click", async function (event) {
         event.preventDefault();
