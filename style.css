@@ -1057,3 +1057,27 @@ footer {
     font-size: 15px;
     box-sizing: border-box;
 }
+
+/* Prevent horizontal page movement */
+html,
+body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+}
+
+/* Keep the header within the screen */
+.header {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* Allow header items to fit */
+.logo {
+    flex-shrink: 1;
+}
+
+.nav {
+    min-width: 0;
+}
