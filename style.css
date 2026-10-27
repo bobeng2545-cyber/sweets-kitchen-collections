@@ -1081,3 +1081,40 @@ body {
 .nav {
     min-width: 0;
 }
+
+
+/* Fix footer content on phones and laptops */
+footer {
+    width: 100%;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.footer-content {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+    width: 100%;
+    min-width: 0;
+}
+
+.footer-content > * {
+    min-width: 0;
+}
+
+@media (max-width: 600px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    footer {
+        padding: 1.5rem 1rem;
+    }
+
+    .footer-content a {
+        overflow-wrap: anywhere;
+    }
+
+    .copyright {
+        overflow-wrap: anywhere;
+    }
+}
