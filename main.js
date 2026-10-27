@@ -688,3 +688,69 @@ if (error) {
 
     console.log("Paystack checkout initialized.");
 });
+
+/* ==================================
+   VERIFY PAYSTACK PAYMENT ON RETURN
+================================== */
+
+(async function verifyPaymentOnReturn() {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("payment") !== "return") {
+        return;
+    }
+
+    const reference =
+        params.get("reference") ||
+        params.get("trxref");
+
+    if (!reference) {
+        alert("Payment reference is missing. Please contact the store.");
+        return;
+    }
+
+    try {
+        const { data, error } =
+            await window.sweetSupabase.functions.invoke(
+                "initialize-paystack",
+                {
+                    body: {
+                        action: "verify",
+                        reference: reference
+                    }
+                }
+            );
+
+        if (error) {
+            console.error("Payment verification error:", error);
+            throw new Error("We could not verify your payment. Please contact the store before trying again.");
+        }
+
+        if (!data || data.paid !== true) {
+            alert(
+                data?.message ||
+                data?.error ||
+                "Payment has not been confirmed. Please do not pay again until you check your transaction."
+            );
+            return;
+        }
+
+        // Clear the cart only after payment is verified.
+        cart = [];
+        localStorage.removeItem("sweetKitchenCart");
+        updateCart();
+
+        alert("Payment verified successfully! Your order has been paid.");
+
+        // Remove payment parameters from the address bar.
+        window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+        );
+
+    } catch (error) {
+        console.error("Payment return verification failed:", error);
+        alert(error.message || "Payment verification failed. Please contact the store.");
+    }
+})();
