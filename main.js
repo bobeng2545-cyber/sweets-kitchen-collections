@@ -83,8 +83,16 @@ addCartButtons.forEach(function(button) {
 
 
 
+
 function updateCart() {
+    // Save the latest cart
+    localStorage.setItem(
+        "sweetKitchenCart",
+        JSON.stringify(cart)
+    );
+
     cartItem.innerHTML = "";
+
 
     if (cart.length === 0) {
         cartItem.innerHTML = `
@@ -143,6 +151,21 @@ function updateCart() {
     cartCount.textContent = numberOfItems;
     cartTotal.textContent = "GH₵" + total.toLocaleString();
 }
+
+
+updateCart();
+
+// Update product buttons for items restored from storage
+document.querySelectorAll(".add-to-cart").forEach(function(button) {
+    const alreadyAdded = cart.some(function(item) {
+        return item.name === button.dataset.name;
+    });
+
+    if (alreadyAdded) {
+        button.textContent = "Added to Cart";
+        button.disabled = true;
+    }
+});
 
 
 // Handle +, − and Remove clicks from the cart
