@@ -26,6 +26,31 @@ if (menuButton && navMenu) {
 
 let cart = [];
 
+// Restore saved cart items when the page loads
+try {
+    const savedCart = JSON.parse(
+        localStorage.getItem("sweetKitchenCart") || "[]"
+    );
+
+    if (Array.isArray(savedCart)) {
+        cart = savedCart
+            .filter(item =>
+                item &&
+                typeof item.name === "string" &&
+                Number.isFinite(Number(item.price)) &&
+                Number.isInteger(Number(item.quantity)) &&
+                Number(item.quantity) > 0
+            )
+            .map(item => ({
+                name: item.name,
+                price: Number(item.price),
+                quantity: Number(item.quantity)
+            }));
+    }
+} catch (error) {
+    console.error("Could not restore cart:", error);
+}
+
 const cartOverlay = document.getElementById("cartOverlay");
 const cartItem = document.getElementById("cartItem");
 const checkoutButton = document.getElementById("checkoutButton");
