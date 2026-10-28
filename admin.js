@@ -895,18 +895,30 @@ initializeAdminDashboard();
         loadInventory
     );
 
-    inventoryElements.addButton.addEventListener("click", () => {
-        resetProductForm();
+    
+inventoryElements.addButton.addEventListener("click", () => {
+    resetProductForm();
 
-        inventoryElements.name.disabled = false;
+    // Show the hidden product form.
+    inventoryElements.form.hidden = false;
 
-        inventoryElements.form.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
+    // Allow a new product name to be entered.
+    inventoryElements.name.disabled = false;
 
-        inventoryElements.name.focus();
+    // Update the form heading.
+    const formTitle = document.getElementById("productFormTitle");
+    if (formTitle) {
+        formTitle.textContent = "Add a new product";
+    }
+
+    inventoryElements.form.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
     });
+
+    inventoryElements.name.focus();
+});
+
 
     inventoryElements.cancelButton.addEventListener("click", () => {
         resetProductForm();
