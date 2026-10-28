@@ -755,19 +755,6 @@ if (error) {
     }
 })();
 
-const myOrdersLink = document.getElementById("myOrdersLink");
-const myOrdersSection = document.getElementById("myOrders");
-const profileMenu = document.getElementById("profileMenu");
-
-if (myOrdersLink && myOrdersSection) {
-    myOrdersLink.addEventListener("click", function (event) {
-        event.preventDefault();
-
-        myOrdersSection.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
-
         if (profileMenu) {
             profileMenu.hidden = true;
         }
