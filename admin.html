@@ -41,7 +41,9 @@
             font-size: 13px;
         }
 
-        button, input, select {
+        button,
+        input,
+        select {
             font: inherit;
         }
 
@@ -132,7 +134,8 @@
             min-width: 650px;
         }
 
-        th, td {
+        th,
+        td {
             padding: 14px 12px;
             border-bottom: 1px solid #e5e7eb;
             text-align: left;
@@ -250,6 +253,7 @@
             display: block;
             margin-bottom: 6px;
             font-size: 14px;
+            font-weight: 600;
         }
 
         .inventory-form input,
@@ -262,8 +266,43 @@
             background: white;
         }
 
+        .inventory-form input[type="file"] {
+            padding: 10px;
+        }
+
         .inventory-form .full-width {
             grid-column: 1 / -1;
+        }
+
+        .image-help {
+            display: block;
+            margin-top: 8px;
+            color: #687386;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .image-preview-box {
+            margin-top: 12px;
+            padding: 12px;
+            background: white;
+            border: 1px dashed #cbd5e1;
+            border-radius: 8px;
+        }
+
+        #productImagePreview {
+            display: block;
+            width: 100%;
+            max-width: 240px;
+            max-height: 240px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        #productImageMessage {
+            overflow-wrap: anywhere;
+            font-size: 13px;
+            line-height: 1.5;
         }
 
         #inventoryMessage {
@@ -327,7 +366,12 @@
             <p>Store Administration Dashboard</p>
         </div>
 
-        <button id="logoutButton" class="logout-btn" hidden>
+        <button
+            id="logoutButton"
+            class="logout-btn"
+            type="button"
+            hidden
+        >
             Sign out
         </button>
     </header>
@@ -388,7 +432,10 @@
                 <div class="orders-heading">
                     <h2>Customer Orders</h2>
 
-                    <button id="refreshOrdersButton" type="button">
+                    <button
+                        id="refreshOrdersButton"
+                        type="button"
+                    >
                         Refresh orders
                     </button>
                 </div>
@@ -400,7 +447,11 @@
                     aria-label="Search orders by reference"
                 >
 
-                <p id="ordersMessage" role="status" aria-live="polite">
+                <p
+                    id="ordersMessage"
+                    role="status"
+                    aria-live="polite"
+                >
                     Loading orders...
                 </p>
 
@@ -426,7 +477,7 @@
                 <div class="orders-heading">
                     <div>
                         <h2>Inventory Management</h2>
-                        <p>Manage your products, prices and stock levels.</p>
+                        <p>Manage your products, prices, images and stock.</p>
                     </div>
 
                     <button
@@ -525,6 +576,43 @@
                             required
                         >
                     </div>
+
+                    <!-- PRODUCT IMAGE UPLOAD -->
+                    <div class="full-width">
+                        <label for="productImage">
+                            Product image
+                        </label>
+
+                        <input
+                            id="productImage"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                        >
+
+                        <small class="image-help">
+                            Choose a JPG, PNG, or WebP image.
+                            Maximum file size: 5 MB.
+                            Leave this empty when you do not want
+                            to replace an existing image.
+                        </small>
+
+                        <div class="image-preview-box">
+                            <img
+                                id="productImagePreview"
+                                alt="Product image preview"
+                                hidden
+                            >
+
+                            <p
+                                id="productImageMessage"
+                                role="status"
+                                aria-live="polite"
+                            >
+                                Select an image to preview it.
+                            </p>
+                        </div>
+                    </div>
+                    <!-- END PRODUCT IMAGE UPLOAD -->
 
                     <div class="full-width">
                         <label for="productActive">
