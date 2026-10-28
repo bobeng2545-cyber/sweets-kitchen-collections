@@ -255,127 +255,289 @@ else if (button.classList.contains("remove-item")) {
 });
 
 
- // SEARCH AND CATEGORY FILTERING
+ 
+/* =========================================
+   DYNAMIC PRODUCTS FROM SUPABASE
+   SWEET'S KITCHEN & COLLECTIONS
+========================================= */
 
+const productsGrid = document.getElementById("productsGrid");
 const searchInput = document.getElementById("searchInput");
 const searchButton = document.getElementById("searchButton");
 const categoryButtons = document.querySelectorAll(".category-btn");
-const productCards = document.querySelectorAll(".product-card");
 const productSection = document.getElementById("products");
-const productsGrid = document.getElementById("productsGrid");
+const productLoadingMessage = document.getElementById("productLoadingMessage");
 
-// The currently selected category
+let storeProducts = [];
 let selectedCategory = "all";
 
-// Message displayed when no products match
-const searchMessage = document.createElement("p");
-searchMessage.id = "searchMessage";
-searchMessage.textContent = "No matching products found.";
-searchMessage.style.textAlign = "center";
-searchMessage.style.padding = "20px";
-searchMessage.style.display = "none";
+let searchMessage = document.getElementById("searchMessage");
 
-productsGrid.insertAdjacentElement("afterend", searchMessage);
-
-// Search products and apply the selected category together
-function filterProducts() {
-    const searchTerm = searchInput.value.trim().toLowerCase();
-    let matchingProducts = 0;
-
-    productCards.forEach(function(card) {
-        const productName = (
-            card.dataset.name ||
-            card.querySelector("h3")?.textContent ||
-            ""
-        ).toLowerCase();
-
-        const headingName = (
-            card.querySelector("h3")?.textContent || ""
-        ).toLowerCase();
-
-        const productCategory = (
-            card.dataset.category || ""
-        ).toLowerCase();
-
-        const displayedCategory = (
-            card.querySelector(".products-category")?.textContent || ""
-        ).trim().toLowerCase();
-
-        // Search product names and categories
-        const matchesSearch =
-            productName.includes(searchTerm) ||
-            headingName.includes(searchTerm) ||
-            productCategory.includes(searchTerm) ||
-            displayedCategory.includes(searchTerm);
-
-        // Check the selected category
-        const matchesCategory =
-            selectedCategory === "all" ||
-            productCategory === selectedCategory;
-
-        // Show only products matching BOTH conditions
-        if (matchesSearch && matchesCategory) {
-            card.style.display = "";
-            matchingProducts++;
-        } else {
-            card.style.display = "none";
-        }
-    });
-
-    // Show a message if no products match
-    searchMessage.style.display =
-        matchingProducts === 0 ? "block" : "none";
+if (!searchMessage && productsGrid) {
+    searchMessage = document.createElement("p");
+    searchMessage.id = "searchMessage";
+    searchMessage.textContent = "No matching products found.";
+    searchMessage.style.textAlign = "center";
+    searchMessage.style.padding = "20px";
+    searchMessage.hidden = true;
+    productsGrid.insertAdjacentElement("afterend", searchMessage);
 }
 
-// Search button
-searchButton.addEventListener("click", function() {
-    filterProducts();
+/* Create a product card safely */
+function createProductCard(product) {
+    const name = String(product.product_name || "Product");
+    const price = Number(product.unit_price || 0);
+    const imageUrl = String(product.image_url || "").trim();
 
-    productSection.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
+    const card = document.createElement("article");
+    card.className = "product-card";
+    card.dataset.name = name;
+    card.dataset.category = String(product.category || "products").toLowerCase();
+
+    const imageContainer = document.createElement("div");
+    imageContainer.className = "product-image";
+
+    const image = document.createElement("img");
+    image.alt = name;
+    image.loading = "lazy";
+
+    if (imageUrl) {
+        image.src = imageUrl;
+    } else {
+        image.alt = `${name} — image not available`;
+        imageContainer.classList.add("no-product-image");
+    }
+
+    image.addEventListener("error", function () {
+        image.removeAttribute("src");
+        image.alt = `${name} — image unavailable`;
+        imageContainer.classList.add("no-product-image");
     });
-});
 
-// Search immediately while typing
-searchInput.addEventListener("input", filterProducts);
+    const favouriteButton = document.createElement("button");
+    favouriteButton.type = "button";
+    favouriteButton.className = "favourite-button";
+    favouriteButton.textContent = "💖";
+    favouriteButton.setAttribute("aria-label", `Favourite ${name}`);
 
-// Allow customers to press Enter to search
-searchInput.addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {
-        event.preventDefault();
-        filterProducts();
+    imageContainer.append(image, favouriteButton);
 
-        productSection.scrollIntoView({
+    const info = document.createElement("div");
+    info.className = "product-info";
+
+    const category = document.createElement("p");
+    category.className = "products-category";
+    category.textContent = product.category || "Products";
+
+    const heading = document.createElement("h3");
+    heading.textContent = name;
+
+    const description = document.createElement("p");
+    description.className = "product-description";
+    description.textContent = product.description || "";
+
+    info.append(category, heading, description);
+
+    const bottom = document.createElement("div");
+    bottom.className = "product-buttom";
+
+    const priceElement = document.createElement("strong");
+    priceElement.textContent = `GH₵${price.toLocaleString("en-GH", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })}`;
+
+    const addButton = document.createElement("button");
+    addButton.type = "button";
+    addButton.className = "add-to-cart";
+    addButton.dataset.name = name;
+    addButton.dataset.price = String(price);
+    addButton.textContent = "Add to cart";
+
+    const alreadyAdded = cart.some(item => item.name === name);
+
+    if (alreadyAdded) {
+        addButton.textContent = "Added to Cart";
+        addButton.disabled = true;
+    }
+
+    bottom.append(priceElement, addButton);
+    card.append(imageContainer, info, bottom);
+
+    return card;
+}
+
+/* Load active products from Supabase */
+async function loadStoreProducts() {
+    if (!productsGrid) {
+        console.error("The productsGrid element was not found.");
+        return;
+    }
+
+    if (productLoadingMessage) {
+        productLoadingMessage.hidden = false;
+        productLoadingMessage.textContent = "Loading products...";
+    }
+
+    productsGrid.replaceChildren();
+
+    try {
+        const { data, error } = await supabaseClient
+            .from("store_products")
+            .select(
+                "product_name, unit_price, active, stock_quantity, image_url"
+            )
+            .eq("active", true)
+            .order("product_name", { ascending: true });
+
+        if (error) {
+            throw error;
+        }
+
+        storeProducts = (data || []).filter(product =>
+            product.product_name &&
+            Number.isFinite(Number(product.unit_price)) &&
+            Number(product.unit_price) > 0
+        );
+
+        renderStoreProducts();
+
+        if (productLoadingMessage) {
+            productLoadingMessage.hidden = true;
+        }
+    } catch (error) {
+        console.error("Could not load products from Supabase:", error);
+
+        if (productLoadingMessage) {
+            productLoadingMessage.hidden = false;
+            productLoadingMessage.textContent =
+                "Products could not be loaded. Please refresh the page.";
+        }
+    }
+}
+
+/* Search, filter, and display the loaded products */
+function renderStoreProducts() {
+    if (!productsGrid) return;
+
+    const searchTerm = (searchInput?.value || "").trim().toLowerCase();
+
+    const matchingProducts = storeProducts.filter(product => {
+        const name = String(product.product_name || "").toLowerCase();
+        const category = String(product.category || "products").toLowerCase();
+
+        const matchesSearch =
+            name.includes(searchTerm) ||
+            category.includes(searchTerm);
+
+        const matchesCategory =
+            selectedCategory === "all" ||
+            category === selectedCategory;
+
+        return matchesSearch && matchesCategory;
+    });
+
+    productsGrid.replaceChildren();
+
+    matchingProducts.forEach(product => {
+        productsGrid.appendChild(createProductCard(product));
+    });
+
+    if (searchMessage) {
+        searchMessage.hidden = matchingProducts.length > 0;
+    }
+}
+
+/* Add-to-cart handler for dynamically created product cards */
+if (productsGrid) {
+    productsGrid.addEventListener("click", function (event) {
+        const button = event.target.closest(".add-to-cart");
+
+        if (!button || !productsGrid.contains(button)) return;
+
+        const name = button.dataset.name;
+        const price = Number(button.dataset.price);
+
+        if (!name || !Number.isFinite(price) || price <= 0) {
+            alert("This product has invalid details. Please contact the store.");
+            return;
+        }
+
+        const existingProduct = cart.find(item => item.name === name);
+
+        if (existingProduct) {
+            alert(
+                "This product is already in your cart. Use + or − in the cart to change the quantity."
+            );
+            return;
+        }
+
+        cart.push({
+            name: name,
+            price: price,
+            quantity: 1
+        });
+
+        updateCart();
+
+        button.textContent = "Added to Cart";
+        button.disabled = true;
+    });
+}
+
+/* Search button */
+if (searchButton) {
+    searchButton.addEventListener("click", function () {
+        renderStoreProducts();
+
+        productSection?.scrollIntoView({
             behavior: "smooth",
             block: "start"
         });
-    }
-});
+    });
+}
 
-// Category buttons
-categoryButtons.forEach(function(button) {
-    button.addEventListener("click", function() {
+/* Search as the customer types */
+if (searchInput) {
+    searchInput.addEventListener("input", renderStoreProducts);
+
+    searchInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            renderStoreProducts();
+
+            productSection?.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+    });
+}
+
+/* Category buttons */
+categoryButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
         selectedCategory = (
             button.dataset.category || "all"
         ).toLowerCase();
 
-        // Update the active category button
-        categoryButtons.forEach(function(categoryButton) {
+        categoryButtons.forEach(function (categoryButton) {
             categoryButton.classList.remove("active");
         });
 
         button.classList.add("active");
+        renderStoreProducts();
 
-        // Keep the search term when changing categories
-        filterProducts();
-
-        productSection.scrollIntoView({
+        productSection?.scrollIntoView({
             behavior: "smooth",
             block: "start"
         });
     });
 });
+
+/* Start loading products */
+loadStoreProducts();
+
 
 
 /* CUSTOMER PROFILE — SINGLE EVENT SYSTEM */
