@@ -874,9 +874,23 @@ if (refreshOrdersBtn) {
     refreshOrdersBtn.addEventListener("click", loadMyOrders);
 }
 
-/* Load My Orders when the customer clicks the link */
-const myOrdersLink = document.getElementById("myOrdersLink");
 
-if (myOrdersLink) {
-    myOrdersLink.addEventListener("click", loadMyOrders);
+/* Open My Orders and load the customer's orders */
+const myOrdersLink = document.getElementById("myOrdersLink");
+const myOrdersSection = document.getElementById("myOrders");
+
+if (myOrdersLink && myOrdersSection) {
+    myOrdersLink.addEventListener("click", function (event) {
+        event.preventDefault();
+
+        myOrdersSection.hidden = false;
+        myOrdersSection.style.display = "block";
+
+        myOrdersSection.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+        loadMyOrders();
+    });
 }
