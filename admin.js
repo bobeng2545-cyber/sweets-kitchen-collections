@@ -737,9 +737,16 @@ initializeAdminDashboard();
         showInventoryMessage("");
     }
 
-    function editProduct(product) {
-        inventoryElements.originalName.value = product.product_name;
-        inventoryElements.name.value = product.product_name;
+    
+function editProduct(product) {
+    // Show the hidden product form first.
+    inventoryElements.form.hidden = false;
+
+    inventoryElements.originalName.value = product.product_name;
+    inventoryElements.name.value = product.product_name;
+
+    // Keep the rest of your existing editProduct code below.
+
 
         // Product names are database references, so renaming is disabled.
         inventoryElements.name.disabled = true;
@@ -920,9 +927,14 @@ inventoryElements.addButton.addEventListener("click", () => {
 });
 
 
-    inventoryElements.cancelButton.addEventListener("click", () => {
-        resetProductForm();
-    });
+    
+inventoryElements.cancelButton.addEventListener("click", () => {
+    resetProductForm();
+
+    // Hide the product form again.
+    inventoryElements.form.hidden = true;
+});
+
 
     // Load inventory when the existing admin dashboard becomes visible.
     // This avoids changing your existing login or order handlers.
