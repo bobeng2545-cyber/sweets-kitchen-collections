@@ -6,179 +6,130 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | SWEET's KITCHEN</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f5f6fa;
-            color: #202a36;
-        }
-
-        header {
-            background: #202a36;
-            color: white;
-            padding: 22px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 21px;
-        }
-
-        header p {
-            margin: 6px 0 0;
-            color: #cbd5e1;
-            font-size: 13px;
-        }
-
-        button, input, select {
-            font: inherit;
-        }
-
-        button {
-            border: 0;
-            border-radius: 7px;
-            padding: 11px 15px;
-            cursor: pointer;
-        }
-
-        .logout-btn {
-            background: #fff;
-            color: #202a36;
-        }
-
-        main {
-            max-width: 1200px;
-            margin: 35px auto;
-            padding: 0 20px;
-        }
-
-        .notice {
-            padding: 14px;
-            border-radius: 8px;
-            background: #fff4d8;
-            color: #684b0a;
-            line-height: 1.5;
-        }
-
-        .summary {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px;
-            margin: 24px 0;
-        }
-
-        .summary-card, .orders-panel, .login-panel {
+        .inventory-panel {
             background: white;
             border: 1px solid #e5e7eb;
             border-radius: 12px;
             padding: 22px;
+            margin: 24px 0;
         }
 
-        .summary-card p {
-            color: #687386;
-            margin: 0 0 12px;
+    
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin: 20px 0;
         }
 
-        .summary-card strong {
-            font-size: 28px;
-        }
-
-        .orders-heading {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 14px;
-            margin-bottom: 18px;
-        }
-
-        .orders-heading h2 {
-            margin: 0;
-        }
-
-        #searchOrders {
-            width: 100%;
-            max-width: 360px;
-            padding: 12px;
-            border: 1px solid #d7dce3;
-            border-radius: 7px;
-        }
-
-        .table-wrap {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 650px;
-        }
-
-        th, td {
-            padding: 14px 12px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-        }
-
-        th {
+        .inventory-card {
+            padding: 18px;
             background: #f8fafc;
-            font-size: 13px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
         }
 
-        #ordersMessage {
+        .inventory-card p {
             color: #687386;
-            line-height: 1.6;
+            margin: 0 0 10px;
         }
 
-        #loginPanel {
-            max-width: 430px;
-            margin: 60px auto;
+        .inventory-card strong {
+            font-size: 25px;
         }
 
-        #loginPanel label {
-            display: block;
-            margin: 14px 0 7px;
+        .inventory-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 18px 0;
         }
 
-        #loginPanel input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #d7dce3;
-            border-radius: 7px;
-        }
-
-        #loginButton {
-            width: 100%;
-            margin-top: 20px;
+        .primary-btn {
             background: #202a36;
             color: white;
         }
 
-        [hidden] {
-            display: none !important;
+        .secondary-btn {
+            background: #e8edf3;
+            color: #202a36;
         }
 
-        @media (max-width: 600px) {
-            .summary {
+        .danger-btn {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .inventory-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin: 20px 0;
+            padding: 18px;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+        }
+
+        .inventory-form label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .inventory-form input,
+        .inventory-form select {
+            width: 100%;
+            min-width: 0;
+            padding: 11px;
+            border: 1px solid #d7dce3;
+            border-radius: 7px;
+        }
+
+        .inventory-form .full-width {
+            grid-column: 1 / -1;
+        }
+
+        #inventoryMessage {
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        #productsTable {
+            min-width: 750px;
+        }
+
+        #productsTable button {
+            margin: 3px;
+            padding: 8px 10px;
+        }
+
+        .low-stock {
+            color: #b45309;
+            font-weight: bold;
+        }
+
+        .in-stock {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        @media (max-width: 650px) {
+            .inventory-summary {
                 grid-template-columns: 1fr;
             }
 
-            main {
-                margin-top: 22px;
-                padding: 0 12px;
+            .inventory-form {
+                grid-template-columns: 1fr;
+            }
+
+            .inventory-form .full-width {
+                grid-column: auto;
+            }
+
+            .inventory-panel {
+                padding: 14px;
             }
         }
-    </style>
 </head>
 
 <body>
