@@ -474,3 +474,472 @@ async function initializeAdminDashboard() {
 }
 
 initializeAdminDashboard();
+
+
+/* ==========================================
+   INVENTORY MANAGEMENT
+   Connects to the admin-inventory Edge Function.
+   Keeps existing login and order code separate.
+========================================== */
+
+(() => {
+    // Prevent duplicate event listeners if this code is loaded twice.
+    if (window.inventoryManagerInitialized) return;
+    window.inventoryManagerInitialized = true;
+
+    const inventoryElements = {
+        panel: document.getElementById("inventoryPanel"),
+        activeCount: document.getElementById("activeProductsCount"),
+        totalStock: document.getElementById("totalStockCount"),
+        lowStock: document.getElementById("lowStockCount"),
+
+        refreshButton: document.getElementById("refreshInventoryButton"),
+        addButton: document.getElementById("addProductButton"),
+
+        form: document.getElementById("productForm"),
+        originalName: document.getElementById("originalProductName"),
+        name: document.getElementById("productName"),
+        price: document.getElementById("productPrice"),
+        stock: document.getElementById("productStock"),
+        threshold: document.getElementById("productLowStock"),
+        active: document.getElementById("productActive"),
+
+        saveButton: document.getElementById("saveProductButton"),
+        cancelButton: document.getElementById("cancelProductButton"),
+
+        tableBody: document.getElementById("productsTableBody"),
+        message: document.getElementById("inventoryMessage")
+    };
+
+    // Do not interfere if the inventory HTML has not been added.
+    if (
+        !inventoryElements.panel ||
+        !inventoryElements.form ||
+        !inventoryElements.tableBody
+    ) {
+        console.warn("Inventory HTML elements were not found.");
+        return;
+    }
+
+    // Uses the existing Supabase client created by admin.js.
+    if (typeof supabaseClient === "undefined") {
+        console.error("The existing supabaseClient was not found.");
+        return;
+    }
+
+    let inventoryProducts = [];
+    let inventoryLoading = false;
+
+    function showInventoryMessage(message, isError = false) {
+        inventoryElements.message.textContent = message;
+        inventoryElements.message.style.color = isError
+            ? "#b91c1c"
+            : "#166534";
+    }
+
+    function getActiveValue() {
+        const field = inventoryElements.active;
+
+        if (field.type === "checkbox") {
+            return field.checked;
+        }
+
+        return field.value === "true" || field.value === "active";
+    }
+
+    function setActiveValue(isActive) {
+        const field = inventoryElements.active;
+
+        if (field.type === "checkbox") {
+            field.checked = isActive;
+        } else {
+            field.value = isActive ? "true" : "false";
+        }
+    }
+
+    function formatMoney(value) {
+        return "GH₵ " + Number(value).toLocaleString("en-GH", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function createCell(text) {
+        const cell = document.createElement("td");
+        cell.textContent = text;
+        cell.style.padding = "10px";
+        return cell;
+    }
+
+    function renderInventory() {
+        const activeProducts = inventoryProducts.filter(
+            product => product.active === true
+        );
+
+        const totalUnits = inventoryProducts.reduce(
+            (total, product) =>
+                total + Number(product.stock_quantity || 0),
+            0
+        );
+
+        const lowStockProducts = activeProducts.filter(product =>
+            Number(product.stock_quantity) <=
+            Number(product.low_stock_threshold)
+        );
+
+        inventoryElements.activeCount.textContent =
+            activeProducts.length;
+
+        inventoryElements.totalStock.textContent = totalUnits;
+
+        inventoryElements.lowStock.textContent =
+            lowStockProducts.length;
+
+        inventoryElements.tableBody.replaceChildren();
+
+        if (inventoryProducts.length === 0) {
+            const row = document.createElement("tr");
+            const cell = createCell("No products found. Add your first product.");
+            cell.colSpan = 6;
+            row.appendChild(cell);
+            inventoryElements.tableBody.appendChild(row);
+            return;
+        }
+
+        inventoryProducts.forEach(product => {
+            const row = document.createElement("tr");
+
+            const quantity = Number(product.stock_quantity || 0);
+            const threshold = Number(product.low_stock_threshold || 0);
+            const isLow = product.active && quantity <= threshold;
+
+            row.appendChild(createCell(product.product_name));
+            row.appendChild(createCell(formatMoney(product.unit_price)));
+            row.appendChild(createCell(String(quantity)));
+
+            const stockCell = createCell(
+                isLow ? "LOW STOCK" : "OK"
+            );
+
+            stockCell.style.color = isLow ? "#b91c1c" : "#166534";
+            stockCell.style.fontWeight = "bold";
+            row.appendChild(stockCell);
+
+            row.appendChild(
+                createCell(product.active ? "Active" : "Inactive")
+            );
+
+            const actionCell = document.createElement("td");
+            actionCell.style.padding = "10px";
+
+            const editButton = document.createElement("button");
+            editButton.type = "button";
+            editButton.textContent = "Edit";
+            editButton.style.marginRight = "6px";
+
+            editButton.addEventListener("click", () => {
+                editProduct(product);
+            });
+
+            actionCell.appendChild(editButton);
+
+            const toggleButton = document.createElement("button");
+            toggleButton.type = "button";
+            toggleButton.textContent = product.active
+                ? "Deactivate"
+                : "Activate";
+
+            toggleButton.addEventListener("click", () => {
+                changeProductAvailability(product);
+            });
+
+            actionCell.appendChild(toggleButton);
+            row.appendChild(actionCell);
+
+            inventoryElements.tableBody.appendChild(row);
+        });
+    }
+
+    async function callInventoryFunction(method = "GET", body) {
+        const options = { method };
+
+        if (body !== undefined) {
+            options.body = body;
+        }
+
+        const { data, error } = await supabaseClient.functions.invoke(
+            "admin-inventory",
+            options
+        );
+
+        if (error) {
+            // The function may return a useful message in its response body.
+            let detail = error.message || "Request failed.";
+
+            if (error.context && typeof error.context.json === "function") {
+                try {
+                    const responseBody = await error.context.json();
+
+                    if (responseBody.error) {
+                        detail = responseBody.error;
+                    }
+                } catch (_) {
+                    // Keep the original error message.
+                }
+            }
+
+            throw new Error(detail);
+        }
+
+        if (data && data.error) {
+            throw new Error(data.error);
+        }
+
+        return data;
+    }
+
+    async function loadInventory() {
+        if (inventoryLoading) return;
+
+        inventoryLoading = true;
+        inventoryElements.refreshButton.disabled = true;
+        showInventoryMessage("Loading products...");
+
+        try {
+            const data = await callInventoryFunction("GET");
+
+            inventoryProducts = Array.isArray(data.products)
+                ? data.products
+                : [];
+
+            renderInventory();
+            showInventoryMessage(
+                "Inventory loaded successfully."
+            );
+        } catch (error) {
+            console.error("Inventory loading failed:", error);
+
+            showInventoryMessage(
+                "Could not load inventory: " + error.message,
+                true
+            );
+        } finally {
+            inventoryLoading = false;
+            inventoryElements.refreshButton.disabled = false;
+        }
+    }
+
+    function resetProductForm() {
+        inventoryElements.form.reset();
+        inventoryElements.originalName.value = "";
+        inventoryElements.name.disabled = false;
+        inventoryElements.saveButton.textContent = "Save Product";
+        showInventoryMessage("");
+    }
+
+    function editProduct(product) {
+        inventoryElements.originalName.value = product.product_name;
+        inventoryElements.name.value = product.product_name;
+
+        // Product names are database references, so renaming is disabled.
+        inventoryElements.name.disabled = true;
+
+        inventoryElements.price.value = product.unit_price;
+        inventoryElements.stock.value = product.stock_quantity;
+        inventoryElements.threshold.value =
+            product.low_stock_threshold;
+
+        setActiveValue(product.active);
+
+        inventoryElements.saveButton.textContent = "Update Product";
+
+        showInventoryMessage(
+            "Editing " + product.product_name +
+            ". Product names cannot be changed yet."
+        );
+
+        inventoryElements.form.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }
+
+    async function changeProductAvailability(product) {
+        const action = product.active ? "deactivate" : "activate";
+
+        if (!window.confirm(
+            "Are you sure you want to " + action +
+            " " + product.product_name + "?"
+        )) {
+            return;
+        }
+
+        try {
+            if (product.active) {
+                await callInventoryFunction("DELETE", {
+                    product_name: product.product_name
+                });
+            } else {
+                await callInventoryFunction("PATCH", {
+                    original_product_name: product.product_name,
+                    product_name: product.product_name,
+                    unit_price: Number(product.unit_price),
+                    stock_quantity: Number(product.stock_quantity),
+                    low_stock_threshold:
+                        Number(product.low_stock_threshold),
+                    active: true
+                });
+            }
+
+            showInventoryMessage(
+                "Product " + action + "d successfully."
+            );
+
+            await loadInventory();
+        } catch (error) {
+            console.error("Product availability update failed:", error);
+
+            showInventoryMessage(
+                "Could not change availability: " + error.message,
+                true
+            );
+        }
+    }
+
+    inventoryElements.form.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const originalName =
+            inventoryElements.originalName.value.trim();
+
+        const productName = inventoryElements.name.value.trim();
+        const unitPrice = Number(inventoryElements.price.value);
+        const stockQuantity = Number(inventoryElements.stock.value);
+        const lowStockThreshold =
+            Number(inventoryElements.threshold.value);
+
+        if (!productName) {
+            showInventoryMessage("Enter a product name.", true);
+            return;
+        }
+
+        if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+            showInventoryMessage(
+                "Enter a price greater than zero.",
+                true
+            );
+            return;
+        }
+
+        if (
+            !Number.isSafeInteger(stockQuantity) ||
+            stockQuantity < 0 ||
+            !Number.isSafeInteger(lowStockThreshold) ||
+            lowStockThreshold < 0
+        ) {
+            showInventoryMessage(
+                "Stock and warning level must be whole numbers of zero or more.",
+                true
+            );
+            return;
+        }
+
+        const payload = {
+            product_name: productName,
+            unit_price: unitPrice,
+            stock_quantity: stockQuantity,
+            low_stock_threshold: lowStockThreshold,
+            active: getActiveValue()
+        };
+
+        const isEditing = Boolean(originalName);
+
+        if (isEditing) {
+            payload.original_product_name = originalName;
+        }
+
+        inventoryElements.saveButton.disabled = true;
+        showInventoryMessage(
+            isEditing ? "Updating product..." : "Adding product..."
+        );
+
+        try {
+            await callInventoryFunction(
+                isEditing ? "PATCH" : "POST",
+                payload
+            );
+
+            resetProductForm();
+
+            showInventoryMessage(
+                isEditing
+                    ? "Product updated successfully."
+                    : "Product added successfully."
+            );
+
+            await loadInventory();
+        } catch (error) {
+            console.error("Saving product failed:", error);
+
+            showInventoryMessage(
+                "Could not save product: " + error.message,
+                true
+            );
+        } finally {
+            inventoryElements.saveButton.disabled = false;
+        }
+    });
+
+    inventoryElements.refreshButton.addEventListener(
+        "click",
+        loadInventory
+    );
+
+    inventoryElements.addButton.addEventListener("click", () => {
+        resetProductForm();
+
+        inventoryElements.name.disabled = false;
+
+        inventoryElements.form.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+        inventoryElements.name.focus();
+    });
+
+    inventoryElements.cancelButton.addEventListener("click", () => {
+        resetProductForm();
+    });
+
+    // Load inventory when the existing admin dashboard becomes visible.
+    // This avoids changing your existing login or order handlers.
+    function dashboardIsVisible() {
+        const dashboard = document.getElementById("dashboard");
+
+        return dashboard &&
+            dashboard.style.display !== "none" &&
+            window.getComputedStyle(dashboard).display !== "none";
+    }
+
+    const dashboard = document.getElementById("dashboard");
+
+    if (dashboard) {
+        const observer = new MutationObserver(() => {
+            if (dashboardIsVisible()) {
+                loadInventory();
+            }
+        });
+
+        observer.observe(dashboard, {
+            attributes: true,
+            attributeFilter: ["style", "class", "hidden"]
+        });
+
+        if (dashboardIsVisible()) {
+            loadInventory();
+        }
+    }
+
+    console.log("Inventory management initialized.");
+})();
