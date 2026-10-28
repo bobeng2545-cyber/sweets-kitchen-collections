@@ -41,9 +41,7 @@
             font-size: 13px;
         }
 
-        button,
-        input,
-        select {
+        button, input, select {
             font: inherit;
         }
 
@@ -134,8 +132,7 @@
             min-width: 650px;
         }
 
-        th,
-        td {
+        th, td {
             padding: 14px 12px;
             border-bottom: 1px solid #e5e7eb;
             text-align: left;
@@ -299,19 +296,15 @@
             border-radius: 8px;
         }
 
-        #productImageMessage {
+        #productImageMessage,
+        #inventoryMessage {
             overflow-wrap: anywhere;
             font-size: 13px;
             line-height: 1.5;
         }
 
-        #inventoryMessage {
-            line-height: 1.5;
-            overflow-wrap: anywhere;
-        }
-
         #productsTable {
-            min-width: 750px;
+            min-width: 900px;
         }
 
         #productsTable button {
@@ -335,7 +328,8 @@
 
         @media (max-width: 650px) {
             .summary,
-            .inventory-summary {
+            .inventory-summary,
+            .inventory-form {
                 grid-template-columns: 1fr;
             }
 
@@ -346,10 +340,6 @@
 
             .inventory-panel {
                 padding: 14px;
-            }
-
-            .inventory-form {
-                grid-template-columns: 1fr;
             }
 
             .inventory-form .full-width {
@@ -432,10 +422,7 @@
                 <div class="orders-heading">
                     <h2>Customer Orders</h2>
 
-                    <button
-                        id="refreshOrdersButton"
-                        type="button"
-                    >
+                    <button id="refreshOrdersButton" type="button">
                         Refresh orders
                     </button>
                 </div>
@@ -466,7 +453,6 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-
                         <tbody id="ordersTableBody"></tbody>
                     </table>
                 </div>
@@ -477,7 +463,7 @@
                 <div class="orders-heading">
                     <div>
                         <h2>Inventory Management</h2>
-                        <p>Manage your products, prices, images and stock.</p>
+                        <p>Manage products, categories, prices, images and stock.</p>
                     </div>
 
                     <button
@@ -540,6 +526,16 @@
                     </div>
 
                     <div>
+                        <label for="productCategory">Product category</label>
+                        <select id="productCategory" name="category" required>
+                            <option value="kitchen tools">Kitchen Tools</option>
+                            <option value="fashion">Fashion</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="beauty">Beauty</option>
+                        </select>
+                    </div>
+
+                    <div>
                         <label for="productPrice">Price (GH₵)</label>
                         <input
                             id="productPrice"
@@ -551,9 +547,7 @@
                     </div>
 
                     <div>
-                        <label for="productStock">
-                            Current stock quantity
-                        </label>
+                        <label for="productStock">Current stock quantity</label>
                         <input
                             id="productStock"
                             type="number"
@@ -564,9 +558,7 @@
                     </div>
 
                     <div>
-                        <label for="productLowStock">
-                            Low-stock warning level
-                        </label>
+                        <label for="productLowStock">Low-stock warning level</label>
                         <input
                             id="productLowStock"
                             type="number"
@@ -579,9 +571,7 @@
 
                     <!-- PRODUCT IMAGE UPLOAD -->
                     <div class="full-width">
-                        <label for="productImage">
-                            Product image
-                        </label>
+                        <label for="productImage">Product image</label>
 
                         <input
                             id="productImage"
@@ -612,21 +602,12 @@
                             </p>
                         </div>
                     </div>
-                    <!-- END PRODUCT IMAGE UPLOAD -->
 
                     <div class="full-width">
-                        <label for="productActive">
-                            Product availability
-                        </label>
-
+                        <label for="productActive">Product availability</label>
                         <select id="productActive">
-                            <option value="true">
-                                Active — available for sale
-                            </option>
-
-                            <option value="false">
-                                Inactive — unavailable for sale
-                            </option>
+                            <option value="true">Active — available for sale</option>
+                            <option value="false">Inactive — unavailable for sale</option>
                         </select>
                     </div>
 
@@ -655,6 +636,7 @@
                         <thead>
                             <tr>
                                 <th>Product</th>
+                                <th>Category</th>
                                 <th>Price (GH₵)</th>
                                 <th>Stock</th>
                                 <th>Stock warning</th>
@@ -678,7 +660,7 @@
         </section>
     </main>
 
-    <!-- EXISTING SUPABASE CLIENT AND ADMIN JAVASCRIPT -->
+    <!-- SUPABASE CLIENT AND EXISTING ADMIN JAVASCRIPT -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./admin.js"></script>
 </body>
