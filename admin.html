@@ -4,7 +4,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Admin Dashboard | SWEET's KITCHEN</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            color: #202a36;
+        }
+
+        header {
+            background: #202a36;
+            color: white;
+            padding: 22px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 21px;
+        }
+
+        header p {
+            margin: 6px 0 0;
+            color: #cbd5e1;
+            font-size: 13px;
+        }
+
+        button, input, select {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            border-radius: 7px;
+            padding: 11px 15px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .logout-btn {
+            background: #fff;
+            color: #202a36;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .notice {
+            padding: 14px;
+            border-radius: 8px;
+            background: #fff4d8;
+            color: #684b0a;
+            line-height: 1.5;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            margin: 24px 0;
+        }
+
+        .summary-card,
+        .orders-panel,
+        .login-panel {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 22px;
+        }
+
+        .summary-card p {
+            color: #687386;
+            margin: 0 0 12px;
+        }
+
+        .summary-card strong {
+            font-size: 28px;
+        }
+
+        .orders-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .orders-heading h2 {
+            margin: 0;
+        }
+
+        #searchOrders {
+            width: 100%;
+            max-width: 360px;
+            padding: 12px;
+            border: 1px solid #d7dce3;
+            border-radius: 7px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        th {
+            background: #f8fafc;
+            font-size: 13px;
+        }
+
+        #ordersMessage {
+            color: #687386;
+            line-height: 1.6;
+        }
+
+        #loginPanel {
+            max-width: 430px;
+            margin: 60px auto;
+        }
+
+        #loginPanel label {
+            display: block;
+            margin: 14px 0 7px;
+        }
+
+        #loginPanel input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d7dce3;
+            border-radius: 7px;
+        }
+
+        #loginButton {
+            width: 100%;
+            margin-top: 20px;
+            background: #202a36;
+            color: white;
+        }
+
+        /* INVENTORY MANAGEMENT */
 
         .inventory-panel {
             background: white;
@@ -14,7 +182,11 @@
             margin: 24px 0;
         }
 
-    
+        .inventory-panel h2 {
+            margin-top: 0;
+        }
+
+        .inventory-summary {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 16px;
@@ -70,6 +242,10 @@
             border-radius: 10px;
         }
 
+        .inventory-form h3 {
+            margin: 0;
+        }
+
         .inventory-form label {
             display: block;
             margin-bottom: 6px;
@@ -83,6 +259,7 @@
             padding: 11px;
             border: 1px solid #d7dce3;
             border-radius: 7px;
+            background: white;
         }
 
         .inventory-form .full-width {
@@ -113,9 +290,23 @@
             font-weight: bold;
         }
 
+        [hidden] {
+            display: none !important;
+        }
+
         @media (max-width: 650px) {
+            .summary,
             .inventory-summary {
                 grid-template-columns: 1fr;
+            }
+
+            main {
+                margin-top: 22px;
+                padding: 0 12px;
+            }
+
+            .inventory-panel {
+                padding: 14px;
             }
 
             .inventory-form {
@@ -125,52 +316,61 @@
             .inventory-form .full-width {
                 grid-column: auto;
             }
-
-            .inventory-panel {
-                padding: 14px;
-            }
         }
+    </style>
 </head>
 
 <body>
     <header>
         <div>
-            <h1>SWEET's KITCHEN & COLLECTIONS</h1>
+            <h1>SWEET's KITCHEN &amp; COLLECTIONS</h1>
             <p>Store Administration Dashboard</p>
         </div>
+
         <button id="logoutButton" class="logout-btn" hidden>
             Sign out
         </button>
     </header>
 
     <main>
+        <!-- ADMIN LOGIN -->
         <section id="loginPanel" class="login-panel">
             <h2>Administrator Login</h2>
             <p>Sign in using your approved administrator account.</p>
 
             <form id="adminLoginForm">
                 <label for="adminEmail">Email address</label>
-                <input id="adminEmail" type="email"
-                    autocomplete="username" required>
+                <input
+                    id="adminEmail"
+                    type="email"
+                    autocomplete="username"
+                    required
+                >
 
                 <label for="adminPassword">Password</label>
-                <input id="adminPassword" type="password"
-                    autocomplete="current-password" required>
+                <input
+                    id="adminPassword"
+                    type="password"
+                    autocomplete="current-password"
+                    required
+                >
 
                 <button id="loginButton" type="submit">
                     Sign in
                 </button>
             </form>
 
-            <p id="loginMessage" role="status"></p>
+            <p id="loginMessage" role="status" aria-live="polite"></p>
         </section>
 
+        <!-- ADMIN DASHBOARD -->
         <section id="dashboard" hidden>
             <p class="notice">
                 Customer and order information is restricted to
                 authorized administrators.
             </p>
 
+            <!-- ORDER SUMMARY -->
             <div class="summary">
                 <div class="summary-card">
                     <p>Paid orders</p>
@@ -183,16 +383,22 @@
                 </div>
             </div>
 
+            <!-- CUSTOMER ORDERS -->
             <section class="orders-panel">
                 <div class="orders-heading">
                     <h2>Customer Orders</h2>
+
                     <button id="refreshOrdersButton" type="button">
                         Refresh orders
                     </button>
                 </div>
 
-                <input id="searchOrders" type="search"
-                    placeholder="Search by order reference">
+                <input
+                    id="searchOrders"
+                    type="search"
+                    placeholder="Search by order reference"
+                    aria-label="Search orders by reference"
+                >
 
                 <p id="ordersMessage" role="status" aria-live="polite">
                     Loading orders...
@@ -209,13 +415,182 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
+
                         <tbody id="ordersTableBody"></tbody>
                     </table>
                 </div>
             </section>
+
+            <!-- INVENTORY MANAGEMENT -->
+            <section class="inventory-panel" id="inventoryPanel">
+                <div class="orders-heading">
+                    <div>
+                        <h2>Inventory Management</h2>
+                        <p>Manage your products, prices and stock levels.</p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="secondary-btn"
+                        id="refreshInventoryButton"
+                    >
+                        Refresh inventory
+                    </button>
+                </div>
+
+                <!-- INVENTORY SUMMARY -->
+                <div class="inventory-summary">
+                    <div class="inventory-card">
+                        <p>Active products</p>
+                        <strong id="activeProductsCount">—</strong>
+                    </div>
+
+                    <div class="inventory-card">
+                        <p>Total units in stock</p>
+                        <strong id="totalStockCount">—</strong>
+                    </div>
+
+                    <div class="inventory-card">
+                        <p>Low-stock products</p>
+                        <strong id="lowStockCount">—</strong>
+                    </div>
+                </div>
+
+                <!-- PRODUCT ACTIONS -->
+                <div class="inventory-actions">
+                    <button
+                        type="button"
+                        class="primary-btn"
+                        id="addProductButton"
+                    >
+                        + Add product
+                    </button>
+                </div>
+
+                <!-- ADD / EDIT PRODUCT FORM -->
+                <form id="productForm" class="inventory-form" hidden>
+                    <h3 class="full-width" id="productFormTitle">
+                        Add a new product
+                    </h3>
+
+                    <input
+                        type="hidden"
+                        id="originalProductName"
+                    >
+
+                    <div>
+                        <label for="productName">Product name</label>
+                        <input
+                            id="productName"
+                            type="text"
+                            maxlength="150"
+                            required
+                        >
+                    </div>
+
+                    <div>
+                        <label for="productPrice">Price (GH₵)</label>
+                        <input
+                            id="productPrice"
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            required
+                        >
+                    </div>
+
+                    <div>
+                        <label for="productStock">
+                            Current stock quantity
+                        </label>
+                        <input
+                            id="productStock"
+                            type="number"
+                            min="0"
+                            step="1"
+                            required
+                        >
+                    </div>
+
+                    <div>
+                        <label for="productLowStock">
+                            Low-stock warning level
+                        </label>
+                        <input
+                            id="productLowStock"
+                            type="number"
+                            min="0"
+                            step="1"
+                            value="5"
+                            required
+                        >
+                    </div>
+
+                    <div class="full-width">
+                        <label for="productActive">
+                            Product availability
+                        </label>
+
+                        <select id="productActive">
+                            <option value="true">
+                                Active — available for sale
+                            </option>
+
+                            <option value="false">
+                                Inactive — unavailable for sale
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="full-width inventory-actions">
+                        <button
+                            type="submit"
+                            class="primary-btn"
+                            id="saveProductButton"
+                        >
+                            Save product
+                        </button>
+
+                        <button
+                            type="button"
+                            class="secondary-btn"
+                            id="cancelProductButton"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+
+                <!-- PRODUCTS TABLE -->
+                <div class="table-wrap">
+                    <table id="productsTable">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price (GH₵)</th>
+                                <th>Stock</th>
+                                <th>Stock warning</th>
+                                <th>Availability</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="productsTableBody"></tbody>
+                    </table>
+                </div>
+
+                <p
+                    id="inventoryMessage"
+                    role="status"
+                    aria-live="polite"
+                >
+                    Inventory has not been loaded yet.
+                </p>
+            </section>
         </section>
     </main>
 
+    <!-- EXISTING SUPABASE CLIENT AND ADMIN JAVASCRIPT -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./admin.js"></script>
 </body>
