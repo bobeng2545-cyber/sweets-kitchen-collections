@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | SWEET's KITCHEN</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            color: #202a36;
+        }
+
+        header {
+            background: #202a36;
+            color: white;
+            padding: 22px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 21px;
+        }
+
+        header p {
+            margin: 6px 0 0;
+            color: #cbd5e1;
+            font-size: 13px;
+        }
+
+        button, input, select {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            border-radius: 7px;
+            padding: 11px 15px;
+            cursor: pointer;
+        }
+
+        .logout-btn {
+            background: #fff;
+            color: #202a36;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .notice {
+            padding: 14px;
+            border-radius: 8px;
+            background: #fff4d8;
+            color: #684b0a;
+            line-height: 1.5;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+            margin: 24px 0;
+        }
+
+        .summary-card, .orders-panel, .login-panel {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 22px;
+        }
+
+        .summary-card p {
+            color: #687386;
+            margin: 0 0 12px;
+        }
+
+        .summary-card strong {
+            font-size: 28px;
+        }
+
+        .orders-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .orders-heading h2 {
+            margin: 0;
+        }
+
+        #searchOrders {
+            width: 100%;
+            max-width: 360px;
+            padding: 12px;
+            border: 1px solid #d7dce3;
+            border-radius: 7px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        th {
+            background: #f8fafc;
+            font-size: 13px;
+        }
+
+        #ordersMessage {
+            color: #687386;
+            line-height: 1.6;
+        }
+
+        #loginPanel {
+            max-width: 430px;
+            margin: 60px auto;
+        }
+
+        #loginPanel label {
+            display: block;
+            margin: 14px 0 7px;
+        }
+
+        #loginPanel input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d7dce3;
+            border-radius: 7px;
+        }
+
+        #loginButton {
+            width: 100%;
+            margin-top: 20px;
+            background: #202a36;
+            color: white;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            .summary {
+                grid-template-columns: 1fr;
+            }
+
+            main {
+                margin-top: 22px;
+                padding: 0 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div>
+            <h1>SWEET's KITCHEN & COLLECTIONS</h1>
+            <p>Store Administration Dashboard</p>
+        </div>
+        <button id="logoutButton" class="logout-btn" hidden>
+            Sign out
+        </button>
+    </header>
+
+    <main>
+        <section id="loginPanel" class="login-panel">
+            <h2>Administrator Login</h2>
+            <p>Sign in using your approved administrator account.</p>
+
+            <form id="adminLoginForm">
+                <label for="adminEmail">Email address</label>
+                <input id="adminEmail" type="email"
+                    autocomplete="username" required>
+
+                <label for="adminPassword">Password</label>
+                <input id="adminPassword" type="password"
+                    autocomplete="current-password" required>
+
+                <button id="loginButton" type="submit">
+                    Sign in
+                </button>
+            </form>
+
+            <p id="loginMessage" role="status"></p>
+        </section>
+
+        <section id="dashboard" hidden>
+            <p class="notice">
+                Customer and order information is restricted to
+                authorized administrators.
+            </p>
+
+            <div class="summary">
+                <div class="summary-card">
+                    <p>Paid orders</p>
+                    <strong id="paidOrdersCount">—</strong>
+                </div>
+
+                <div class="summary-card">
+                    <p>Awaiting preparation</p>
+                    <strong id="pendingOrdersCount">—</strong>
+                </div>
+            </div>
+
+            <section class="orders-panel">
+                <div class="orders-heading">
+                    <h2>Customer Orders</h2>
+                    <button id="refreshOrdersButton" type="button">
+                        Refresh orders
+                    </button>
+                </div>
+
+                <input id="searchOrders" type="search"
+                    placeholder="Search by order reference">
+
+                <p id="ordersMessage" role="status" aria-live="polite">
+                    Loading orders...
+                </p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order reference</th>
+                                <th>Total (GH₵)</th>
+                                <th>Payment</th>
+                                <th>Order status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./admin.js"></script>
+</body>
+</html>
