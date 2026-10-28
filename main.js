@@ -755,11 +755,132 @@ if (error) {
     }
 })();
 
-        if (profileMenu) {
-            profileMenu.hidden = true;
+        
+/* ==================================
+   MY ORDERS — CUSTOMER ORDER HISTORY
+================================== */
+
+async function loadMyOrders() {
+    const myOrdersList = document.getElementById("myOrdersList");
+    const ordersMessage = document.getElementById("ordersMessage");
+
+    if (!myOrdersList) {
+        console.error("My Orders list element was not found.");
+        return;
+    }
+
+    myOrdersList.replaceChildren();
+
+    if (ordersMessage) {
+        ordersMessage.textContent = "Loading your orders...";
+    }
+
+    try {
+        // Get the currently signed-in customer.
+        const { data: userData, error: userError } =
+            await supabaseClient.auth.getUser();
+
+        if (userError) throw userError;
+
+        const user = userData.user;
+
+        if (!user) {
+            if (ordersMessage) {
+                ordersMessage.textContent =
+                    "Please sign in to view your orders.";
+            }
+            return;
         }
-    });
+
+        // Fetch only this customer's orders.
+        const { data: orders, error } = await supabaseClient
+            .from("orders")
+            .select(`
+                id,
+                order_reference,
+                subtotal,
+                service_charge,
+                total_amount,
+                payment_network,
+                payment_status,
+                order_status,
+                user_id
+            `)
+            .eq("user_id", user.id);
+
+        if (error) throw error;
+
+        if (!orders || orders.length === 0) {
+            if (ordersMessage) {
+                ordersMessage.textContent = "You have no orders yet.";
+            }
+            return;
+        }
+
+        if (ordersMessage) {
+            ordersMessage.textContent =
+                `Found ${orders.length} order(s).`;
+        }
+
+        orders.forEach(function(order) {
+            const card = document.createElement("article");
+            card.className = "my-order-card";
+
+            const reference = document.createElement("h3");
+            reference.textContent =
+                `Order: ${order.order_reference || order.id}`;
+
+            const total = document.createElement("p");
+            total.textContent =
+                `Total: GH₵ ${Number(order.total_amount || 0).toFixed(2)}`;
+
+            const payment = document.createElement("p");
+            payment.textContent =
+                `Payment: ${order.payment_status || "Unknown"}`;
+
+            const network = document.createElement("p");
+            network.textContent =
+                `Payment network: ${order.payment_network || "Not specified"}`;
+
+            const status = document.createElement("p");
+            status.textContent =
+                `Order status: ${order.order_status || "Pending"}`;
+
+            card.append(
+                reference,
+                total,
+                payment,
+                network,
+                status
+            );
+
+            myOrdersList.appendChild(card);
+        });
+
+    } catch (error) {
+        console.error("My Orders error:", error);
+
+        if (ordersMessage) {
+            ordersMessage.textContent =
+                "Unable to load your orders. Please try again.";
+        }
+    }
 }
+
+/* Refresh My Orders */
+const refreshOrdersBtn = document.getElementById("refreshOrdersBtn");
+
+if (refreshOrdersBtn) {
+    refreshOrdersBtn.addEventListener("click", loadMyOrders);
+}
+
+/* Load My Orders when the customer clicks the link */
+const myOrdersLink = document.getElementById("myOrdersLink");
+
+if (myOrdersLink) {
+    myOrdersLink.addEventListener("click", loadMyOrders);
+}
+
 
 
 async function loadMyOrders() {
