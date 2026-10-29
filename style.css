@@ -2034,3 +2034,124 @@ body.dark-mode .orders-info p {
         font-size: .75rem;
     }
 }
+
+
+/* =========================================
+   SWEET'S KITCHEN & COLLECTIONS
+   FINAL MY ORDERS RESPONSIVE FIX
+========================================= */
+
+/* Desktop: two cards per row */
+.my-orders-list,
+#myOrdersList {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Make every order card fit its column */
+.order-card {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+}
+
+/* Tablet: two cards per row */
+@media screen and (min-width: 601px) and (max-width: 900px) {
+    .my-orders-list,
+    #myOrdersList {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+}
+
+/* Mobile: one card per row */
+@media screen and (max-width: 600px) {
+    .my-orders-list,
+    #myOrdersList {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 15px;
+        width: 100%;
+    }
+
+    .order-card {
+        width: 100%;
+        min-width: 0;
+        padding: 14px;
+        box-sizing: border-box;
+    }
+
+    .order-card-header,
+    .order-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .order-details {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .order-detail-value {
+        overflow-wrap: anywhere;
+    }
+
+    .order-total {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .order-card button {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .order-card .order-product {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .order-card .order-product img {
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+    }
+
+    .order-card .order-product-info {
+        flex: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+}
+
+/* Very small phones */
+@media screen and (max-width: 360px) {
+    .my-orders-list,
+    #myOrdersList {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .order-card {
+        padding: 10px;
+    }
+
+    .order-details {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+    }
+}
