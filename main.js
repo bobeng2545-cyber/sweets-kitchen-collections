@@ -1113,3 +1113,49 @@ if (myOrdersLink && myOrdersSection) {
 }
 
 
+/* DARK AND LIGHT MODE */
+
+const themeToggle = document.getElementById("themeToggle");
+const themeIcon = document.getElementById("themeIcon");
+
+function setTheme(theme) {
+    const isDark = theme === "dark";
+
+    document.body.classList.toggle("dark-mode", isDark);
+
+    if (themeIcon) {
+        themeIcon.textContent = isDark ? "light_mode" : "dark_mode";
+    }
+
+    if (themeToggle) {
+        themeToggle.setAttribute(
+            "aria-label",
+            isDark ? "Switch to light mode" : "Switch to dark mode"
+        );
+    }
+
+    try {
+        localStorage.setItem("sweetKitchenTheme", theme);
+    } catch (error) {
+        console.warn("Theme preference could not be saved.");
+    }
+}
+
+if (themeToggle && themeIcon) {
+    let savedTheme = "light";
+
+    try {
+        savedTheme = localStorage.getItem("sweetKitchenTheme") || "light";
+    } catch (error) {
+        // Use light mode if browser storage is unavailable.
+    }
+
+    setTheme(savedTheme);
+
+    themeToggle.addEventListener("click", function () {
+        const isDark = document.body.classList.contains("dark-mode");
+
+        setTheme(isDark ? "light" : "dark");
+    });
+}
+
