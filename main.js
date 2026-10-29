@@ -256,239 +256,96 @@ else if (button.classList.contains("remove-item")) {
 
 
  
+
 /* =========================================
-   DYNAMIC PRODUCTS FROM SUPABASE
+   SEARCH AND CATEGORY FILTERING
    SWEET'S KITCHEN & COLLECTIONS
 ========================================= */
 
-const productsGrid = document.getElementById("productsGrid");
 const searchInput = document.getElementById("searchInput");
 const searchButton = document.getElementById("searchButton");
 const categoryButtons = document.querySelectorAll(".category-btn");
 const productSection = document.getElementById("products");
-const productLoadingMessage = document.getElementById("productLoadingMessage");
+const productsGrid = document.getElementById("productsGrid");
 
-let storeProducts = [];
 let selectedCategory = "all";
 
 let searchMessage = document.getElementById("searchMessage");
 
-if (!searchMessage && productsGrid) {
+if (productsGrid && !searchMessage) {
     searchMessage = document.createElement("p");
     searchMessage.id = "searchMessage";
     searchMessage.textContent = "No matching products found.";
     searchMessage.style.textAlign = "center";
     searchMessage.style.padding = "20px";
     searchMessage.hidden = true;
+
     productsGrid.insertAdjacentElement("afterend", searchMessage);
 }
 
-/* Create a product card safely */
-function createProductCard(product) {
-    const name = String(product.product_name || "Product");
-    const price = Number(product.unit_price || 0);
-    const imageUrl = String(product.image_url || "").trim();
-
-    const card = document.createElement("article");
-    card.className = "product-card";
-    card.dataset.name = name;
-    card.dataset.category = String(product.category || "products").toLowerCase();
-
-    const imageContainer = document.createElement("div");
-    imageContainer.className = "product-image";
-
-    const image = document.createElement("img");
-    image.alt = name;
-    image.loading = "lazy";
-
-    if (imageUrl) {
-        image.src = imageUrl;
-    } else {
-        image.alt = `${name} — image not available`;
-        imageContainer.classList.add("no-product-image");
-    }
-
-    image.addEventListener("error", function () {
-        image.removeAttribute("src");
-        image.alt = `${name} — image unavailable`;
-        imageContainer.classList.add("no-product-image");
-    });
-
-    const favouriteButton = document.createElement("button");
-    favouriteButton.type = "button";
-    favouriteButton.className = "favourite-button";
-    favouriteButton.textContent = "💖";
-    favouriteButton.setAttribute("aria-label", `Favourite ${name}`);
-
-    imageContainer.append(image, favouriteButton);
-
-    const info = document.createElement("div");
-    info.className = "product-info";
-
-    const category = document.createElement("p");
-    category.className = "products-category";
-    category.textContent = product.category || "Products";
-
-    const heading = document.createElement("h3");
-    heading.textContent = name;
-
-    const description = document.createElement("p");
-    description.className = "product-description";
-    description.textContent = product.description || "";
-
-    info.append(category, heading, description);
-
-    const bottom = document.createElement("div");
-    bottom.className = "product-buttom";
-
-    const priceElement = document.createElement("strong");
-    priceElement.textContent = `GH₵${price.toLocaleString("en-GH", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    })}`;
-
-    const addButton = document.createElement("button");
-    addButton.type = "button";
-    addButton.className = "add-to-cart";
-    addButton.dataset.name = name;
-    addButton.dataset.price = String(price);
-    addButton.textContent = "Add to cart";
-
-    const alreadyAdded = cart.some(item => item.name === name);
-
-    if (alreadyAdded) {
-        addButton.textContent = "Added to Cart";
-        addButton.disabled = true;
-    }
-
-    bottom.append(priceElement, addButton);
-    card.append(imageContainer, info, bottom);
-
-    return card;
-}
-
-/* Load active products from Supabase */
-async function loadStoreProducts() {
+function filterProducts() {
     if (!productsGrid) {
-        console.error("The productsGrid element was not found.");
+        console.error("Product grid #productsGrid was not found.");
         return;
     }
 
-    if (productLoadingMessage) {
-        productLoadingMessage.hidden = false;
-        productLoadingMessage.textContent = "Loading products...";
-    }
+    const searchTerm = (searchInput?.value || "")
+        .trim()
+        .toLowerCase();
 
-    productsGrid.replaceChildren();
+    // Query the grid each time so newly added cards are included.
+    const productCards = productsGrid.querySelectorAll(".product-card");
+    let matchingProducts = 0;
 
-    try {
-        const { data, error } = await supabaseClient
-            .from("store_products")
-            .select(
-                "product_name, unit_price, active, stock_quantity, image_url"
-            )
-            .eq("active", true)
-            .order("product_name", { ascending: true });
+    productCards.forEach(function (card) {
+        const heading = card.querySelector("h3");
 
-        if (error) {
-            throw error;
-        }
+        const productName = (
+            card.dataset.name ||
+            heading?.textContent ||
+            ""
+        ).trim().toLowerCase();
 
-        storeProducts = (data || []).filter(product =>
-            product.product_name &&
-            Number.isFinite(Number(product.unit_price)) &&
-            Number(product.unit_price) > 0
-        );
-
-        renderStoreProducts();
-
-        if (productLoadingMessage) {
-            productLoadingMessage.hidden = true;
-        }
-    } catch (error) {
-        console.error("Could not load products from Supabase:", error);
-
-        if (productLoadingMessage) {
-            productLoadingMessage.hidden = false;
-            productLoadingMessage.textContent =
-                "Products could not be loaded. Please refresh the page.";
-        }
-    }
-}
-
-/* Search, filter, and display the loaded products */
-function renderStoreProducts() {
-    if (!productsGrid) return;
-
-    const searchTerm = (searchInput?.value || "").trim().toLowerCase();
-
-    const matchingProducts = storeProducts.filter(product => {
-        const name = String(product.product_name || "").toLowerCase();
-        const category = String(product.category || "products").toLowerCase();
+        const productCategory = (
+            card.dataset.category ||
+            card.querySelector(".products-category")?.textContent ||
+            ""
+        ).trim().toLowerCase();
 
         const matchesSearch =
-            name.includes(searchTerm) ||
-            category.includes(searchTerm);
+            productName.includes(searchTerm) ||
+            productCategory.includes(searchTerm);
 
         const matchesCategory =
             selectedCategory === "all" ||
-            category === selectedCategory;
+            productCategory === selectedCategory;
 
-        return matchesSearch && matchesCategory;
-    });
+        const shouldShow = matchesSearch && matchesCategory;
 
-    productsGrid.replaceChildren();
+        card.style.display = shouldShow ? "" : "none";
 
-    matchingProducts.forEach(product => {
-        productsGrid.appendChild(createProductCard(product));
+        if (shouldShow) {
+            matchingProducts++;
+        }
     });
 
     if (searchMessage) {
-        searchMessage.hidden = matchingProducts.length > 0;
+        searchMessage.hidden = matchingProducts > 0;
     }
+
+    console.log(
+        "Products found:",
+        productCards.length,
+        "| Matching products:",
+        matchingProducts,
+        "| Category:",
+        selectedCategory
+    );
 }
 
-/* Add-to-cart handler for dynamically created product cards */
-if (productsGrid) {
-    productsGrid.addEventListener("click", function (event) {
-        const button = event.target.closest(".add-to-cart");
-
-        if (!button || !productsGrid.contains(button)) return;
-
-        const name = button.dataset.name;
-        const price = Number(button.dataset.price);
-
-        if (!name || !Number.isFinite(price) || price <= 0) {
-            alert("This product has invalid details. Please contact the store.");
-            return;
-        }
-
-        const existingProduct = cart.find(item => item.name === name);
-
-        if (existingProduct) {
-            alert(
-                "This product is already in your cart. Use + or − in the cart to change the quantity."
-            );
-            return;
-        }
-
-        cart.push({
-            name: name,
-            price: price,
-            quantity: 1
-        });
-
-        updateCart();
-
-        button.textContent = "Added to Cart";
-        button.disabled = true;
-    });
-}
-
-/* Search button */
 if (searchButton) {
     searchButton.addEventListener("click", function () {
-        renderStoreProducts();
+        filterProducts();
 
         productSection?.scrollIntoView({
             behavior: "smooth",
@@ -497,14 +354,13 @@ if (searchButton) {
     });
 }
 
-/* Search as the customer types */
 if (searchInput) {
-    searchInput.addEventListener("input", renderStoreProducts);
+    searchInput.addEventListener("input", filterProducts);
 
     searchInput.addEventListener("keydown", function (event) {
         if (event.key === "Enter") {
             event.preventDefault();
-            renderStoreProducts();
+            filterProducts();
 
             productSection?.scrollIntoView({
                 behavior: "smooth",
@@ -514,19 +370,19 @@ if (searchInput) {
     });
 }
 
-/* Category buttons */
 categoryButtons.forEach(function (button) {
     button.addEventListener("click", function () {
         selectedCategory = (
             button.dataset.category || "all"
-        ).toLowerCase();
+        ).trim().toLowerCase();
 
         categoryButtons.forEach(function (categoryButton) {
             categoryButton.classList.remove("active");
         });
 
         button.classList.add("active");
-        renderStoreProducts();
+
+        filterProducts();
 
         productSection?.scrollIntoView({
             behavior: "smooth",
@@ -535,8 +391,9 @@ categoryButtons.forEach(function (button) {
     });
 });
 
-/* Start loading products */
-loadStoreProducts();
+// Apply the default category when the page loads.
+filterProducts();
+
 
 
 
