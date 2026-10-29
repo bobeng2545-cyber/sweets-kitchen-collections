@@ -1,5 +1,3 @@
-Correct it all for copy and paste
-
 
 /* ==========================================
    SWEET'S KITCHEN & COLLECTIONS
@@ -1038,17 +1036,22 @@ footer {
     box-shadow: 0 0 0 3px rgba(117,70,213,.12);
 }
 
-/* 14. MY ORDERS SECTION */
+/* ==========================================
+   14. MY ORDERS — SMALL SIDE-BY-SIDE CARDS
+========================================== */
+
 .my-orders-section {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 40px 20px;
+    padding: 30px 16px;
     background: #f8f9fb;
     scroll-margin-top: 100px;
 }
 
-.my-orders-container {
+.my-orders-container,
+#myOrders {
+    width: 100%;
     max-width: 1100px;
     margin: 0 auto;
 }
@@ -1057,59 +1060,71 @@ footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 24px;
+    gap: 12px;
+    margin-bottom: 18px;
 }
 
 .orders-eyebrow {
-    margin-bottom: 8px;
+    margin-bottom: 5px;
     color: #b87925;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
 }
 
 .my-orders-heading h2,
 #myOrders h2 {
-    margin: 0 0 8px;
+    margin: 0 0 7px;
     color: #20242b;
-    font-size: clamp(24px,3vw,32px);
+    font-size: 25px;
 }
 
 .my-orders-heading > div > p:last-child {
     margin: 0;
     color: #6b7280;
-    line-height: 1.6;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .refresh-orders-btn,
 #refreshOrdersBtn {
-    padding: 10px 15px;
+    padding: 8px 12px;
     border: 1px solid #d7dce3;
-    border-radius: 8px;
+    border-radius: 7px;
     background: #fff;
     color: #20242b;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
+    cursor: pointer;
 }
 
-.refresh-orders-btn:hover {
-    background: #f0f2f5;
+#refreshOrdersBtn {
+    margin-bottom: 14px;
+    border: 0;
+    background: #f4b400;
+    color: #222;
 }
 
-.refresh-orders-btn:disabled {
+.refresh-orders-btn:hover,
+#refreshOrdersBtn:hover {
+    opacity: .85;
+}
+
+.refresh-orders-btn:disabled,
+#refreshOrdersBtn:disabled {
     opacity: .6;
     cursor: wait;
 }
 
+/* Information notice */
 .orders-info {
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin-bottom: 22px;
-    padding: 16px;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 12px;
     border: 1px solid #eee0c9;
-    border-radius: 12px;
+    border-radius: 9px;
     background: #fffaf1;
 }
 
@@ -1117,124 +1132,103 @@ footer {
     display: grid;
     flex-shrink: 0;
     place-items: center;
-    width: 44px;
-    height: 44px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     background: #f5e6cd;
-    font-size: 22px;
+    font-size: 18px;
 }
 
 .orders-info h3 {
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     color: #292929;
-    font-size: 15px;
+    font-size: 13px;
 }
 
 .orders-info p {
     margin: 0;
     color: #6b7280;
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 12px;
+    line-height: 1.4;
 }
 
 .orders-message,
 #ordersMessage {
-    margin: 12px 0;
+    margin: 10px 0;
     color: #374151;
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.5;
 }
 
 #ordersMessage {
-    padding: 10px 12px;
-    border-radius: 8px;
+    padding: 9px;
+    border-radius: 7px;
 }
 
+/* Two cards per row on desktop */
 .my-orders-list,
 #myOrdersList {
     display: grid;
-    grid-template-columns: repeat(2,minmax(0,1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
-    gap: 16px;
+    gap: 12px;
+    width: 100%;
 }
 
-#myOrders {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 25px 20px;
-}
-
-#myOrders h2 {
-    margin-bottom: 18px;
-    font-size: 26px;
-}
-
-#refreshOrdersBtn {
-    margin-bottom: 18px;
-    border: 0;
-    background: #f4b400;
-    color: #222;
-    font-weight: 700;
-}
-
-#refreshOrdersBtn:hover {
-    background: #e0a500;
-}
-
-/* Modern, compact order card */
+/* Compact order card */
 .order-card {
     min-width: 0;
-    padding: 16px;
+    padding: 12px;
     overflow-wrap: anywhere;
     border: 1px solid #e5e7eb;
-    border-radius: 13px;
+    border-radius: 10px;
     background: #fff;
-    box-shadow: 0 3px 10px rgba(0,0,0,.045);
+    box-shadow: 0 2px 7px rgba(0, 0, 0, .05);
     transition: box-shadow .2s, transform .2s;
 }
 
 .order-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 7px 18px rgba(0,0,0,.08);
+    box-shadow: 0 5px 12px rgba(0, 0, 0, .09);
 }
 
 .order-card h3 {
-    margin: 0 0 7px;
+    margin: 0 0 5px;
     color: #252a32;
-    font-size: 15px;
+    font-size: 13px;
     line-height: 1.4;
 }
 
 .order-card h4 {
-    margin: 0 0 6px;
+    margin: 0 0 5px;
     color: #252a32;
-    font-size: 14px;
+    font-size: 12px;
 }
 
 .order-card p {
-    margin: 5px 0;
+    margin: 4px 0;
     color: #606875;
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 11px;
+    line-height: 1.45;
 }
 
 .order-card ul {
-    padding-left: 18px;
+    padding-left: 16px;
     color: #606875;
-    font-size: 13px;
-    line-height: 1.6;
+    font-size: 11px;
+    line-height: 1.5;
 }
 
 /* Order number and status */
 .order-card-header,
 .order-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     flex-wrap: wrap;
-    gap: 10px;
-    padding-bottom: 12px;
-    margin-bottom: 13px;
+    gap: 7px;
+    padding-bottom: 9px;
+    margin-bottom: 9px;
     border-bottom: 1px solid #edf0f4;
 }
 
@@ -1242,7 +1236,7 @@ footer {
 .order-total-block {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     min-width: 0;
 }
 
@@ -1250,153 +1244,37 @@ footer {
 .order-total-label,
 .order-detail-label {
     color: #6b7280;
-    font-size: 11px;
+    font-size: 10px;
 }
 
 .order-reference {
     color: #111827;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
     overflow-wrap: anywhere;
 }
 
-.order-status {
+.order-status,
+.payment-success,
+.payment-pending,
+.payment-danger,
+.status-success,
+.status-pending,
+.status-danger {
     display: inline-block;
     width: fit-content;
-    padding: 5px 9px;
+    padding: 4px 7px;
     border-radius: 20px;
-    background: #f1f3f5;
-    color: #424955;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     text-transform: capitalize;
 }
 
-/* Option 2: product thumbnail layout
-   Works when the HTML uses these classes. */
-.order-card .order-product {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-    margin: 0 0 13px;
+.order-status {
+    background: #f1f3f5;
+    color: #424955;
 }
 
-.order-card .order-product img {
-    flex: 0 0 76px;
-    width: 76px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 9px;
-    background: #f3f4f6;
-}
-
-.order-card .order-product-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.order-card .order-product-info h3 {
-    margin-bottom: 5px;
-    font-size: 15px;
-}
-
-.order-card .order-product-info p {
-    margin: 3px 0;
-    font-size: 12px;
-}
-
-.order-card .order-product-price {
-    margin-top: 5px;
-    color: #1769e0;
-    font-size: 16px;
-    font-weight: 700;
-}
-
-/* Existing order details */
-.order-card-divider {
-    margin: 13px 0;
-    border: 0;
-    border-top: 1px solid #e5e7eb;
-}
-
-.order-details {
-    display: grid;
-    grid-template-columns: repeat(2,minmax(0,1fr));
-    gap: 10px;
-    margin: 12px 0;
-}
-
-.order-detail-row {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    min-width: 0;
-}
-
-.order-detail-value {
-    color: #1f2937;
-    font-size: 12px;
-    font-weight: 600;
-    overflow-wrap: anywhere;
-}
-
-/* Order total */
-.order-total {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    padding-top: 12px;
-    margin-top: 12px;
-    border-top: 1px solid #edf0f4;
-    color: #111827;
-    font-size: 13px;
-    font-weight: 700;
-}
-
-.order-total strong {
-    color: #1769e0;
-    font-size: 18px;
-}
-
-/* Optional order summary and action */
-.order-card .order-summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding-top: 12px;
-    border-top: 1px solid #edf0f4;
-}
-
-.order-card .order-summary span {
-    color: #667085;
-    font-size: 12px;
-}
-
-.order-card .order-summary strong {
-    color: #172033;
-    font-size: 17px;
-}
-
-.order-card button {
-    max-width: 100%;
-    padding: 8px 12px;
-    border: 0;
-    border-radius: 7px;
-    background: #1769e0;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.order-card button:hover {
-    background: #1054b8;
-}
-
-/* Order status colours */
 .payment-success,
 .status-success {
     background: #dcfce7;
@@ -1415,22 +1293,130 @@ footer {
     color: #b91c1c;
 }
 
-.payment-success,
-.payment-pending,
-.payment-danger,
-.status-success,
-.status-pending,
-.status-danger {
-    display: inline-block;
-    width: fit-content;
-    padding: 5px 9px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: capitalize;
+/* Product image and details, if these classes exist in your HTML */
+.order-card .order-product {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    margin-bottom: 10px;
 }
 
-/* 15. DARK MODE */
+.order-card .order-product img {
+    flex: 0 0 55px;
+    width: 55px;
+    height: 58px;
+    object-fit: cover;
+    border-radius: 7px;
+    background: #f3f4f6;
+}
+
+.order-card .order-product-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.order-card .order-product-info h3 {
+    font-size: 12px;
+}
+
+.order-card .order-product-info p {
+    font-size: 10px;
+}
+
+.order-card .order-product-price {
+    margin-top: 4px;
+    color: #1769e0;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* Order details */
+.order-card-divider {
+    margin: 9px 0;
+    border: 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+.order-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 9px 0;
+}
+
+.order-detail-row {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.order-detail-value {
+    color: #1f2937;
+    font-size: 11px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* Total amount */
+.order-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 9px;
+    margin-top: 9px;
+    border-top: 1px solid #edf0f4;
+    color: #111827;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.order-total strong {
+    color: #1769e0;
+    font-size: 15px;
+}
+
+.order-card .order-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding-top: 9px;
+    border-top: 1px solid #edf0f4;
+}
+
+.order-card .order-summary span {
+    color: #667085;
+    font-size: 10px;
+}
+
+.order-card .order-summary strong {
+    color: #172033;
+    font-size: 14px;
+}
+
+.order-card button {
+    max-width: 100%;
+    padding: 7px 9px;
+    border: 0;
+    border-radius: 6px;
+    background: #1769e0;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.order-card button:hover {
+    background: #1054b8;
+}
+
+/* ==========================================
+   15. DARK MODE
+========================================== */
+
 body.dark-mode {
     background: #111827;
     color: #f3f4f6;
@@ -1506,7 +1492,8 @@ body.dark-mode .order-card h3,
 body.dark-mode .order-card h4,
 body.dark-mode .order-reference,
 body.dark-mode .order-total,
-body.dark-mode .order-detail-value {
+body.dark-mode .order-detail-value,
+body.dark-mode .order-card .order-summary strong {
     color: #f3f4f6;
 }
 
@@ -1533,17 +1520,16 @@ body.dark-mode .order-card .order-summary {
     border-color: #374151;
 }
 
-body.dark-mode .order-card .order-summary strong {
-    color: #f3f4f6;
-}
-
 body.dark-mode .refresh-orders-btn {
     background: #1f2937;
     color: #f3f4f6;
     border-color: #374151;
 }
 
-/* 16. TABLET AND SMALL LAPTOP */
+/* ==========================================
+   16. TABLET AND SMALL LAPTOP
+========================================== */
+
 @media (max-width: 900px) {
     .nav {
         position: absolute;
@@ -1572,27 +1558,6 @@ body.dark-mode .refresh-orders-btn {
         border-bottom-color: #374151;
     }
 
-    .hero {
-        height: 40vh;
-    }
-
-    .hero-content h2 {
-        font-size: 1.5rem;
-    }
-
-    .hero-content h3 {
-        font-size: 1.2rem;
-    }
-
-    .hero-content p {
-        font-size: 1rem;
-    }
-
-    .heroBtn .primaryBtn,
-    .heroBtn .secondaryBtn {
-        font-size: .9rem;
-    }
-
     .products-grid {
         gap: 14px;
         padding-right: 14px;
@@ -1613,15 +1578,140 @@ body.dark-mode .refresh-orders-btn {
     .footer-content {
         gap: 16px;
     }
-
-    .my-orders-list,
-    #myOrdersList {
-        grid-template-columns: repeat(2,minmax(0,1fr));
-    }
 }
 
-/* 17. MOBILE */
+/* ==========================================
+   17. MOBILE — KEEP TWO ORDER CARDS PER ROW
+========================================== */
+
 @media (max-width: 600px) {
+    .my-orders-section {
+        padding: 22px 10px;
+    }
+
+    #myOrders {
+        padding: 18px 10px;
+    }
+
+    .my-orders-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .my-orders-heading h2,
+    #myOrders h2 {
+        font-size: 21px;
+    }
+
+    .orders-info {
+        padding: 10px;
+    }
+
+    /* Important: do not change this to 1fr */
+    .my-orders-list,
+    #myOrdersList {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .order-card {
+        padding: 9px;
+        border-radius: 8px;
+    }
+
+    .order-card h3 {
+        font-size: 12px;
+    }
+
+    .order-card h4 {
+        font-size: 11px;
+    }
+
+    .order-card p,
+    .order-card ul {
+        font-size: 10px;
+    }
+
+    .order-card-header,
+    .order-header {
+        align-items: flex-start;
+        gap: 6px;
+        padding-bottom: 7px;
+        margin-bottom: 7px;
+    }
+
+    .order-reference {
+        font-size: 10px;
+    }
+
+    .order-status,
+    .payment-success,
+    .payment-pending,
+    .payment-danger,
+    .status-success,
+    .status-pending,
+    .status-danger {
+        padding: 3px 5px;
+        font-size: 9px;
+    }
+
+    .order-details {
+        gap: 6px;
+        margin: 7px 0;
+    }
+
+    .order-detail-label {
+        font-size: 9px;
+    }
+
+    .order-detail-value {
+        font-size: 10px;
+    }
+
+    .order-total {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+        padding-top: 7px;
+        margin-top: 7px;
+        font-size: 10px;
+    }
+
+    .order-total strong {
+        font-size: 13px;
+    }
+
+    .order-card .order-product {
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .order-card .order-product img {
+        flex-basis: 42px;
+        width: 42px;
+        height: 46px;
+    }
+
+    .order-card .order-product-info h3 {
+        font-size: 10px;
+    }
+
+    .order-card .order-product-info p {
+        font-size: 9px;
+    }
+
+    .order-card .order-product-price {
+        font-size: 11px;
+    }
+
+    .order-card button {
+        padding: 6px;
+        font-size: 10px;
+    }
+
+    /* Keep the rest of the site responsive */
     .header {
         gap: 6px;
         padding: 10px;
@@ -1649,24 +1739,8 @@ body.dark-mode .refresh-orders-btn {
         font-size: 26px;
     }
 
-    .profile-button {
-        gap: 5px;
-        padding: 4px 7px 4px 4px;
-        font-size: 12px;
-    }
-
-    .profile-icon {
-        width: 27px;
-        height: 27px;
-        font-size: 14px;
-    }
-
     .profile-name {
-        max-width: 72px;
-    }
-
-    .profile-menu {
-        width: 205px;
+        max-width: 65px;
     }
 
     .hero {
@@ -1736,14 +1810,6 @@ body.dark-mode .refresh-orders-btn {
         font-size: 13px;
     }
 
-    .product-section {
-        padding: 24px 0;
-    }
-
-    .product-section .section-heading {
-        padding: 0 12px;
-    }
-
     .products-grid {
         gap: 12px;
         padding: 12px 12px 22px;
@@ -1785,90 +1851,19 @@ body.dark-mode .refresh-orders-btn {
 
     .footer-content h2 {
         font-size: 13px;
-        line-height: 1.35;
     }
 
     .footer-content h3 {
-        margin-bottom: 7px;
         font-size: 12px;
-        line-height: 1.4;
     }
 
     .footer-content p,
     .footer-content a {
         font-size: 10px;
-        line-height: 1.5;
-    }
-
-    .footer-content a {
-        margin-bottom: 6px;
     }
 
     .copyright {
-        padding-top: 10px;
         font-size: 10px;
-    }
-
-    .my-orders-section {
-        padding: 25px 12px;
-    }
-
-    .my-orders-heading {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 12px;
-        margin-bottom: 18px;
-    }
-
-    .my-orders-heading h2,
-    #myOrders h2 {
-        font-size: 23px;
-    }
-
-    .orders-info {
-        align-items: flex-start;
-        padding: 13px;
-    }
-
-    .my-orders-list,
-    #myOrdersList {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-
-    #myOrders {
-        padding: 20px 12px;
-    }
-
-    .order-card {
-        padding: 14px;
-        border-radius: 11px;
-    }
-
-    .order-card-header,
-    .order-header {
-        gap: 8px;
-        margin-bottom: 11px;
-        padding-bottom: 10px;
-    }
-
-    .order-details {
-        grid-template-columns: repeat(2,minmax(0,1fr));
-        gap: 9px;
-    }
-
-    .order-total {
-        font-size: 13px;
-    }
-
-    .order-total strong {
-        font-size: 17px;
-    }
-
-    .order-card .order-product img {
-        flex-basis: 68px;
-        width: 68px;
-        height: 72px;
     }
 
     .payment-overlay {
@@ -1877,7 +1872,6 @@ body.dark-mode .refresh-orders-btn {
 
     .payment-overlay .payment-box {
         padding: 27px 18px 20px;
-        border-radius: 20px;
     }
 
     #paymentTotal {
@@ -1890,14 +1884,17 @@ body.dark-mode .refresh-orders-btn {
     }
 }
 
-/* 18. VERY SMALL PHONES */
-@media (max-width: 320px) {
+/* ==========================================
+   18. VERY SMALL PHONES
+========================================== */
+
+@media (max-width: 360px) {
     .header {
         padding: 8px 5px;
     }
 
     .logo {
-        font-size: 12px;
+        font-size: 11px;
     }
 
     .header-actions {
@@ -1905,37 +1902,39 @@ body.dark-mode .refresh-orders-btn {
     }
 
     .profile-name {
-        max-width: 48px;
+        max-width: 42px;
+    }
+
+    .my-orders-section {
+        padding-right: 6px;
+        padding-left: 6px;
+    }
+
+    .my-orders-list,
+    #myOrdersList {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 5px;
+    }
+
+    .order-card {
+        padding: 7px;
+    }
+
+    .order-card h3 {
+        font-size: 11px;
+    }
+
+    .order-card p,
+    .order-card ul {
+        font-size: 9px;
+    }
+
+    .order-details {
+        gap: 5px;
     }
 
     .hero {
         height: 55vh;
         min-height: 300px;
-    }
-
-    .hero-content h2,
-    .hero-content h3,
-    .hero-content p {
-        font-size: 1rem;
-    }
-
-    .hero-content span {
-        font-size: 1.1rem;
-    }
-
-    .heroBtn .primaryBtn {
-        font-size: .7rem;
-    }
-
-    .heroBtn .secondaryBtn {
-        font-size: .75rem;
-    }
-
-    .order-card {
-        padding: 11px;
-    }
-
-    .order-details {
-        gap: 7px;
     }
 }
