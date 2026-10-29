@@ -1548,3 +1548,222 @@ footer {
         font-size: 22px;
     }
 }
+
+
+/* =========================================
+   SWEET'S KITCHEN & COLLECTIONS
+   HORIZONTAL PRODUCT SLIDER
+========================================= */
+
+.product-section {
+    width: 100%;
+    padding: 30px 0;
+    overflow: hidden;
+}
+
+.product-section .section-heading {
+    padding: 0 20px;
+}
+
+/* Products move horizontally */
+.products-grid {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 20px;
+    width: 100%;
+    padding: 15px 20px 25px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+
+    scrollbar-width: thin;
+    scrollbar-color: #d69e2e #f1f1f1;
+}
+
+/* Individual product cards */
+.products-grid .product-card {
+    flex: 0 0 260px;
+    width: 260px;
+    min-width: 260px;
+    max-width: 260px;
+
+    display: flex;
+    flex-direction: column;
+
+    scroll-snap-align: start;
+    box-sizing: border-box;
+
+    background: #ffffff;
+    border: 1px solid #eeeeee;
+    border-radius: 12px;
+    overflow: hidden;
+
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.products-grid .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.13);
+}
+
+/* Product images */
+.products-grid .product-image {
+    position: relative;
+    width: 100%;
+    height: 190px;
+    flex-shrink: 0;
+    background: #f8f8f8;
+    overflow: hidden;
+}
+
+.products-grid .product-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+/* Favourite button */
+.products-grid .favourite-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    background: #ffffff;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+/* Product details */
+.products-grid .product-info {
+    padding: 14px;
+    flex: 1;
+}
+
+.products-grid .products-category {
+    margin: 0 0 8px;
+    color: #777777;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.products-grid .product-info h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: #222222;
+}
+
+.products-grid .product-description {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #666666;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Price and Add to Cart */
+.products-grid .product-buttom {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px;
+    margin-top: auto;
+    border-top: 1px solid #eeeeee;
+}
+
+.products-grid .product-buttom strong {
+    font-size: 18px;
+    color: #222222;
+}
+
+.products-grid .add-to-cart {
+    width: 100%;
+    padding: 11px 14px;
+    border: none;
+    border-radius: 6px;
+
+    background: #d69e2e;
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.products-grid .add-to-cart:hover {
+    background: #b98217;
+}
+
+/* Horizontal scrollbar */
+.products-grid::-webkit-scrollbar {
+    height: 8px;
+}
+
+.products-grid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.products-grid::-webkit-scrollbar-thumb {
+    background: #d69e2e;
+    border-radius: 10px;
+}
+
+.products-grid::-webkit-scrollbar-thumb:hover {
+    background: #b98217;
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+    .products-grid {
+        gap: 14px;
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .products-grid .product-card {
+        flex-basis: 230px;
+        width: 230px;
+        min-width: 230px;
+        max-width: 230px;
+    }
+
+    .products-grid .product-image {
+        height: 170px;
+    }
+}
+
+/* Mobile phone */
+@media (max-width: 480px) {
+    .products-grid {
+        gap: 12px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .products-grid .product-card {
+        flex-basis: 78vw;
+        width: 78vw;
+        min-width: 78vw;
+        max-width: 78vw;
+    }
+
+    .products-grid .product-image {
+        height: 180px;
+    }
+}
