@@ -37,15 +37,23 @@
                 id="themeToggle"
                 aria-label="Switch to dark mode"
                 title="Switch theme">
-            <span class="material-symbols-outlined" id="themeIcon">dark_mode</span>
+            <span class="material-symbols-outlined"
+                  id="themeIcon">dark_mode</span>
         </button>
 
-        <!-- CART BUTTON -->
+        <!-- SHOPPING CART ICON WITH COUNT BADGE -->
         <button type="button"
                 class="cart-button"
                 id="cartButton"
-                aria-label="Open shopping cart">
-            Cart <span id="cartCount">0</span>
+                aria-label="Open shopping cart"
+                title="Shopping cart">
+
+            <span class="material-symbols-outlined cart-icon"
+                  aria-hidden="true">shopping_cart</span>
+
+            <span class="cart-count"
+                  id="cartCount"
+                  aria-live="polite">0</span>
         </button>
 
         <!-- CUSTOMER PROFILE -->
