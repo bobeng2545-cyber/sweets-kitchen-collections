@@ -775,13 +775,16 @@ if (error) {
 })();
 
         
-/* ==================================
+
+/* ============================================
    MY ORDERS — CUSTOMER ORDER HISTORY
-================================== */
+   SWEET'S KITCHEN & COLLECTIONS
+============================================ */
 
 async function loadMyOrders() {
     const myOrdersList = document.getElementById("myOrdersList");
     const ordersMessage = document.getElementById("ordersMessage");
+    const refreshOrdersBtn = document.getElementById("refreshOrdersBtn");
 
     if (!myOrdersList) {
         console.error("My Orders list element was not found.");
@@ -791,15 +794,23 @@ async function loadMyOrders() {
     myOrdersList.replaceChildren();
 
     if (ordersMessage) {
+        ordersMessage.hidden = false;
         ordersMessage.textContent = "Loading your orders...";
     }
 
+    if (refreshOrdersBtn) {
+        refreshOrdersBtn.disabled = true;
+        refreshOrdersBtn.textContent = "Loading...";
+    }
+
     try {
-        // Get the currently signed-in customer.
+        // 1. Get the signed-in customer.
         const { data: userData, error: userError } =
             await supabaseClient.auth.getUser();
 
-        if (userError) throw userError;
+        if (userError) {
+            throw userError;
+        }
 
         const user = userData.user;
 
@@ -811,7 +822,7 @@ async function loadMyOrders() {
             return;
         }
 
-        // Fetch only this customer's orders.
+        // 2. Retrieve this customer's orders.
         const { data: orders, error } = await supabaseClient
             .from("orders")
             .select(`
@@ -825,52 +836,194 @@ async function loadMyOrders() {
                 order_status,
                 user_id
             `)
-            .eq("user_id", user.id);
+            .eq("user_id", user.id)
+            .order("id", { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+            throw error;
+        }
 
+        // 3. Handle customers with no orders.
         if (!orders || orders.length === 0) {
             if (ordersMessage) {
-                ordersMessage.textContent = "You have no orders yet.";
+                ordersMessage.textContent =
+                    "You haven't placed any orders yet. Your orders will appear here after checkout.";
             }
             return;
         }
 
         if (ordersMessage) {
             ordersMessage.textContent =
-                `Found ${orders.length} order(s).`;
+                `${orders.length} order${orders.length === 1 ? "" : "s"} found.`;
         }
 
-        orders.forEach(function(order) {
+        // 4. Display each order.
+        orders.forEach(function (order) {
             const card = document.createElement("article");
-            card.className = "my-order-card";
+            card.className = "order-card";
+
+            // Order heading.
+            const header = document.createElement("div");
+            header.className = "order-card-header";
+
+            const referenceBlock = document.createElement("div");
+            referenceBlock.className = "order-reference-block";
+
+            const referenceLabel = document.createElement("p");
+            referenceLabel.className = "order-reference-label";
+            referenceLabel.textContent = "ORDER REFERENCE";
 
             const reference = document.createElement("h3");
+            reference.className = "order-reference";
             reference.textContent =
-                `Order: ${order.order_reference || order.id}`;
+                order.order_reference || String(order.id);
 
-            const total = document.createElement("p");
-            total.textContent =
-                `Total: GH₵ ${Number(order.total_amount || 0).toFixed(2)}`;
+            referenceBlock.append(referenceLabel, reference);
 
-            const payment = document.createElement("p");
-            payment.textContent =
-                `Payment: ${order.payment_status || "Unknown"}`;
+            // Order status badge.
+            const status = document.createElement("span");
+            status.className = "order-status";
 
-            const network = document.createElement("p");
-            network.textContent =
-                `Payment network: ${order.payment_network || "Not specified"}`;
+            const orderStatus = String(
+                order.order_status || "Pending"
+            ).trim();
 
-            const status = document.createElement("p");
-            status.textContent =
-                `Order status: ${order.order_status || "Pending"}`;
+            status.textContent = orderStatus;
+
+            const statusKey = orderStatus.toLowerCase();
+
+            if (
+                ["completed", "delivered", "fulfilled"].includes(statusKey)
+            ) {
+                status.classList.add("status-success");
+            } else if (
+                ["cancelled", "canceled", "failed"].includes(statusKey)
+            ) {
+                status.classList.add("status-danger");
+            } else {
+                status.classList.add("status-pending");
+            }
+
+            header.append(referenceBlock, status);
+
+            // Divider.
+            const divider = document.createElement("div");
+            divider.className = "order-card-divider";
+
+            // Order total.
+            const totalBlock = document.createElement("div");
+            totalBlock.className = "order-total-block";
+
+            const totalLabel = document.createElement("p");
+            totalLabel.className = "order-total-label";
+            totalLabel.textContent = "ORDER TOTAL";
+
+            const total = document.createElement("strong");
+            total.className = "order-total";
+
+            const totalAmount = Number(order.total_amount);
+
+            total.textContent = Number.isFinite(totalAmount)
+                ? "GH₵ " + totalAmount.toLocaleString("en-GH", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })
+                : "Amount unavailable";
+
+            totalBlock.append(totalLabel, total);
+
+            // Order details.
+            const details = document.createElement("div");
+            details.className = "order-details";
+
+            function addOrderDetail(labelText, valueText, extraClass = "") {
+                const row = document.createElement("div");
+                row.className = "order-detail-row";
+
+                const label = document.createElement("span");
+                label.className = "order-detail-label";
+                label.textContent = labelText;
+
+                const value = document.createElement("span");
+                value.className = "order-detail-value";
+                value.textContent = valueText;
+
+                if (extraClass) {
+                    value.classList.add(extraClass);
+                }
+
+                row.append(label, value);
+                details.appendChild(row);
+            }
+
+            function formatMoney(value) {
+                const amount = Number(value);
+
+                if (!Number.isFinite(amount)) {
+                    return "Unavailable";
+                }
+
+                return "GH₵ " + amount.toLocaleString("en-GH", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            // Payment status.
+            const paymentStatus = String(
+                order.payment_status || "Unknown"
+            ).trim();
+
+            const paymentKey = paymentStatus.toLowerCase();
+
+            let paymentClass = "payment-pending";
+
+            if (
+                ["paid", "success", "successful", "completed"].includes(paymentKey)
+            ) {
+                paymentClass = "payment-success";
+            } else if (
+                ["failed", "cancelled", "canceled"].includes(paymentKey)
+            ) {
+                paymentClass = "payment-danger";
+            }
+
+            addOrderDetail(
+                "Payment status",
+                paymentStatus,
+                paymentClass
+            );
+
+            addOrderDetail(
+                "Payment network",
+                order.payment_network || "Not specified"
+            );
+
+            if (
+                order.subtotal !== null &&
+                order.subtotal !== undefined
+            ) {
+                addOrderDetail(
+                    "Subtotal",
+                    formatMoney(order.subtotal)
+                );
+            }
+
+            if (
+                order.service_charge !== null &&
+                order.service_charge !== undefined
+            ) {
+                addOrderDetail(
+                    "Service charge",
+                    formatMoney(order.service_charge)
+                );
+            }
 
             card.append(
-                reference,
-                total,
-                payment,
-                network,
-                status
+                header,
+                divider,
+                totalBlock,
+                details
             );
 
             myOrdersList.appendChild(card);
@@ -881,20 +1034,34 @@ async function loadMyOrders() {
 
         if (ordersMessage) {
             ordersMessage.textContent =
-                "Unable to load your orders. Please try again.";
+                "Unable to load your orders. Please refresh and try again.";
+        }
+
+    } finally {
+        if (refreshOrdersBtn) {
+            refreshOrdersBtn.disabled = false;
+            refreshOrdersBtn.textContent = "↻ Refresh Orders";
         }
     }
 }
 
-/* Refresh My Orders */
-const refreshOrdersBtn = document.getElementById("refreshOrdersBtn");
+
+/* ============================================
+   REFRESH ORDERS BUTTON
+============================================ */
+
+const refreshOrdersBtn =
+    document.getElementById("refreshOrdersBtn");
 
 if (refreshOrdersBtn) {
     refreshOrdersBtn.addEventListener("click", loadMyOrders);
 }
 
 
-/* Open My Orders and load the customer's orders */
+/* ============================================
+   OPEN MY ORDERS
+============================================ */
+
 const myOrdersLink = document.getElementById("myOrdersLink");
 const myOrdersSection = document.getElementById("myOrders");
 
@@ -913,3 +1080,4 @@ if (myOrdersLink && myOrdersSection) {
         loadMyOrders();
     });
 }
+
