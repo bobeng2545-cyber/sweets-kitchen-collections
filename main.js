@@ -825,17 +825,20 @@ async function loadMyOrders() {
         // 2. Retrieve this customer's orders.
         const { data: orders, error } = await supabaseClient
             .from("orders")
-            .select(`
-                id,
-                order_reference,
-                subtotal,
-                service_charge,
-                total_amount,
-                payment_network,
-                payment_status,
-                order_status,
-                user_id
-            `)
+            
+.select(`
+    id,
+    order_reference,
+    subtotal,
+    service_charge,
+    total_amount,
+    payment_network,
+    payment_status,
+    order_status,
+    user_id,
+    created_at
+`)
+
             .eq("user_id", user.id)
             .order("id", { ascending: false });
 
