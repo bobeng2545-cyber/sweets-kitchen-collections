@@ -776,10 +776,34 @@ if (error) {
 
         
 
+
 /* ============================================
    MY ORDERS — CUSTOMER ORDER HISTORY
    SWEET'S KITCHEN & COLLECTIONS
 ============================================ */
+
+// Format order date and time using Ghana time.
+function formatOrderDateTime(dateValue) {
+    if (!dateValue) {
+        return "Date unavailable";
+    }
+
+    const date = new Date(dateValue);
+
+    if (Number.isNaN(date.getTime())) {
+        return "Date unavailable";
+    }
+
+    return new Intl.DateTimeFormat("en-GH", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: "Africa/Accra"
+    }).format(date);
+}
 
 async function loadMyOrders() {
     const myOrdersList = document.getElementById("myOrdersList");
@@ -804,13 +828,11 @@ async function loadMyOrders() {
     }
 
     try {
-        // 1. Get the signed-in customer.
+        // Get the signed-in customer.
         const { data: userData, error: userError } =
             await supabaseClient.auth.getUser();
 
-        if (userError) {
-            throw userError;
-        }
+        if (userError) throw userError;
 
         const user = userData.user;
 
@@ -822,31 +844,26 @@ async function loadMyOrders() {
             return;
         }
 
-        // 2. Retrieve this customer's orders.
+        // Retrieve this customer's orders.
         const { data: orders, error } = await supabaseClient
             .from("orders")
-            
-.select(`
-    id,
-    order_reference,
-    subtotal,
-    service_charge,
-    total_amount,
-    payment_network,
-    payment_status,
-    order_status,
-    user_id,
-    created_at
-`)
-
+            .select(`
+                id,
+                order_reference,
+                subtotal,
+                service_charge,
+                total_amount,
+                payment_network,
+                payment_status,
+                order_status,
+                user_id,
+                created_at
+            `)
             .eq("user_id", user.id)
-            .order("id", { ascending: false });
+            .order("created_at", { ascending: false });
 
-        if (error) {
-            throw error;
-        }
+        if (error) throw error;
 
-        // 3. Handle customers with no orders.
         if (!orders || orders.length === 0) {
             if (ordersMessage) {
                 ordersMessage.textContent =
@@ -860,12 +877,50 @@ async function loadMyOrders() {
                 `${orders.length} order${orders.length === 1 ? "" : "s"} found.`;
         }
 
-        // 4. Display each order.
+        // Format money consistently.
+        function formatMoney(value) {
+            if (value === null || value === undefined || value === "") {
+                return "Unavailable";
+            }
+
+            const amount = Number(value);
+
+            if (!Number.isFinite(amount)) {
+                return "Unavailable";
+            }
+
+            return "GH₵ " + amount.toLocaleString("en-GH", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Create a detail row safely.
+        function addOrderDetail(container, labelText, valueText, extraClass = "") {
+            const row = document.createElement("div");
+            row.className = "order-detail-row";
+
+            const label = document.createElement("span");
+            label.className = "order-detail-label";
+            label.textContent = labelText;
+
+            const value = document.createElement("span");
+            value.className = "order-detail-value";
+            value.textContent = valueText;
+
+            if (extraClass) {
+                value.classList.add(extraClass);
+            }
+
+            row.append(label, value);
+            container.appendChild(row);
+        }
+
         orders.forEach(function (order) {
             const card = document.createElement("article");
             card.className = "order-card";
 
-            // Order heading.
+            // Order reference and order status.
             const header = document.createElement("div");
             header.className = "order-card-header";
 
@@ -883,7 +938,6 @@ async function loadMyOrders() {
 
             referenceBlock.append(referenceLabel, reference);
 
-            // Order status badge.
             const status = document.createElement("span");
             status.className = "order-status";
 
@@ -895,9 +949,7 @@ async function loadMyOrders() {
 
             const statusKey = orderStatus.toLowerCase();
 
-            if (
-                ["completed", "delivered", "fulfilled"].includes(statusKey)
-            ) {
+            if (["completed", "delivered", "fulfilled"].includes(statusKey)) {
                 status.classList.add("status-success");
             } else if (
                 ["cancelled", "canceled", "failed"].includes(statusKey)
@@ -913,7 +965,7 @@ async function loadMyOrders() {
             const divider = document.createElement("div");
             divider.className = "order-card-divider";
 
-            // Order total.
+            // Total amount.
             const totalBlock = document.createElement("div");
             totalBlock.className = "order-total-block";
 
@@ -923,56 +975,20 @@ async function loadMyOrders() {
 
             const total = document.createElement("strong");
             total.className = "order-total";
-
-            const totalAmount = Number(order.total_amount);
-
-            total.textContent = Number.isFinite(totalAmount)
-                ? "GH₵ " + totalAmount.toLocaleString("en-GH", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                })
-                : "Amount unavailable";
+            total.textContent = formatMoney(order.total_amount);
 
             totalBlock.append(totalLabel, total);
 
-            // Order details.
+            // Details including date and time.
             const details = document.createElement("div");
             details.className = "order-details";
 
-            function addOrderDetail(labelText, valueText, extraClass = "") {
-                const row = document.createElement("div");
-                row.className = "order-detail-row";
+            addOrderDetail(
+                details,
+                "Order date & time",
+                formatOrderDateTime(order.created_at)
+            );
 
-                const label = document.createElement("span");
-                label.className = "order-detail-label";
-                label.textContent = labelText;
-
-                const value = document.createElement("span");
-                value.className = "order-detail-value";
-                value.textContent = valueText;
-
-                if (extraClass) {
-                    value.classList.add(extraClass);
-                }
-
-                row.append(label, value);
-                details.appendChild(row);
-            }
-
-            function formatMoney(value) {
-                const amount = Number(value);
-
-                if (!Number.isFinite(amount)) {
-                    return "Unavailable";
-                }
-
-                return "GH₵ " + amount.toLocaleString("en-GH", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            }
-
-            // Payment status.
             const paymentStatus = String(
                 order.payment_status || "Unknown"
             ).trim();
@@ -992,35 +1008,29 @@ async function loadMyOrders() {
             }
 
             addOrderDetail(
+                details,
                 "Payment status",
                 paymentStatus,
                 paymentClass
             );
 
             addOrderDetail(
+                details,
                 "Payment network",
                 order.payment_network || "Not specified"
             );
 
-            if (
-                order.subtotal !== null &&
-                order.subtotal !== undefined
-            ) {
-                addOrderDetail(
-                    "Subtotal",
-                    formatMoney(order.subtotal)
-                );
-            }
+            addOrderDetail(
+                details,
+                "Subtotal",
+                formatMoney(order.subtotal)
+            );
 
-            if (
-                order.service_charge !== null &&
-                order.service_charge !== undefined
-            ) {
-                addOrderDetail(
-                    "Service charge",
-                    formatMoney(order.service_charge)
-                );
-            }
+            addOrderDetail(
+                details,
+                "Service charge",
+                formatMoney(order.service_charge)
+            );
 
             card.append(
                 header,
@@ -1069,18 +1079,37 @@ const myOrdersLink = document.getElementById("myOrdersLink");
 const myOrdersSection = document.getElementById("myOrders");
 
 if (myOrdersLink && myOrdersSection) {
-    myOrdersLink.addEventListener("click", function (event) {
+    myOrdersLink.addEventListener("click", async function (event) {
         event.preventDefault();
+
+        // Ensure the customer is signed in.
+        const { data, error } = await supabaseClient.auth.getUser();
+
+        if (error || !data.user) {
+            window.location.href = "./login.html";
+            return;
+        }
 
         myOrdersSection.hidden = false;
         myOrdersSection.style.display = "block";
+
+        // Close the profile dropdown.
+        const profileMenu = document.getElementById("profileMenu");
+        const profileButton = document.getElementById("profileButton");
+
+        if (profileMenu) profileMenu.hidden = true;
+
+        if (profileButton) {
+            profileButton.setAttribute("aria-expanded", "false");
+        }
 
         myOrdersSection.scrollIntoView({
             behavior: "smooth",
             block: "start"
         });
 
-        loadMyOrders();
+        await loadMyOrders();
     });
 }
+
 
