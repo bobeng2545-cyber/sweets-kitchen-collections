@@ -712,6 +712,37 @@
     </div>
 </div>
 
+        
+<!-- =========================================
+     MY ORDERS — CUSTOMER ORDER HISTORY
+========================================= -->
+
+<section id="myOrders" style="display: none;">
+    <div class="orders-container">
+
+        <div class="orders-header">
+            <div>
+                <h2>My Orders</h2>
+                <p>Track your purchases and payment status.</p>
+            </div>
+
+            <button type="button" id="refreshOrdersBtn">
+                Refresh Orders
+            </button>
+        </div>
+
+        <p id="ordersMessage" role="status" aria-live="polite">
+            Your orders will appear here.
+        </p>
+
+        <div id="myOrdersList">
+            <!-- Orders will be loaded here by main.js -->
+        </div>
+
+    </div>
+</section>
+
+        
 </main>
 
     <footer>
