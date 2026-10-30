@@ -1,10 +1,17 @@
 
 const SUPABASE_URL = "https://vbrlprrbtumonmroybdv.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_QN5w738LNyUrYy2X93M1OQ_md6F2xTN";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_QN5w738LnyUrYy2X93M1OQ_md6F2xTN";
 
 const authClient = window.supabase.createClient(
     SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+        auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+        }
+    }
 );
 
 window.sweetSupabase = authClient;
@@ -36,9 +43,7 @@ function switchMode(mode) {
     if (registerTab) registerTab.classList.toggle("active", registering);
 
     const heading = document.querySelector(".form-heading h2");
-    const description = document.querySelector(
-        ".form-heading > p:last-child"
-    );
+    const description = document.querySelector(".form-heading > p:last-child");
 
     if (heading) {
         heading.textContent = registering ? "Create Account" : "Welcome Back";
@@ -65,7 +70,7 @@ document.querySelectorAll(".inline-switch").forEach((button) => {
     });
 });
 
-// Show or hide password fields
+// Show or hide passwords
 document.querySelectorAll(".password-toggle").forEach((button) => {
     button.addEventListener("click", () => {
         const target = document.getElementById(button.dataset.target);
@@ -77,7 +82,7 @@ document.querySelectorAll(".password-toggle").forEach((button) => {
     });
 });
 
-// Create account
+// REGISTER
 registerForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -86,6 +91,7 @@ registerForm?.addEventListener("submit", async (event) => {
     const password = document.getElementById("registerPassword")?.value;
     const confirmPassword = document.getElementById("confirmPassword")?.value;
     const termsAccepted = document.getElementById("agreeTerms")?.checked;
+
     const submitButton = registerForm.querySelector(
         'button[type="submit"], button:not([type])'
     );
@@ -121,53 +127,44 @@ registerForm?.addEventListener("submit", async (event) => {
                 data: {
                     full_name: fullName
                 },
-               emailRedirectTo: new URL("./index.html", window.location.href).href
+                emailRedirectTo: new URL(
+                    "./index.html",
+                    window.location.href
+                ).href
             }
         });
 
         if (error) throw error;
 
         if (data.session) {
-            showMessage("Account created successfully. Opening your account...");
-            window.location.href = "index.html";
+            showMessage("Account created. Opening your account...");
+            window.location.replace("./index.html");
         } else {
             registerForm.reset();
-            
-            // Switch to the login form first.
             switchMode("login");
-            
-            // Then display the success message.
             showMessage(
-                "Account created! Check your email for the confirmation link before signing in."
+                "Account created! Check your email to confirm your account before signing in."
             );
         }
-    
     } catch (error) {
+        console.error("Registration error:", error);
         showMessage(error.message || "Unable to create your account.", true);
     } finally {
         if (submitButton) submitButton.disabled = false;
     }
 });
 
-/* SIGN IN */
+// SIGN IN
 loginForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const email = document.getElementById("loginEmail")?.value.trim();
     const password = document.getElementById("loginPassword")?.value;
 
-    const submitButton = loginForm.querySelector(
-        'button[type="submit"]'
-    );
+    const submitButton = loginForm.querySelector('button[type="submit"]');
 
     if (!email || !password) {
         showMessage("Enter your email and password.", true);
-        return;
-    }
-
-    if (!window.sweetSupabase) {
-        showMessage("Supabase is not initialized. Check your setup.", true);
-        console.error("Supabase client is missing.");
         return;
     }
 
@@ -177,52 +174,48 @@ loginForm?.addEventListener("submit", async (event) => {
     }
 
     try {
-        const { data, error } =
-            await window.sweetSupabase.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
+        const { data, error } = await authClient.auth.signInWithPassword({
+            email,
+            password
+        });
 
-        if (error) {
-            throw error;
+        if (error) throw error;
+
+        if (!data.session || !data.user) {
+            throw new Error("Login completed, but no session was returned.");
         }
 
-        if (!data.user) {
-            throw new Error("Sign-in failed. Please try again.");
+        // Confirm that Supabase can retrieve the saved session.
+        const { data: sessionData, error: sessionError } =
+            await authClient.auth.getSession();
+
+        if (sessionError) throw sessionError;
+
+        if (!sessionData.session) {
+            throw new Error("Your login session could not be saved. Please try again.");
         }
 
         showMessage("Login successful. Opening your account...");
 
-        window.location.href = "./index.html";
+        window.location.replace("./index.html");
 
     } catch (error) {
-        console.error("Sign-in failed:", error);
+        console.error("Sign-in error:", error);
+        showMessage(error.message || "Unable to sign in. Please try again.", true);
 
-        showMessage(
-            error.message || "Unable to sign in. Please try again.",
-            true
-        );
-
-    } finally {
         if (submitButton) {
             submitButton.disabled = false;
-            submitButton.innerHTML =
-                'Sign in <span aria-hidden="true">→</span>';
+            submitButton.innerHTML = 'Sign in <span aria-hidden="true">→</span>';
         }
     }
 });
 
-
-
-// Forgot password
+// FORGOT PASSWORD
 document.getElementById("forgotButton")?.addEventListener("click", async () => {
     const email = document.getElementById("loginEmail")?.value.trim();
 
     if (!email) {
-        showMessage(
-            "Enter your email address in the login email field first.",
-            true
-        );
+        showMessage("Enter your email address in the login email field first.", true);
         return;
     }
 
@@ -231,23 +224,16 @@ document.getElementById("forgotButton")?.addEventListener("click", async () => {
             redirectTo: new URL("./login.html", window.location.href).href
         });
 
-        if (error) {
-            throw error;
-        }
+        if (error) throw error;
 
         showMessage(
             "If an account exists for that email, a password reset link will be sent."
         );
-
     } catch (error) {
-        console.error("Password reset failed:", error);
-
-        showMessage(
-            error.message || "Could not request a password reset.",
-            true
-        );
+        console.error("Password reset error:", error);
+        showMessage(error.message || "Could not request a password reset.", true);
     }
 });
 
-// Initial view
+// INITIAL VIEW
 switchMode("login");
