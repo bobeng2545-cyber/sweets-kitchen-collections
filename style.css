@@ -2267,3 +2267,67 @@ body.dark-mode .orders-info p {
 .notification-item small {
     color: #777;
 }
+
+/* Notification menu - desktop and mobile */
+#notificationMenu {
+    position: fixed;
+    top: 75px;
+    right: 15px;
+    width: 350px;
+    max-width: calc(100vw - 30px);
+    max-height: calc(100dvh - 100px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    z-index: 99999;
+    border-radius: 12px;
+    background: white;
+}
+
+/* Make notification items fit properly */
+#notificationList {
+    width: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.notification-item {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+/* Phone screen */
+@media screen and (max-width: 600px) {
+    #notificationMenu {
+        position: fixed;
+        top: 70px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        max-width: none;
+        max-height: calc(100dvh - 85px);
+        overflow-y: auto;
+        border-radius: 12px;
+    }
+
+    #notificationList {
+        max-height: calc(100dvh - 150px);
+        overflow-y: auto;
+    }
+
+    .notification-item {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .notification-item p {
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+}
