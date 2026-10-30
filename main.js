@@ -1,6 +1,24 @@
 
+/* =========================================================
+   SWEET'S KITCHEN & COLLECTIONS
+   COMPLETE MAIN JAVASCRIPT
+   Supabase + Cart + Search + Profile + Paystack
+   My Orders + Theme + Notifications
+========================================================= */
+
+
+/* =========================================================
+   1. SUPABASE CONNECTION
+========================================================= */
+
 const SUPABASE_URL = "https://vbrlprrbtumonmroybdv.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_QN5w738LNyUrYy2X93M1OQ_md6F2xTN";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_QN5w738LNyUrYy2X93M1OQ_md6F2xTN";
+
+if (!window.supabase) {
+    throw new Error("Supabase library is missing. Check your HTML script imports.");
+}
 
 const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
@@ -10,7 +28,9 @@ const supabaseClient = window.supabase.createClient(
 window.sweetSupabase = supabaseClient;
 
 
-// Menu Icon
+/* =========================================================
+   2. MENU ICON
+========================================================= */
 
 const menuButton = document.getElementById("menuButton");
 const navMenu = document.getElementById("nav");
@@ -20,13 +40,18 @@ if (menuButton && navMenu) {
         navMenu.classList.toggle("show");
 
         const isOpen = navMenu.classList.contains("show");
+
         menuButton.setAttribute("aria-expanded", String(isOpen));
     });
 }
 
+
+/* =========================================================
+   3. SHOPPING CART
+========================================================= */
+
 let cart = [];
 
-// Restore saved cart items when the page loads
 try {
     const savedCart = JSON.parse(
         localStorage.getItem("sweetKitchenCart") || "[]"
@@ -60,131 +85,160 @@ const cartCount = document.getElementById("cartCount");
 const cartButton = document.getElementById("cartButton");
 
 
+/* OPEN CART */
 
-cartButton.addEventListener("click", function(){
-    cartOverlay.classList.add("show");
-});
-
-closeCart.addEventListener("click", function(){
-    cartOverlay.classList.remove("show")
-});
-
-
-// Add to Cart Button 
-
-
-const addCartButtons = document.querySelectorAll(".add-to-cart");
-
-addCartButtons.forEach(function(button) {
-    button.addEventListener("click", function() {
-        const name = button.dataset.name;
-        const price = Number(button.dataset.price);
-
-        // Check whether this product is already in the cart
-        const existingProduct = cart.find(function(item) {
-            return item.name === name;
-        });
-
-        if (existingProduct) {
-            alert("This product is already in your cart. Use + or − in the cart to change the quantity.");
-            return;
-        }
-
-        // Add the product only if it is not already in the cart
-        cart.push({
-            name: name,
-            price: price,
-            quantity: 1
-        });
-
-        // Update cart count and total without opening the cart
-        updateCart();
-
-        // Change the button to show that the product is already added
-        button.textContent = "Added to Cart";
-        button.disabled = true;
+if (cartButton && cartOverlay) {
+    cartButton.addEventListener("click", function () {
+        cartOverlay.classList.add("show");
     });
-});
+}
 
 
+/* CLOSE CART */
 
+if (closeCart && cartOverlay) {
+    closeCart.addEventListener("click", function () {
+        cartOverlay.classList.remove("show");
+    });
+}
+
+
+/* UPDATE CART */
 
 function updateCart() {
-    // Save the latest cart
-    localStorage.setItem(
-        "sweetKitchenCart",
-        JSON.stringify(cart)
-    );
+    try {
+        localStorage.setItem(
+            "sweetKitchenCart",
+            JSON.stringify(cart)
+        );
+    } catch (error) {
+        console.error("Could not save cart:", error);
+    }
 
-    cartItem.innerHTML = "";
+    if (!cartItem || !cartCount || !cartTotal) {
+        console.error("One or more cart HTML elements are missing.");
+        return;
+    }
 
+    cartItem.replaceChildren();
 
     if (cart.length === 0) {
-        cartItem.innerHTML = `
-            <p class="empty-cart">Your cart is empty.</p>
-        `;
+        const emptyMessage = document.createElement("p");
+        emptyMessage.className = "empty-cart";
+        emptyMessage.textContent = "Your cart is empty.";
+
+        cartItem.appendChild(emptyMessage);
 
         cartCount.textContent = "0";
         cartTotal.textContent = "GH₵0";
+
         return;
     }
 
     let total = 0;
     let numberOfItems = 0;
 
-    cart.forEach(function(item, index) {
+    cart.forEach(function (item, index) {
         total += item.price * item.quantity;
         numberOfItems += item.quantity;
 
         const cartItemElement = document.createElement("div");
-        cartItemElement.classList.add("cart-item");
+        cartItemElement.className = "cart-item";
 
-        cartItemElement.innerHTML = `
-            <div class="cart-item-info">
-                <h3>${item.name}</h3>
-                <p>GH₵${item.price.toLocaleString()}</p>
-            </div>
+        const info = document.createElement("div");
+        info.className = "cart-item-info";
 
-            <div class="quantity-controls">
-                <button type="button"
-                    class="decrease"
-                    data-index="${index}"
-                    aria-label="Decrease ${item.name} quantity">
-                    −
-                </button>
+        const name = document.createElement("h3");
+        name.textContent = item.name;
 
-                <span>${item.quantity}</span>
+        const price = document.createElement("p");
+        price.textContent = "GH₵" + item.price.toLocaleString();
 
-                <button type="button"
-                    class="increase"
-                    data-index="${index}"
-                    aria-label="Increase ${item.name} quantity">
-                    +
-                </button>
-            </div>
+        info.append(name, price);
 
-            <button type="button"
-                class="remove-item"
-                data-index="${index}">
-                Remove
-            </button>
-        `;
+        const controls = document.createElement("div");
+        controls.className = "quantity-controls";
+
+        const decrease = document.createElement("button");
+        decrease.type = "button";
+        decrease.className = "decrease";
+        decrease.dataset.index = index;
+        decrease.textContent = "−";
+        decrease.setAttribute("aria-label", "Decrease quantity");
+
+        const quantity = document.createElement("span");
+        quantity.textContent = item.quantity;
+
+        const increase = document.createElement("button");
+        increase.type = "button";
+        increase.className = "increase";
+        increase.dataset.index = index;
+        increase.textContent = "+";
+        increase.setAttribute("aria-label", "Increase quantity");
+
+        controls.append(decrease, quantity, increase);
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "remove-item";
+        remove.dataset.index = index;
+        remove.textContent = "Remove";
+
+        cartItemElement.append(info, controls, remove);
 
         cartItem.appendChild(cartItemElement);
     });
 
-    cartCount.textContent = numberOfItems;
+    cartCount.textContent = String(numberOfItems);
     cartTotal.textContent = "GH₵" + total.toLocaleString();
 }
 
 
-updateCart();
+/* ADD TO CART */
 
-// Update product buttons for items restored from storage
-document.querySelectorAll(".add-to-cart").forEach(function(button) {
-    const alreadyAdded = cart.some(function(item) {
-        return item.name === button.dataset.name;
+const addCartButtons = document.querySelectorAll(".add-to-cart");
+
+addCartButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+        const name = button.dataset.name;
+        const price = Number(button.dataset.price);
+
+        if (!name || !Number.isFinite(price) || price < 0) {
+            alert("This product has invalid information.");
+            return;
+        }
+
+        const existingProduct = cart.find(
+            item => item.name === name
+        );
+
+        if (existingProduct) {
+            alert(
+                "This product is already in your cart. Use + or − to change the quantity."
+            );
+            return;
+        }
+
+        cart.push({
+            name: name,
+            price: price,
+            quantity: 1
+        });
+
+        updateCart();
+
+        button.textContent = "Added to Cart";
+        button.disabled = true;
     });
+});
+
+
+/* RESTORE PRODUCT BUTTON STATES */
+
+document.querySelectorAll(".add-to-cart").forEach(function (button) {
+    const alreadyAdded = cart.some(
+        item => item.name === button.dataset.name
+    );
 
     if (alreadyAdded) {
         button.textContent = "Added to Cart";
@@ -193,74 +247,75 @@ document.querySelectorAll(".add-to-cart").forEach(function(button) {
 });
 
 
-// Handle +, − and Remove clicks from the cart
-// One listener is enough, even when the cart is re-rendered.
-cartItem.addEventListener("click", function(event) {
-    const button = event.target.closest(
-        ".increase, .decrease, .remove-item"
-    );
+/* HANDLE CART QUANTITY AND REMOVE BUTTONS */
 
-    if (!button || !cartItem.contains(button)) {
-        return;
-    }
+if (cartItem) {
+    cartItem.addEventListener("click", function (event) {
+        const button = event.target.closest(
+            ".increase, .decrease, .remove-item"
+        );
 
-    const index = Number(button.dataset.index);
-
-    if (!Number.isInteger(index) || !cart[index]) {
-        return;
-    }
-
-    if (button.classList.contains("increase")) {
-        cart[index].quantity++;
-    }
-
-    
-else if (button.classList.contains("decrease")) {
-    cart[index].quantity--;
-
-    // Remove the item when its quantity reaches zero
-    if (cart[index].quantity <= 0) {
-        const removedProductName = cart[index].name;
-
-        cart.splice(index, 1);
-
-        // Re-enable the product's Add to Cart button
-        document.querySelectorAll(".add-to-cart").forEach(function(addButton) {
-            if (addButton.dataset.name === removedProductName) {
-                addButton.disabled = false;
-                addButton.textContent = "Add to Cart";
-            }
-        });
-    }
-}
-
-
-    
-else if (button.classList.contains("remove-item")) {
-    const removedProductName = cart[index].name;
-
-    cart.splice(index, 1);
-
-    // Re-enable the product's Add to Cart button
-    document.querySelectorAll(".add-to-cart").forEach(function(addButton) {
-        if (addButton.dataset.name === removedProductName) {
-            addButton.disabled = false;
-            addButton.textContent = "Add to Cart";
+        if (!button || !cartItem.contains(button)) {
+            return;
         }
+
+        const index = Number(button.dataset.index);
+
+        if (!Number.isInteger(index) || !cart[index]) {
+            return;
+        }
+
+        if (button.classList.contains("increase")) {
+            cart[index].quantity++;
+        }
+
+        else if (button.classList.contains("decrease")) {
+            cart[index].quantity--;
+
+            if (cart[index].quantity <= 0) {
+                const removedName = cart[index].name;
+
+                cart.splice(index, 1);
+
+                document.querySelectorAll(".add-to-cart").forEach(
+                    function (addButton) {
+                        if (addButton.dataset.name === removedName) {
+                            addButton.disabled = false;
+                            addButton.textContent = "Add to Cart";
+                        }
+                    }
+                );
+            }
+        }
+
+        else if (button.classList.contains("remove-item")) {
+            const removedName = cart[index].name;
+
+            cart.splice(index, 1);
+
+            document.querySelectorAll(".add-to-cart").forEach(
+                function (addButton) {
+                    if (addButton.dataset.name === removedName) {
+                        addButton.disabled = false;
+                        addButton.textContent = "Add to Cart";
+                    }
+                }
+            );
+        }
+
+        updateCart();
     });
 }
 
 
-    updateCart();
-});
+/* INITIAL CART DISPLAY */
+
+updateCart();
 
 
- 
-
-/* =========================================
-   SEARCH AND CATEGORY FILTERING
-   SWEET'S KITCHEN & COLLECTIONS
-========================================= */
+/* =========================================================
+   4. SEARCH AND CATEGORY FILTERING
+========================================================= */
 
 const searchInput = document.getElementById("searchInput");
 const searchButton = document.getElementById("searchButton");
@@ -283,6 +338,7 @@ if (productsGrid && !searchMessage) {
     productsGrid.insertAdjacentElement("afterend", searchMessage);
 }
 
+
 function filterProducts() {
     if (!productsGrid) {
         console.error("Product grid #productsGrid was not found.");
@@ -293,8 +349,9 @@ function filterProducts() {
         .trim()
         .toLowerCase();
 
-    // Query the grid each time so newly added cards are included.
-    const productCards = productsGrid.querySelectorAll(".product-card");
+    const productCards =
+        productsGrid.querySelectorAll(".product-card");
+
     let matchingProducts = 0;
 
     productCards.forEach(function (card) {
@@ -343,6 +400,7 @@ function filterProducts() {
     );
 }
 
+
 if (searchButton) {
     searchButton.addEventListener("click", function () {
         filterProducts();
@@ -354,12 +412,14 @@ if (searchButton) {
     });
 }
 
+
 if (searchInput) {
     searchInput.addEventListener("input", filterProducts);
 
     searchInput.addEventListener("keydown", function (event) {
         if (event.key === "Enter") {
             event.preventDefault();
+
             filterProducts();
 
             productSection?.scrollIntoView({
@@ -369,6 +429,7 @@ if (searchInput) {
         }
     });
 }
+
 
 categoryButtons.forEach(function (button) {
     button.addEventListener("click", function () {
@@ -391,13 +452,12 @@ categoryButtons.forEach(function (button) {
     });
 });
 
-// Apply the default category when the page loads.
 filterProducts();
 
 
-
-
-/* CUSTOMER PROFILE — SINGLE EVENT SYSTEM */
+/* =========================================================
+   5. CUSTOMER PROFILE
+========================================================= */
 
 (async function setupCustomerProfile() {
     const authClient = window.sweetSupabase;
@@ -406,7 +466,8 @@ filterProducts();
     const profileArea = document.getElementById("profileArea");
     const profileMenu = document.getElementById("profileMenu");
     const profileName = document.getElementById("profileName");
-    const profileNameDisplay = document.getElementById("profileNameDisplay");
+    const profileNameDisplay =
+        document.getElementById("profileNameDisplay");
     const profileEmail = document.getElementById("profileEmail");
     const accountLink = document.getElementById("accountLink");
     const logoutButton = document.getElementById("logoutButton");
@@ -416,41 +477,54 @@ filterProducts();
         return;
     }
 
-    // Display the signed-out state
     function showSignedOut() {
         if (profileName) profileName.textContent = "Sign in";
-        if (profileNameDisplay) profileNameDisplay.textContent = "My Account";
+
+        if (profileNameDisplay) {
+            profileNameDisplay.textContent = "My Account";
+        }
+
         if (profileEmail) profileEmail.textContent = "";
 
         if (accountLink) {
-    accountLink.hidden = false;
-    accountLink.textContent = "My Account";
-    accountLink.href = "./account.html";
-}
+            accountLink.hidden = false;
+            accountLink.textContent = "My Account";
+            accountLink.href = "./account.html";
+        }
 
         if (logoutButton) logoutButton.hidden = true;
     }
 
-    // Display the signed-in customer's details
+
     function showSignedIn(user) {
         const fullName = user.user_metadata?.full_name || "";
+
         const firstName =
             fullName.trim().split(/\s+/)[0] ||
             user.email?.split("@")[0] ||
             "Customer";
 
         if (profileName) profileName.textContent = firstName;
-        if (profileNameDisplay) profileNameDisplay.textContent = firstName;
-        if (profileEmail) profileEmail.textContent = user.email || "";
+
+        if (profileNameDisplay) {
+            profileNameDisplay.textContent = firstName;
+        }
+
+        if (profileEmail) {
+            profileEmail.textContent = user.email || "";
+        }
 
         if (accountLink) accountLink.hidden = true;
         if (logoutButton) logoutButton.hidden = false;
     }
 
+
     function closeProfileMenu() {
         profileMenu.hidden = true;
+
         profileButton.setAttribute("aria-expanded", "false");
     }
+
 
     async function refreshProfile() {
         const { data, error } = await authClient.auth.getUser();
@@ -462,39 +536,38 @@ filterProducts();
         }
     }
 
-    // One click handler for the profile button
-    profileButton.addEventListener("click", async (event) => {
+
+    profileButton.addEventListener("click", async function (event) {
         event.preventDefault();
         event.stopPropagation();
 
         const { data, error } = await authClient.auth.getUser();
 
-        // Ask signed-out customers to sign in
         if (error || !data.user) {
             window.location.href = "./login.html";
             return;
         }
 
-        // Toggle the menu only once
         const shouldOpen = profileMenu.hidden;
 
         profileMenu.hidden = !shouldOpen;
+
         profileButton.setAttribute(
             "aria-expanded",
             String(shouldOpen)
         );
     });
 
-    // Close the menu only when clicking outside the profile area
-    document.addEventListener("click", (event) => {
+
+    document.addEventListener("click", function (event) {
         if (!profileArea.contains(event.target)) {
             closeProfileMenu();
         }
     });
 
-    // Log out the customer
+
     if (logoutButton) {
-        logoutButton.addEventListener("click", async (event) => {
+        logoutButton.addEventListener("click", async function (event) {
             event.preventDefault();
             event.stopPropagation();
 
@@ -507,18 +580,22 @@ filterProducts();
 
                 closeProfileMenu();
                 showSignedOut();
+
                 window.location.href = "./login.html";
+
             } catch (error) {
                 console.error("Logout failed:", error);
+
                 alert("Unable to log out. Please try again.");
+
             } finally {
                 logoutButton.disabled = false;
             }
         });
     }
 
-    // Update the profile when the authentication state changes
-    authClient.auth.onAuthStateChange((_event, session) => {
+
+    authClient.auth.onAuthStateChange(function (_event, session) {
         if (session?.user) {
             showSignedIn(session.user);
         } else {
@@ -528,20 +605,19 @@ filterProducts();
     });
 
     await refreshProfile();
+
 })();
 
 
+/* =========================================================
+   6. PAYSTACK CHECKOUT
+========================================================= */
 
-/* ==================================
-   PAYSTACK CHECKOUT
-   SWEET's KITCHEN & COLLECTIONS
-================================== */
-
-document.addEventListener("DOMContentLoaded", function () {
-    const checkoutButton = document.getElementById("checkoutButton");
+function setupPaystackCheckout() {
     const paymentOverlay = document.getElementById("paymentOverlay");
     const closePayment = document.getElementById("closePayment");
-    const closePaymentBottom = document.getElementById("closePaymentBottom");
+    const closePaymentBottom =
+        document.getElementById("closePaymentBottom");
     const paymentNetwork = document.getElementById("paymentNetwork");
     const paymentTotal = document.getElementById("paymentTotal");
     const paymentReference = document.getElementById("paymentReference");
@@ -550,70 +626,93 @@ document.addEventListener("DOMContentLoaded", function () {
     const customerName = document.getElementById("customerName");
     const customerPhone = document.getElementById("customerPhone");
     const deliveryAddress = document.getElementById("deliveryAddress");
-    const confirmButton = document.getElementById("confirmPaymentInstructions");
+
+    const confirmButton =
+        document.getElementById("confirmPaymentInstructions");
 
     if (
-        !checkoutButton || !paymentOverlay || !paymentNetwork ||
-        !paymentTotal || !paymentReference || !customerEmail ||
-        !customerName || !customerPhone || !deliveryAddress ||
+        !checkoutButton ||
+        !paymentOverlay ||
+        !paymentNetwork ||
+        !paymentTotal ||
+        !paymentReference ||
+        !customerEmail ||
+        !customerName ||
+        !customerPhone ||
+        !deliveryAddress ||
         !confirmButton
     ) {
-        console.error("Checkout error: Required checkout HTML elements are missing.");
+        console.error(
+            "Checkout error: Required checkout HTML elements are missing."
+        );
         return;
     }
+
 
     function closePaymentWindow() {
         paymentOverlay.style.display = "none";
         paymentOverlay.hidden = true;
     }
 
-    
-checkoutButton.addEventListener("click", async function (event) {
-    event.preventDefault();
 
-    // First, check whether the cart contains products
-    if (!Array.isArray(cart) || cart.length === 0) {
-        alert("Your cart is empty. Add a product before checkout.");
-        return;
-    }
+    checkoutButton.addEventListener("click", async function (event) {
+        event.preventDefault();
 
-    // Check the customer's Supabase sign-in status
-    const { data, error } = await window.sweetSupabase.auth.getUser();
+        if (!Array.isArray(cart) || cart.length === 0) {
+            alert("Your cart is empty. Add a product before checkout.");
+            return;
+        }
 
-    if (error || !data.user) {
-        // Save the cart so it can be restored after sign-in
-        localStorage.setItem("sweetKitchenCart", JSON.stringify(cart));
+        try {
+            const { data, error } =
+                await window.sweetSupabase.auth.getUser();
 
-        // Redirect the customer to the existing login page
-        window.location.href = "./login.html?redirect=checkout";
-        return;
-    }
+            if (error || !data.user) {
+                localStorage.setItem(
+                    "sweetKitchenCart",
+                    JSON.stringify(cart)
+                );
 
-    // Continue checkout for signed-in customers
-    const subtotal = cart.reduce((sum, item) => {
-        return sum + Number(item.price) * Number(item.quantity);
-    }, 0);
+                window.location.href =
+                    "./login.html?redirect=checkout";
 
-    const total = subtotal + subtotal * 0.01;
+                return;
+            }
 
-    paymentTotal.textContent = "GH₵" + total.toFixed(2);
-    paymentReference.textContent =
-        "Generated securely when checkout starts.";
+            const subtotal = cart.reduce(function (sum, item) {
+                return sum +
+                    Number(item.price) * Number(item.quantity);
+            }, 0);
 
-    paymentNetwork.value = "";
-    paymentOverlay.hidden = false;
-    paymentOverlay.style.display = "flex";
-});
+            const total = subtotal + subtotal * 0.01;
+
+            paymentTotal.textContent = "GH₵" + total.toFixed(2);
+
+            paymentReference.textContent =
+                "Generated securely when checkout starts.";
+
+            paymentNetwork.value = "";
+
+            paymentOverlay.hidden = false;
+            paymentOverlay.style.display = "flex";
+
+        } catch (error) {
+            console.error("Could not open checkout:", error);
+            alert("Unable to open checkout. Please try again.");
+        }
+    });
 
 
     confirmButton.addEventListener("click", async function (event) {
         event.preventDefault();
 
-        if (!customerEmail.value.trim() ||
+        if (
+            !customerEmail.value.trim() ||
             !customerEmail.checkValidity() ||
             !customerName.value.trim() ||
             !customerPhone.value.trim() ||
-            !deliveryAddress.value.trim()) {
+            !deliveryAddress.value.trim()
+        ) {
             alert("Please complete all customer details with a valid email.");
             return;
         }
@@ -631,86 +730,112 @@ checkoutButton.addEventListener("click", async function (event) {
         }
 
         const originalButtonText = confirmButton.textContent;
+
         confirmButton.disabled = true;
         confirmButton.textContent = "Connecting to Paystack...";
 
         try {
-            const items = cart.map(item => ({
-                name: String(item.name),
-                quantity: Number(item.quantity)
-            }));
+            const items = cart.map(function (item) {
+                return {
+                    name: String(item.name),
+                    quantity: Number(item.quantity)
+                };
+            });
 
-            const { data, error } = await window.sweetSupabase.functions.invoke(
-                "initialize-paystack",
-                {
-                    body: {
-                        action: "initialize",
-                        email: customerEmail.value.trim(),
-                        customerName: customerName.value.trim(),
-                        customerPhone: customerPhone.value.trim(),
-                        deliveryAddress: deliveryAddress.value.trim(),
-                        network,
-                        items
+            const { data, error } =
+                await window.sweetSupabase.functions.invoke(
+                    "initialize-paystack",
+                    {
+                        body: {
+                            action: "initialize",
+                            email: customerEmail.value.trim(),
+                            customerName: customerName.value.trim(),
+                            customerPhone: customerPhone.value.trim(),
+                            deliveryAddress: deliveryAddress.value.trim(),
+                            network: network,
+                            items: items
+                        }
+                    }
+                );
+
+            if (error) {
+                console.error("Checkout function error:", error);
+                console.error("Error details:", error.details);
+                console.error("Error hint:", error.hint);
+                console.error("Error code:", error.code);
+
+                if (error.context) {
+                    try {
+                        console.error(
+                            "Server response:",
+                            await error.context.clone().text()
+                        );
+                    } catch (readError) {
+                        console.error(
+                            "Could not read server response:",
+                            readError
+                        );
                     }
                 }
-            );
 
-            
-if (error) {
-    console.error("Checkout function error:", error);
-    console.error("Error message:", error.message);
-    console.error("Error details:", error.details);
-    console.error("Error hint:", error.hint);
-    console.error("Error code:", error.code);
-
-    if (error.context) {
-        try {
-            console.error(
-                "Server response:",
-                await error.context.clone().text()
-            );
-        } catch (readError) {
-            console.error("Could not read server response:", readError);
-        }
-    }
-
-    throw new Error(
-        "Payment connection failed. Open F12 > Console to see the exact error."
-    );
-}
-
-
-            if (!data || !data.authorization_url) {
-                throw new Error(data?.error || "Paystack did not return a payment link.");
+                throw new Error(
+                    "Payment connection failed. Check the browser Console."
+                );
             }
 
-            // Redirect the customer to Paystack's secure payment page.
+            if (!data || !data.authorization_url) {
+                throw new Error(
+                    data?.error ||
+                    "Paystack did not return a payment link."
+                );
+            }
+
             window.location.href = data.authorization_url;
 
         } catch (error) {
             console.error("Paystack checkout error:", error);
-            alert(error.message || "Payment could not start. Please try again.");
+
+            alert(
+                error.message ||
+                "Payment could not start. Please try again."
+            );
+
             confirmButton.disabled = false;
             confirmButton.textContent = originalButtonText;
         }
     });
+
 
     if (closePayment) {
         closePayment.addEventListener("click", closePaymentWindow);
     }
 
     if (closePaymentBottom) {
-        closePaymentBottom.addEventListener("click", closePaymentWindow);
+        closePaymentBottom.addEventListener(
+            "click",
+            closePaymentWindow
+        );
     }
 
     closePaymentWindow();
 
     console.log("Paystack checkout initialized.");
-});
+}
 
-/* ==================================
-   VERIFY PAYSTACK PAYMENT ON RETURN
-================================== */
+
+if (document.readyState === "loading") {
+    document.addEventListener(
+        "DOMContentLoaded",
+        setupPaystackCheckout
+    );
+} else {
+    setupPaystackCheckout();
+}
+
+
+/* =========================================================
+   7. VERIFY PAYSTACK PAYMENT ON RETURN
+========================================================= */
 
 (async function verifyPaymentOnReturn() {
     const params = new URLSearchParams(window.location.search);
@@ -742,26 +867,30 @@ if (error) {
 
         if (error) {
             console.error("Payment verification error:", error);
-            throw new Error("We could not verify your payment. Please contact the store before trying again.");
+
+            throw new Error(
+                "We could not verify your payment. Please contact the store before trying again."
+            );
         }
 
         if (!data || data.paid !== true) {
             alert(
                 data?.message ||
                 data?.error ||
-                "Payment has not been confirmed. Please do not pay again until you check your transaction."
+                "Payment has not been confirmed. Please check your transaction before trying again."
             );
+
             return;
         }
 
-        // Clear the cart only after payment is verified.
         cart = [];
+
         localStorage.removeItem("sweetKitchenCart");
+
         updateCart();
 
         alert("Payment verified successfully! Your order has been paid.");
 
-        // Remove payment parameters from the address bar.
         window.history.replaceState(
             {},
             document.title,
@@ -770,19 +899,19 @@ if (error) {
 
     } catch (error) {
         console.error("Payment return verification failed:", error);
-        alert(error.message || "Payment verification failed. Please contact the store.");
+
+        alert(
+            error.message ||
+            "Payment verification failed. Please contact the store."
+        );
     }
 })();
 
-        
 
+/* =========================================================
+   8. MY ORDERS — CUSTOMER ORDER HISTORY
+========================================================= */
 
-/* ============================================
-   MY ORDERS — CUSTOMER ORDER HISTORY
-   SWEET'S KITCHEN & COLLECTIONS
-============================================ */
-
-// Format order date and time using Ghana time.
 function formatOrderDateTime(dateValue) {
     if (!dateValue) {
         return "Date unavailable";
@@ -805,10 +934,16 @@ function formatOrderDateTime(dateValue) {
     }).format(date);
 }
 
-async function loadMyOrders() {
-    const myOrdersList = document.getElementById("myOrdersList");
-    const ordersMessage = document.getElementById("ordersMessage");
-    const refreshOrdersBtn = document.getElementById("refreshOrdersBtn");
+
+async function loadMyOrders(targetOrderId = null) {
+    const myOrdersList =
+        document.getElementById("myOrdersList");
+
+    const ordersMessage =
+        document.getElementById("ordersMessage");
+
+    const refreshOrdersBtn =
+        document.getElementById("refreshOrdersBtn");
 
     if (!myOrdersList) {
         console.error("My Orders list element was not found.");
@@ -828,7 +963,6 @@ async function loadMyOrders() {
     }
 
     try {
-        // Get the signed-in customer.
         const { data: userData, error: userError } =
             await supabaseClient.auth.getUser();
 
@@ -841,10 +975,10 @@ async function loadMyOrders() {
                 ordersMessage.textContent =
                     "Please sign in to view your orders.";
             }
+
             return;
         }
 
-        // Retrieve this customer's orders.
         const { data: orders, error } = await supabaseClient
             .from("orders")
             .select(`
@@ -869,6 +1003,7 @@ async function loadMyOrders() {
                 ordersMessage.textContent =
                     "You haven't placed any orders yet. Your orders will appear here after checkout.";
             }
+
             return;
         }
 
@@ -877,9 +1012,13 @@ async function loadMyOrders() {
                 `${orders.length} order${orders.length === 1 ? "" : "s"} found.`;
         }
 
-        // Format money consistently.
+
         function formatMoney(value) {
-            if (value === null || value === undefined || value === "") {
+            if (
+                value === null ||
+                value === undefined ||
+                value === ""
+            ) {
                 return "Unavailable";
             }
 
@@ -895,8 +1034,13 @@ async function loadMyOrders() {
             });
         }
 
-        // Create a detail row safely.
-        function addOrderDetail(container, labelText, valueText, extraClass = "") {
+
+        function addOrderDetail(
+            container,
+            labelText,
+            valueText,
+            extraClass = ""
+        ) {
             const row = document.createElement("div");
             row.className = "order-detail-row";
 
@@ -916,11 +1060,25 @@ async function loadMyOrders() {
             container.appendChild(row);
         }
 
+
+        let targetOrderFound = false;
+
         orders.forEach(function (order) {
             const card = document.createElement("article");
+
             card.className = "order-card";
 
-            // Order reference and order status.
+            card.id = "order-card-" + String(order.id);
+
+            if (
+                targetOrderId !== null &&
+                String(order.id) === String(targetOrderId)
+            ) {
+                card.classList.add("order-card-highlight");
+                targetOrderFound = true;
+            }
+
+
             const header = document.createElement("div");
             header.className = "order-card-header";
 
@@ -933,10 +1091,12 @@ async function loadMyOrders() {
 
             const reference = document.createElement("h3");
             reference.className = "order-reference";
+
             reference.textContent =
                 order.order_reference || String(order.id);
 
             referenceBlock.append(referenceLabel, reference);
+
 
             const status = document.createElement("span");
             status.className = "order-status";
@@ -949,7 +1109,9 @@ async function loadMyOrders() {
 
             const statusKey = orderStatus.toLowerCase();
 
-            if (["completed", "delivered", "fulfilled"].includes(statusKey)) {
+            if (
+                ["completed", "delivered", "fulfilled"].includes(statusKey)
+            ) {
                 status.classList.add("status-success");
             } else if (
                 ["cancelled", "canceled", "failed"].includes(statusKey)
@@ -961,11 +1123,11 @@ async function loadMyOrders() {
 
             header.append(referenceBlock, status);
 
-            // Divider.
+
             const divider = document.createElement("div");
             divider.className = "order-card-divider";
 
-            // Total amount.
+
             const totalBlock = document.createElement("div");
             totalBlock.className = "order-total-block";
 
@@ -979,7 +1141,7 @@ async function loadMyOrders() {
 
             totalBlock.append(totalLabel, total);
 
-            // Details including date and time.
+
             const details = document.createElement("div");
             details.className = "order-details";
 
@@ -988,6 +1150,7 @@ async function loadMyOrders() {
                 "Order date & time",
                 formatOrderDateTime(order.created_at)
             );
+
 
             const paymentStatus = String(
                 order.payment_status || "Unknown"
@@ -1042,6 +1205,24 @@ async function loadMyOrders() {
             myOrdersList.appendChild(card);
         });
 
+
+        if (targetOrderId !== null) {
+            if (targetOrderFound) {
+                const targetCard = document.getElementById(
+                    "order-card-" + String(targetOrderId)
+                );
+
+                targetCard?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+
+            } else if (ordersMessage) {
+                ordersMessage.textContent =
+                    "Your orders loaded, but the order linked to this notification was not found.";
+            }
+        }
+
     } catch (error) {
         console.error("My Orders error:", error);
 
@@ -1059,31 +1240,32 @@ async function loadMyOrders() {
 }
 
 
-/* ============================================
-   REFRESH ORDERS BUTTON
-============================================ */
+/* REFRESH ORDERS BUTTON */
 
 const refreshOrdersBtn =
     document.getElementById("refreshOrdersBtn");
 
 if (refreshOrdersBtn) {
-    refreshOrdersBtn.addEventListener("click", loadMyOrders);
+    refreshOrdersBtn.addEventListener("click", function () {
+        loadMyOrders();
+    });
 }
 
 
-/* ============================================
-   OPEN MY ORDERS
-============================================ */
+/* OPEN MY ORDERS */
 
-const myOrdersLink = document.getElementById("myOrdersLink");
-const myOrdersSection = document.getElementById("myOrders");
+const myOrdersLink =
+    document.getElementById("myOrdersLink");
+
+const myOrdersSection =
+    document.getElementById("myOrders");
 
 if (myOrdersLink && myOrdersSection) {
     myOrdersLink.addEventListener("click", async function (event) {
         event.preventDefault();
 
-        // Ensure the customer is signed in.
-        const { data, error } = await supabaseClient.auth.getUser();
+        const { data, error } =
+            await supabaseClient.auth.getUser();
 
         if (error || !data.user) {
             window.location.href = "./login.html";
@@ -1093,11 +1275,15 @@ if (myOrdersLink && myOrdersSection) {
         myOrdersSection.hidden = false;
         myOrdersSection.style.display = "block";
 
-        // Close the profile dropdown.
-        const profileMenu = document.getElementById("profileMenu");
-        const profileButton = document.getElementById("profileButton");
+        const profileMenu =
+            document.getElementById("profileMenu");
 
-        if (profileMenu) profileMenu.hidden = true;
+        const profileButton =
+            document.getElementById("profileButton");
+
+        if (profileMenu) {
+            profileMenu.hidden = true;
+        }
 
         if (profileButton) {
             profileButton.setAttribute("aria-expanded", "false");
@@ -1113,10 +1299,13 @@ if (myOrdersLink && myOrdersSection) {
 }
 
 
-/* DARK AND LIGHT MODE */
+/* =========================================================
+   9. DARK AND LIGHT MODE
+========================================================= */
 
 const themeToggle = document.getElementById("themeToggle");
 const themeIcon = document.getElementById("themeIcon");
+
 
 function setTheme(theme) {
     const isDark = theme === "dark";
@@ -1124,13 +1313,16 @@ function setTheme(theme) {
     document.body.classList.toggle("dark-mode", isDark);
 
     if (themeIcon) {
-        themeIcon.textContent = isDark ? "light_mode" : "dark_mode";
+        themeIcon.textContent =
+            isDark ? "light_mode" : "dark_mode";
     }
 
     if (themeToggle) {
         themeToggle.setAttribute(
             "aria-label",
-            isDark ? "Switch to light mode" : "Switch to dark mode"
+            isDark
+                ? "Switch to light mode"
+                : "Switch to dark mode"
         );
     }
 
@@ -1141,11 +1333,13 @@ function setTheme(theme) {
     }
 }
 
+
 if (themeToggle && themeIcon) {
     let savedTheme = "light";
 
     try {
-        savedTheme = localStorage.getItem("sweetKitchenTheme") || "light";
+        savedTheme =
+            localStorage.getItem("sweetKitchenTheme") || "light";
     } catch (error) {
         // Use light mode if browser storage is unavailable.
     }
@@ -1153,109 +1347,295 @@ if (themeToggle && themeIcon) {
     setTheme(savedTheme);
 
     themeToggle.addEventListener("click", function () {
-        const isDark = document.body.classList.contains("dark-mode");
+        const isDark =
+            document.body.classList.contains("dark-mode");
 
         setTheme(isDark ? "light" : "dark");
     });
 }
 
-// ======================================
-// NOTIFICATION BELL - SUPABASE REALTIME
-// ======================================
 
-const notificationButton = document.getElementById("notificationButton");
-const notificationCount = document.getElementById("notificationCount");
-const notificationMenu = document.getElementById("notificationMenu");
-const notificationList = document.getElementById("notificationList");
-const markAllNotificationsRead = document.getElementById("markAllNotificationsRead");
+/* =========================================================
+   10. NOTIFICATION BELL — SUPABASE REALTIME
+========================================================= */
+
+const notificationButton =
+    document.getElementById("notificationButton");
+
+const notificationCount =
+    document.getElementById("notificationCount");
+
+const notificationMenu =
+    document.getElementById("notificationMenu");
+
+const notificationList =
+    document.getElementById("notificationList");
+
+const markAllNotificationsRead =
+    document.getElementById("markAllNotificationsRead");
 
 const notificationSupabase = window.sweetSupabase;
 
 let notificationUserId = null;
 let notificationChannel = null;
 
-// Open and close notification menu
-if (notificationButton && notificationMenu) {
-    notificationButton.addEventListener("click", () => {
-        const isOpen = !notificationMenu.hidden;
 
-        notificationMenu.hidden = isOpen;
-        notificationButton.setAttribute("aria-expanded", String(!isOpen));
+/* OPEN AND CLOSE NOTIFICATION MENU */
+
+if (notificationButton && notificationMenu) {
+    notificationButton.addEventListener("click", function (event) {
+        event.stopPropagation();
+
+        const shouldOpen = notificationMenu.hidden;
+
+        notificationMenu.hidden = !shouldOpen;
+
+        notificationButton.setAttribute(
+            "aria-expanded",
+            String(shouldOpen)
+        );
     });
 }
 
-// Display notifications
+
+/* CLOSE NOTIFICATION MENU WHEN CLICKING OUTSIDE */
+
+document.addEventListener("click", function (event) {
+    if (
+        notificationMenu &&
+        notificationButton &&
+        !notificationMenu.contains(event.target) &&
+        !notificationButton.contains(event.target)
+    ) {
+        notificationMenu.hidden = true;
+
+        notificationButton.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+    }
+});
+
+
+/* DISPLAY NOTIFICATIONS */
+
 function displayNotifications(notifications) {
     if (!notificationList) return;
 
-    notificationList.innerHTML = "";
+    notificationList.replaceChildren();
 
     if (!notifications || notifications.length === 0) {
-        notificationList.innerHTML =
-            '<p class="notification-empty">You have no notifications.</p>';
+        const emptyMessage = document.createElement("p");
+
+        emptyMessage.className = "notification-empty";
+        emptyMessage.textContent = "You have no notifications.";
+
+        notificationList.appendChild(emptyMessage);
+
         return;
     }
 
-    notifications.forEach((notification) => {
-        const item = document.createElement("div");
+
+    notifications.forEach(function (notification) {
+        const item = document.createElement("button");
+
+        item.type = "button";
 
         item.className = notification.is_read
             ? "notification-item"
             : "notification-item unread";
 
+        item.style.width = "100%";
+        item.style.textAlign = "left";
+        item.style.cursor = "pointer";
+        item.style.border = "0";
+        item.style.font = "inherit";
+
+
         const title = document.createElement("strong");
-        title.textContent = notification.title;
+
+        title.textContent =
+            notification.title || "Order update";
+
 
         const message = document.createElement("p");
-        message.textContent = notification.message;
+
+        message.textContent =
+            notification.message || "Your order has been updated.";
+
+
+        const orderReference = document.createElement("small");
+
+        orderReference.textContent = notification.order_id
+            ? "Click to view related order"
+            : "Order reference unavailable";
+
 
         const date = document.createElement("small");
-        date.textContent = new Date(notification.created_at).toLocaleString();
 
-        item.append(title, message, date);
+        date.textContent = notification.created_at
+            ? new Date(notification.created_at).toLocaleString(
+                "en-GH",
+                { timeZone: "Africa/Accra" }
+            )
+            : "";
 
-        if (!notification.is_read) {
-            item.style.cursor = "pointer";
+        item.append(title, message, orderReference, date);
 
-            item.addEventListener("click", async () => {
-                const { error } = await notificationSupabase
-                    .from("notifications")
-                    .update({ is_read: true })
-                    .eq("id", notification.id)
-                    .eq("user_id", notificationUserId);
 
-                if (error) {
-                    console.error("Could not mark notification as read:", error);
+        /* CLICK NOTIFICATION TO OPEN THE RELATED ORDER */
+
+        item.addEventListener("click", async function () {
+            if (!notificationUserId) return;
+
+            item.disabled = true;
+
+            try {
+                // Mark notification as read.
+                if (!notification.is_read) {
+                    const { error } = await notificationSupabase
+                        .from("notifications")
+                        .update({ is_read: true })
+                        .eq("id", notification.id)
+                        .eq("user_id", notificationUserId);
+
+                    if (error) throw error;
+                }
+
+
+                // Close notification dropdown.
+                if (notificationMenu) {
+                    notificationMenu.hidden = true;
+                }
+
+                if (notificationButton) {
+                    notificationButton.setAttribute(
+                        "aria-expanded",
+                        "false"
+                    );
+                }
+
+
+                // Check for linked order ID.
+                if (!notification.order_id) {
+                    alert(
+                        "This notification has no linked order. Please contact the store."
+                    );
+
+                    await loadNotifications();
+
                     return;
                 }
 
+
+                // Check customer login.
+                const { data: userData, error: userError } =
+                    await notificationSupabase.auth.getUser();
+
+                if (userError) throw userError;
+
+                if (!userData.user) {
+                    window.location.href = "./login.html";
+                    return;
+                }
+
+
+                // Open My Orders.
+                const ordersSection =
+                    document.getElementById("myOrders");
+
+                if (!ordersSection) {
+                    throw new Error(
+                        "The My Orders section was not found."
+                    );
+                }
+
+                ordersSection.hidden = false;
+                ordersSection.style.display = "block";
+
+
+                // Close profile dropdown.
+                const profileMenu =
+                    document.getElementById("profileMenu");
+
+                const profileButton =
+                    document.getElementById("profileButton");
+
+                if (profileMenu) {
+                    profileMenu.hidden = true;
+                }
+
+                if (profileButton) {
+                    profileButton.setAttribute(
+                        "aria-expanded",
+                        "false"
+                    );
+                }
+
+
+                ordersSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+
+                // Load and highlight the related order.
+                await loadMyOrders(notification.order_id);
+
+
+                // Update notification badge and list.
                 await loadNotifications();
-            });
-        }
+
+            } catch (error) {
+                console.error(
+                    "Could not open order from notification:",
+                    error
+                );
+
+                alert(
+                    "Unable to open this order. Please try again."
+                );
+
+            } finally {
+                item.disabled = false;
+            }
+        });
+
 
         notificationList.appendChild(item);
     });
 }
 
-// Update unread badge
+
+/* UPDATE UNREAD BADGE */
+
 function updateNotificationBadge(notifications) {
     const unreadCount = notifications.filter(
         notification => !notification.is_read
     ).length;
 
     if (notificationCount) {
-        notificationCount.textContent = unreadCount > 99 ? "99+" : unreadCount;
+        notificationCount.textContent =
+            unreadCount > 99 ? "99+" : String(unreadCount);
+
         notificationCount.hidden = unreadCount === 0;
     }
 
     if (notificationButton) {
-        notificationButton.classList.toggle("has-unread", unreadCount > 0);
+        notificationButton.classList.toggle(
+            "has-unread",
+            unreadCount > 0
+        );
     }
 }
 
-// Load notifications from Supabase
+
+/* LOAD NOTIFICATIONS FROM SUPABASE */
+
 async function loadNotifications() {
-    if (!notificationUserId) return;
+    if (!notificationUserId || !notificationSupabase) {
+        return;
+    }
 
     const { data, error } = await notificationSupabase
         .from("notifications")
@@ -1269,36 +1649,64 @@ async function loadNotifications() {
         return;
     }
 
-    updateNotificationBadge(data || []);
-    displayNotifications(data || []);
+    const notifications = data || [];
+
+    updateNotificationBadge(notifications);
+
+    displayNotifications(notifications);
 }
 
-// Mark all notifications as read
+
+/* MARK ALL NOTIFICATIONS AS READ */
+
 if (markAllNotificationsRead) {
-    markAllNotificationsRead.addEventListener("click", async () => {
-        if (!notificationUserId) return;
+    markAllNotificationsRead.addEventListener(
+        "click",
+        async function () {
+            if (!notificationUserId) return;
 
-        const { error } = await notificationSupabase
-            .from("notifications")
-            .update({ is_read: true })
-            .eq("user_id", notificationUserId)
-            .eq("is_read", false);
+            markAllNotificationsRead.disabled = true;
 
-        if (error) {
-            console.error("Could not mark notifications as read:", error);
-            return;
+            try {
+                const { error } = await notificationSupabase
+                    .from("notifications")
+                    .update({ is_read: true })
+                    .eq("user_id", notificationUserId)
+                    .eq("is_read", false);
+
+                if (error) throw error;
+
+                await loadNotifications();
+
+            } catch (error) {
+                console.error(
+                    "Could not mark notifications as read:",
+                    error
+                );
+
+                alert(
+                    "Unable to update notifications. Please try again."
+                );
+
+            } finally {
+                markAllNotificationsRead.disabled = false;
+            }
         }
-
-        await loadNotifications();
-    });
+    );
 }
 
-// Start Realtime notifications
-function startNotificationRealtime() {
+
+/* START SUPABASE REALTIME NOTIFICATIONS */
+
+async function startNotificationRealtime() {
     if (!notificationUserId) return;
 
     if (notificationChannel) {
-        notificationSupabase.removeChannel(notificationChannel);
+        await notificationSupabase.removeChannel(
+            notificationChannel
+        );
+
+        notificationChannel = null;
     }
 
     notificationChannel = notificationSupabase
@@ -1311,43 +1719,69 @@ function startNotificationRealtime() {
                 table: "notifications",
                 filter: "user_id=eq." + notificationUserId
             },
-            () => {
+            function () {
                 loadNotifications();
             }
         )
         .subscribe();
 }
 
-// Get logged-in customer
+
+/* INITIALIZE CUSTOMER NOTIFICATIONS */
+
 async function initializeNotifications() {
-    const { data, error } = await notificationSupabase.auth.getUser();
+    if (!notificationSupabase) {
+        console.error("Supabase notification client is missing.");
+        return;
+    }
+
+    const { data, error } =
+        await notificationSupabase.auth.getUser();
 
     if (error || !data.user) {
         notificationUserId = null;
 
         if (notificationChannel) {
-            await notificationSupabase.removeChannel(notificationChannel);
+            await notificationSupabase.removeChannel(
+                notificationChannel
+            );
+
             notificationChannel = null;
         }
 
         updateNotificationBadge([]);
+
         displayNotifications([]);
+
         return;
     }
 
     notificationUserId = data.user.id;
 
     await loadNotifications();
-    startNotificationRealtime();
+
+    await startNotificationRealtime();
 }
 
-// Initialize notifications
+
+/* INITIALIZE NOTIFICATIONS ON PAGE LOAD */
+
 if (notificationSupabase) {
     initializeNotifications();
 
-    notificationSupabase.auth.onAuthStateChange((event) => {
-        if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
-            initializeNotifications();
+    notificationSupabase.auth.onAuthStateChange(
+        function (event) {
+            if (
+                event === "SIGNED_IN" ||
+                event === "SIGNED_OUT"
+            ) {
+                initializeNotifications();
+            }
         }
-    });
+    );
 }
+
+
+console.log(
+    "SWEET'S KITCHEN & COLLECTIONS — Main JavaScript loaded successfully."
+);
