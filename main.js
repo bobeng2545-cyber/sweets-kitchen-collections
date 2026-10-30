@@ -1159,3 +1159,106 @@ if (themeToggle && themeIcon) {
     });
 }
 
+/* =================================
+   NOTIFICATION BELL MENU
+================================= */
+
+const notificationButton =
+    document.getElementById("notificationButton");
+
+const notificationMenu =
+    document.getElementById("notificationMenu");
+
+const notificationCount =
+    document.getElementById("notificationCount");
+
+const notificationList =
+    document.getElementById("notificationList");
+
+const markAllNotificationsRead =
+    document.getElementById("markAllNotificationsRead");
+
+if (
+    notificationButton &&
+    notificationMenu &&
+    notificationCount &&
+    notificationList
+) {
+    notificationButton.addEventListener("click", () => {
+        const isOpen = !notificationMenu.hidden;
+
+        notificationMenu.hidden = isOpen;
+
+        notificationButton.setAttribute(
+            "aria-expanded",
+            String(!isOpen)
+        );
+    });
+
+    function displayNotifications(notifications) {
+        notificationList.replaceChildren();
+
+        const unread = notifications.filter(
+            notification => !notification.is_read
+        );
+
+        notificationCount.textContent =
+            unread.length > 99 ? "99+" : unread.length;
+
+        notificationCount.hidden = unread.length === 0;
+
+        notificationButton.classList.toggle(
+            "has-unread",
+            unread.length > 0
+        );
+
+        if (notifications.length === 0) {
+            const empty = document.createElement("p");
+            empty.className = "notification-empty";
+            empty.textContent = "You have no notifications.";
+            notificationList.appendChild(empty);
+            return;
+        }
+
+        notifications.forEach(notification => {
+            const item = document.createElement("div");
+
+            item.className = notification.is_read
+                ? "notification-item"
+                : "notification-item unread";
+
+            const title = document.createElement("strong");
+            title.textContent = notification.title;
+
+            const message = document.createElement("p");
+            message.textContent = notification.message;
+
+            const date = document.createElement("small");
+            date.textContent = notification.created_at
+                ? new Date(notification.created_at).toLocaleString()
+                : "";
+
+            item.append(title, message, date);
+            notificationList.appendChild(item);
+        });
+    }
+
+    // Temporary empty state until Supabase notifications are connected.
+    displayNotifications([]);
+
+    if (markAllNotificationsRead) {
+        markAllNotificationsRead.addEventListener("click", () => {
+            // Actual database updates will be added in the Supabase stage.
+        });
+    }
+
+    document.addEventListener("click", event => {
+        if (
+            !event.target.closest("#notificationArea") &&
+            !notificationMenu.hidden
+        ) {
+            notificationMenu.hidden = true;
+            notificationButton.setAttribute("aria-expanded", "false");
+        }
+    });
+}
