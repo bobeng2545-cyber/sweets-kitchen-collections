@@ -2331,3 +2331,35 @@ body.dark-mode .orders-info p {
         white-space: normal;
     }
 }
+
+/* Fix notification card on mobile */
+#notificationMenu {
+    position: fixed !important;
+    top: 70px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: calc(100vh - 90px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+    z-index: 999999 !important;
+}
+
+/* Keep notification content inside the card */
+#notificationList {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+    #notificationMenu {
+        left: 5px !important;
+        right: 5px !important;
+        max-height: calc(100vh - 85px) !important;
+    }
+}
