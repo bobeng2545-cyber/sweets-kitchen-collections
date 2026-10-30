@@ -1159,68 +1159,111 @@ if (themeToggle && themeIcon) {
     });
 }
 
-/* =================================
-   NOTIFICATION BELL MENU
-================================= */
+/* ============================================
+   CUSTOMER NOTIFICATIONS
+   SWEET'S KITCHEN & COLLECTIONS
+   SUPABASE + REALTIME
+============================================ */
 
-const notificationButton =
-    document.getElementById("notificationButton");
+(function setupCustomerNotifications() {
+    const supabase = window.sweetSupabase;
 
-const notificationMenu =
-    document.getElementById("notificationMenu");
+    const notificationArea =
+        document.getElementById("notificationArea");
 
-const notificationCount =
-    document.getElementById("notificationCount");
+    const notificationButton =
+        document.getElementById("notificationButton");
 
-const notificationList =
-    document.getElementById("notificationList");
+    const notificationMenu =
+        document.getElementById("notificationMenu");
 
-const markAllNotificationsRead =
-    document.getElementById("markAllNotificationsRead");
+    const notificationCount =
+        document.getElementById("notificationCount");
 
-if (
-    notificationButton &&
-    notificationMenu &&
-    notificationCount &&
-    notificationList
-) {
-    notificationButton.addEventListener("click", () => {
-        const isOpen = !notificationMenu.hidden;
+    const notificationList =
+        document.getElementById("notificationList");
 
-        notificationMenu.hidden = isOpen;
+    const markAllNotificationsRead =
+        document.getElementById("markAllNotificationsRead");
+
+    if (
+        !supabase ||
+        !notificationButton ||
+        !notificationMenu ||
+        !notificationCount ||
+        !notificationList
+    ) {
+        console.error(
+            "Notification setup failed. Check your Supabase connection and notification HTML IDs."
+        );
+        return;
+    }
+
+    let currentUserId = null;
+    let notificationChannel = null;
+    let notifications = [];
+
+    // Open and close the notification dropdown.
+    notificationButton.addEventListener("click", function (event) {
+        event.stopPropagation();
+
+        const shouldOpen = notificationMenu.hidden;
+
+        notificationMenu.hidden = !shouldOpen;
 
         notificationButton.setAttribute(
             "aria-expanded",
-            String(!isOpen)
+            String(shouldOpen)
         );
     });
 
-    function displayNotifications(notifications) {
+    // Close dropdown when clicking outside it.
+    document.addEventListener("click", function (event) {
+        if (
+            notificationArea &&
+            !notificationArea.contains(event.target)
+        ) {
+            notificationMenu.hidden = true;
+
+            notificationButton.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+        }
+    });
+
+    // Display notifications on the page.
+    function displayNotifications() {
         notificationList.replaceChildren();
 
-        const unread = notifications.filter(
-            notification => !notification.is_read
+        const unreadNotifications = notifications.filter(
+            notification => notification.is_read === false
         );
 
         notificationCount.textContent =
-            unread.length > 99 ? "99+" : unread.length;
+            unreadNotifications.length > 99
+                ? "99+"
+                : String(unreadNotifications.length);
 
-        notificationCount.hidden = unread.length === 0;
+        notificationCount.hidden =
+            unreadNotifications.length === 0;
 
         notificationButton.classList.toggle(
             "has-unread",
-            unread.length > 0
+            unreadNotifications.length > 0
         );
 
         if (notifications.length === 0) {
-            const empty = document.createElement("p");
-            empty.className = "notification-empty";
-            empty.textContent = "You have no notifications.";
-            notificationList.appendChild(empty);
+            const emptyMessage = document.createElement("p");
+
+            emptyMessage.className = "notification-empty";
+            emptyMessage.textContent = "You have no notifications.";
+
+            notificationList.appendChild(emptyMessage);
             return;
         }
 
-        notifications.forEach(notification => {
+        notifications.forEach(function (notification) {
             const item = document.createElement("div");
 
             item.className = notification.is_read
@@ -1228,37 +1271,220 @@ if (
                 : "notification-item unread";
 
             const title = document.createElement("strong");
-            title.textContent = notification.title;
+            title.textContent = notification.title || "Order update";
 
             const message = document.createElement("p");
-            message.textContent = notification.message;
+            message.textContent = notification.message || "";
 
             const date = document.createElement("small");
+
             date.textContent = notification.created_at
-                ? new Date(notification.created_at).toLocaleString()
+                ? new Date(notification.created_at).toLocaleString(
+                    "en-GH",
+                    { timeZone: "Africa/Accra" }
+                )
                 : "";
 
             item.append(title, message, date);
+
+            // Mark an individual notification as read when clicked.
+            if (!notification.is_read) {
+                item.style.cursor = "pointer";
+
+                item.addEventListener("click", function () {
+                    markNotificationRead(notification.id);
+                });
+            }
+
             notificationList.appendChild(item);
         });
     }
 
-    // Temporary empty state until Supabase notifications are connected.
-    displayNotifications([]);
+    // Load notifications belonging to the signed-in customer.
+    async function loadNotifications() {
+        try {
+            const { data: userData, error: userError } =
+                await supabase.auth.getUser();
 
-    if (markAllNotificationsRead) {
-        markAllNotificationsRead.addEventListener("click", () => {
-            // Actual database updates will be added in the Supabase stage.
-        });
+            if (userError) throw userError;
+
+            if (!userData.user) {
+                currentUserId = null;
+                notifications = [];
+                displayNotifications();
+                return;
+            }
+
+            currentUserId = userData.user.id;
+
+            const { data, error } = await supabase
+                .from("notifications")
+                .select("id, user_id, title, message, is_read, created_at")
+                .eq("user_id", currentUserId)
+                .order("created_at", { ascending: false })
+                .limit(50);
+
+            if (error) throw error;
+
+            notifications = data || [];
+
+            displayNotifications();
+
+        } catch (error) {
+            console.error("Could not load notifications:", error);
+
+            notificationList.textContent =
+                "Unable to load notifications. Please try again.";
+        }
     }
 
-    document.addEventListener("click", event => {
-        if (
-            !event.target.closest("#notificationArea") &&
-            !notificationMenu.hidden
-        ) {
+    // Mark one notification as read.
+    async function markNotificationRead(notificationId) {
+        if (!currentUserId) return;
+
+        try {
+            const { error } = await supabase
+                .from("notifications")
+                .update({ is_read: true })
+                .eq("id", notificationId)
+                .eq("user_id", currentUserId);
+
+            if (error) throw error;
+
+            const notification = notifications.find(
+                item => item.id === notificationId
+            );
+
+            if (notification) {
+                notification.is_read = true;
+            }
+
+            displayNotifications();
+
+        } catch (error) {
+            console.error("Could not mark notification as read:", error);
+            alert("Unable to update notification. Please try again.");
+        }
+    }
+
+    // Mark all the customer's notifications as read.
+    if (markAllNotificationsRead) {
+        markAllNotificationsRead.addEventListener(
+            "click",
+            async function () {
+                if (!currentUserId) return;
+
+                try {
+                    const { error } = await supabase
+                        .from("notifications")
+                        .update({ is_read: true })
+                        .eq("user_id", currentUserId)
+                        .eq("is_read", false);
+
+                    if (error) throw error;
+
+                    notifications.forEach(function (notification) {
+                        notification.is_read = true;
+                    });
+
+                    displayNotifications();
+
+                } catch (error) {
+                    console.error(
+                        "Could not mark all notifications as read:",
+                        error
+                    );
+
+                    alert("Unable to update notifications. Please try again.");
+                }
+            }
+        );
+    }
+
+    // Subscribe to live notification changes from Supabase.
+    function subscribeToNotifications() {
+        if (!currentUserId) return;
+
+        // Remove an earlier subscription before creating another.
+        if (notificationChannel) {
+            supabase.removeChannel(notificationChannel);
+            notificationChannel = null;
+        }
+
+        notificationChannel = supabase
+            .channel("customer-notifications-" + currentUserId)
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "notifications",
+                    filter: "user_id=eq." + currentUserId
+                },
+                function () {
+                    loadNotifications();
+                }
+            )
+            .subscribe(function (status) {
+                console.log("Notification subscription:", status);
+            });
+    }
+
+    // Check the signed-in customer and load their notifications.
+    async function initializeNotifications() {
+        const { data, error } = await supabase.auth.getUser();
+
+        if (error) {
+            console.error("Could not check customer:", error);
+            return;
+        }
+
+        if (!data.user) {
+            currentUserId = null;
+            notifications = [];
+            displayNotifications();
+            return;
+        }
+
+        currentUserId = data.user.id;
+
+        await loadNotifications();
+
+        subscribeToNotifications();
+    }
+
+    // Handle sign-in and sign-out.
+    supabase.auth.onAuthStateChange(function (event, session) {
+        if (event === "SIGNED_IN" && session?.user) {
+            currentUserId = session.user.id;
+
+            setTimeout(function () {
+                initializeNotifications();
+            }, 0);
+        }
+
+        if (event === "SIGNED_OUT") {
+            currentUserId = null;
+            notifications = [];
+
+            if (notificationChannel) {
+                supabase.removeChannel(notificationChannel);
+                notificationChannel = null;
+            }
+
+            displayNotifications();
+
             notificationMenu.hidden = true;
-            notificationButton.setAttribute("aria-expanded", "false");
+
+            notificationButton.setAttribute(
+                "aria-expanded",
+                "false"
+            );
         }
     });
-}
+
+    // Start notification system.
+    initializeNotifications();
+
+    console.log("Customer notification system initialized.");
+})();
