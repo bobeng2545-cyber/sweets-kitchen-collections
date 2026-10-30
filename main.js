@@ -1,9 +1,8 @@
-
 /* =========================================================
    SWEET'S KITCHEN & COLLECTIONS
    COMPLETE MAIN JAVASCRIPT
-   Supabase + Cart + Search + Profile + Paystack
-   My Orders + Theme + Notifications
+   Supabase + Live Product Prices + Cart + Search
+   Profile + Paystack + My Orders + Theme + Notifications
 ========================================================= */
 
 
@@ -14,7 +13,7 @@
 const SUPABASE_URL = "https://vbrlprrbtumonmroybdv.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY =
-    "sb_publishable_QN5w738LNyUrYy2X93M1OQ_md6F2xTN";
+    "sb_publishable_QN5w738LnyUrYy2X93M1OQ_md6F2xTN";
 
 if (!window.supabase) {
     throw new Error("Supabase library is missing. Check your HTML script imports.");
@@ -377,7 +376,10 @@ function filterProducts() {
             selectedCategory === "all" ||
             productCategory === selectedCategory;
 
-        const shouldShow = matchesSearch && matchesCategory;
+        const shouldShow =
+            matchesSearch &&
+            matchesCategory &&
+            !card.hidden;
 
         card.style.display = shouldShow ? "" : "none";
 
@@ -456,7 +458,207 @@ filterProducts();
 
 
 /* =========================================================
-   5. CUSTOMER PROFILE
+   5. LIVE PRODUCT PRICES FROM SUPABASE
+   Updates the storefront when admin edits a product.
+========================================================= */
+
+async function loadLiveStoreProducts() {
+    if (!productsGrid) {
+        console.error("Cannot load live products: productsGrid is missing.");
+        return;
+    }
+
+    try {
+        const { data: products, error } = await supabaseClient
+            .from("store_products")
+            .select("product_name, unit_price, active");
+
+        if (error) {
+            throw error;
+        }
+
+        /*
+          Do not hide the existing HTML products if Supabase
+          returns no rows. This can happen if the public read
+          permission has not been configured.
+        */
+
+        if (!products || products.length === 0) {
+            console.warn(
+                "No products were returned from Supabase. Check the store_products SELECT permission."
+            );
+            return;
+        }
+
+        const productMap = new Map();
+
+        products.forEach(function (product) {
+            const key = String(product.product_name || "")
+                .trim()
+                .toLowerCase();
+
+            if (key) {
+                productMap.set(key, product);
+            }
+        });
+
+        const productCards =
+            productsGrid.querySelectorAll(".product-card");
+
+        productCards.forEach(function (card) {
+            const heading = card.querySelector("h3");
+            const priceElement =
+                card.querySelector(".product-buttom strong");
+            const addButton = card.querySelector(".add-to-cart");
+
+            const productName = (
+                heading?.textContent ||
+                card.dataset.name ||
+                ""
+            ).trim().toLowerCase();
+
+            const product = productMap.get(productName);
+
+            /*
+              Hide a product if it does not exist in the
+              database or has been deactivated.
+            */
+
+            if (!product || product.active === false) {
+                card.hidden = true;
+                card.style.display = "none";
+                return;
+            }
+
+            card.hidden = false;
+
+            const currentPrice = Number(product.unit_price);
+
+            if (
+                !Number.isFinite(currentPrice) ||
+                currentPrice < 0
+            ) {
+                console.warn(
+                    "Invalid price received for:",
+                    product.product_name
+                );
+                return;
+            }
+
+            /*
+              Update the price displayed under the product.
+            */
+
+            if (priceElement) {
+                priceElement.textContent =
+                    "GH₵" + currentPrice.toLocaleString("en-GH");
+            }
+
+            /*
+              Update the Add to Cart button's data-price.
+            */
+
+            if (addButton) {
+                addButton.dataset.name = product.product_name;
+                addButton.dataset.price = String(currentPrice);
+            }
+
+            /*
+              Keep the product card name synchronized.
+            */
+
+            card.dataset.name = product.product_name;
+
+            /*
+              Update the price of this product if it is
+              already inside the customer's cart.
+            */
+
+            cart.forEach(function (item) {
+                if (
+                    item.name.trim().toLowerCase() === productName
+                ) {
+                    item.price = currentPrice;
+                }
+            });
+        });
+
+        /*
+          Refresh the cart total after product prices change.
+        */
+
+        updateCart();
+
+        /*
+          Reapply search and category filters.
+        */
+
+        filterProducts();
+
+        /*
+          Restore the correct Add to Cart button state.
+        */
+
+        document.querySelectorAll(".add-to-cart").forEach(
+            function (button) {
+                const alreadyAdded = cart.some(
+                    item =>
+                        item.name.trim().toLowerCase() ===
+                        String(button.dataset.name || "")
+                            .trim()
+                            .toLowerCase()
+                );
+
+                if (alreadyAdded) {
+                    button.textContent = "Added to Cart";
+                    button.disabled = true;
+                } else {
+                    button.textContent = "Add to Cart";
+                    button.disabled = false;
+                }
+            }
+        );
+
+        console.log(
+            "Live product prices successfully synchronized with Supabase."
+        );
+
+    } catch (error) {
+        console.error(
+            "Could not load live products from Supabase:",
+            error
+        );
+    }
+}
+
+
+/* LOAD LIVE PRODUCTS WHEN THE PAGE OPENS */
+
+loadLiveStoreProducts();
+
+
+/* LISTEN FOR ADMIN PRODUCT CHANGES */
+
+const liveProductChannel = supabaseClient
+    .channel("store-products-live-updates")
+    .on(
+        "postgres_changes",
+        {
+            event: "*",
+            schema: "public",
+            table: "store_products"
+        },
+        function () {
+            console.log("A product changed. Refreshing storefront prices.");
+
+            loadLiveStoreProducts();
+        }
+    )
+    .subscribe();
+
+
+/* =========================================================
+   6. CUSTOMER PROFILE
 ========================================================= */
 
 (async function setupCustomerProfile() {
@@ -610,7 +812,7 @@ filterProducts();
 
 
 /* =========================================================
-   6. PAYSTACK CHECKOUT
+   7. PAYSTACK CHECKOUT
 ========================================================= */
 
 function setupPaystackCheckout() {
@@ -834,7 +1036,7 @@ if (document.readyState === "loading") {
 
 
 /* =========================================================
-   7. VERIFY PAYSTACK PAYMENT ON RETURN
+   8. VERIFY PAYSTACK PAYMENT ON RETURN
 ========================================================= */
 
 (async function verifyPaymentOnReturn() {
@@ -909,7 +1111,7 @@ if (document.readyState === "loading") {
 
 
 /* =========================================================
-   8. MY ORDERS — CUSTOMER ORDER HISTORY
+   9. MY ORDERS — CUSTOMER ORDER HISTORY
 ========================================================= */
 
 function formatOrderDateTime(dateValue) {
@@ -1300,7 +1502,7 @@ if (myOrdersLink && myOrdersSection) {
 
 
 /* =========================================================
-   9. DARK AND LIGHT MODE
+   10. DARK AND LIGHT MODE
 ========================================================= */
 
 const themeToggle = document.getElementById("themeToggle");
@@ -1356,7 +1558,7 @@ if (themeToggle && themeIcon) {
 
 
 /* =========================================================
-   10. NOTIFICATION BELL — SUPABASE REALTIME
+   11. NOTIFICATION BELL — SUPABASE REALTIME
 ========================================================= */
 
 const notificationButton =
