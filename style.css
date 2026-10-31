@@ -1,7 +1,7 @@
 
 /* =====================================================
    SWEET'S KITCHEN & COLLECTIONS
-   CLEAN, CONSOLIDATED, RESPONSIVE STYLESHEET
+   CONSOLIDATED RESPONSIVE STYLESHEET
 ===================================================== */
 
 /* 1. GLOBAL */
@@ -123,7 +123,7 @@ img {
     font-size: 24px;
 }
 
-/* 4. SHOPPING CART ICON */
+/* 4. SHOPPING CART */
 .cart-button {
     position: relative;
     display: inline-flex;
@@ -438,7 +438,7 @@ img {
     color: #fff;
 }
 
-/* 9. HORIZONTAL PRODUCT SLIDER */
+/* 9. PRODUCT SLIDER */
 .product-section {
     width: 100%;
     max-width: 100%;
@@ -469,6 +469,7 @@ img {
 }
 
 .products-grid .product-card {
+    position: relative;
     display: flex;
     flex: 0 0 260px;
     flex-direction: column;
@@ -615,7 +616,72 @@ img {
     background: #b98217;
 }
 
-/* 10. CART DRAWER */
+/* 10. FLASH SALES */
+.flash-sale-display {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    margin: 8px 0;
+}
+
+.flash-sale-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: fit-content;
+    padding: 5px 9px;
+    border-radius: 5px;
+    background: #dc2626;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+}
+
+.flash-sale-old-price {
+    color: #888;
+    font-size: 13px;
+    text-decoration: line-through;
+    text-decoration-thickness: 1.5px;
+}
+
+.flash-sale-new-price {
+    color: #dc2626;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.flash-sale-countdown {
+    display: inline-block;
+    margin-top: 5px;
+    padding: 5px 8px;
+    border-radius: 5px;
+    background: #fff1f2;
+    color: #be123c;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.product-card.on-flash-sale {
+    border: 1px solid #ef4444;
+}
+
+body.dark-mode .flash-sale-old-price {
+    color: #a1a1aa;
+}
+
+body.dark-mode .flash-sale-new-price {
+    color: #f87171;
+}
+
+body.dark-mode .flash-sale-countdown {
+    background: #451a24;
+    color: #fda4af;
+}
+
+/* 11. CART DRAWER */
 .cart-overlay {
     position: fixed;
     inset: 0;
@@ -731,7 +797,7 @@ img {
     color: #f10505;
 }
 
-/* 11. FOOTER */
+/* 12. FOOTER */
 footer {
     width: 100%;
     max-width: 100%;
@@ -794,7 +860,7 @@ footer {
     text-align: center;
 }
 
-/* 12. PAYMENT MODAL */
+/* 13. PAYMENT MODAL */
 .payment-overlay {
     position: fixed;
     inset: 0;
@@ -991,7 +1057,7 @@ footer {
     transform: scale(.98);
 }
 
-/* 13. CUSTOMER DETAILS FORM */
+/* 14. CUSTOMER DETAILS FORM */
 .customer-details {
     display: flex;
     flex-direction: column;
@@ -1043,10 +1109,7 @@ footer {
     box-shadow: 0 0 0 3px rgba(117, 70, 213, .12);
 }
 
-/* =====================================================
-   14. MY ORDERS — PROFESSIONAL CARDS
-===================================================== */
-
+/* 15. MY ORDERS */
 .my-orders-section,
 #myOrders {
     width: 100%;
@@ -1127,7 +1190,7 @@ footer {
     cursor: wait;
 }
 
-/* Orders information notice */
+/* Orders notice */
 .orders-info {
     display: flex;
     align-items: center;
@@ -1176,7 +1239,7 @@ footer {
     border-radius: 8px;
 }
 
-/* Two columns on desktop */
+/* Two cards per row on desktop and tablet */
 .my-orders-list,
 #myOrdersList {
     display: grid;
@@ -1186,11 +1249,12 @@ footer {
     width: 100%;
 }
 
-/* Main card */
+/* Order card */
 .order-card {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    width: 100%;
     min-width: 0;
     padding: 18px;
     overflow-wrap: anywhere;
@@ -1234,7 +1298,6 @@ footer {
     line-height: 1.7;
 }
 
-/* Order heading */
 .order-card-header,
 .order-header {
     display: flex;
@@ -1269,7 +1332,7 @@ footer {
     overflow-wrap: anywhere;
 }
 
-/* Status badges */
+/* Order status badges */
 .order-status,
 .payment-success,
 .payment-pending,
@@ -1313,7 +1376,7 @@ footer {
     color: #b91c1c;
 }
 
-/* Product inside an order */
+/* Product inside order */
 .order-card .order-product {
     display: flex;
     align-items: center;
@@ -1399,7 +1462,7 @@ footer {
     overflow-wrap: anywhere;
 }
 
-/* Summary */
+/* Order summary */
 .order-card .order-summary {
     display: flex;
     align-items: center;
@@ -1420,7 +1483,7 @@ footer {
     font-size: 15px;
 }
 
-/* Buttons in order cards */
+/* Order buttons */
 .order-card button {
     max-width: 100%;
     padding: 9px 12px;
@@ -1443,7 +1506,324 @@ footer {
     outline-offset: 3px;
 }
 
-/* 15. DARK MODE */
+/* 16. NOTIFICATION BELL */
+.notification-area {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.notification-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.notification-button .material-symbols-outlined {
+    font-size: 27px;
+}
+
+.notification-button.has-unread {
+    color: #e53935;
+}
+
+.notification-count {
+    position: absolute;
+    top: -3px;
+    right: -4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 20px;
+    background: #e53935;
+    color: #fff;
+    font-size: 10px;
+}
+
+.notification-count[hidden] {
+    display: none !important;
+}
+
+.notification-menu,
+#notificationMenu {
+    position: fixed;
+    top: 75px;
+    right: 15px;
+    z-index: 99999;
+    width: 350px;
+    max-width: calc(100vw - 30px);
+    max-height: calc(100dvh - 100px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background: #fff;
+    color: #222;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, .15);
+}
+
+.notification-menu[hidden] {
+    display: none !important;
+}
+
+.notification-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px;
+    border-bottom: 1px solid #eee;
+}
+
+.notification-menu-header h3 {
+    margin: 0;
+}
+
+.notification-menu-header button {
+    border: none;
+    background: transparent;
+    color: #1976d2;
+    cursor: pointer;
+}
+
+.notification-list,
+#notificationList {
+    width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+.notification-empty {
+    padding: 20px;
+    color: #777;
+    text-align: center;
+}
+
+.notification-item {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    box-sizing: border-box;
+    border-bottom: 1px solid #eee;
+}
+
+.notification-item.unread {
+    background: #fff4f4;
+}
+
+.notification-item p {
+    margin: 5px 0;
+}
+
+.notification-item small {
+    color: #777;
+}
+
+/* 17. DELIVERY CHECKOUT CARD */
+.delivery-checkout-card {
+    width: min(94%, 650px);
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 25px;
+    border-radius: 18px;
+    background: var(--card-bg, #fff);
+    color: var(--text-color, #222);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, .18);
+}
+
+.delivery-checkout-card .payment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 22px;
+}
+
+.checkout-eyebrow {
+    display: block;
+    margin-bottom: 7px;
+    color: #b7791f;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+}
+
+.delivery-checkout-card .payment-header h2 {
+    margin: 0 0 5px;
+    font-size: 25px;
+}
+
+.delivery-checkout-card .payment-header p {
+    margin: 0;
+    font-size: 13px;
+    opacity: .7;
+}
+
+.delivery-checkout-card .payment-order,
+.delivery-details-section {
+    padding: 18px;
+    margin-bottom: 18px;
+    border: 1px solid #e8e8e8;
+    border-radius: 13px;
+}
+
+.delivery-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 17px;
+}
+
+.delivery-section-heading > .material-symbols-outlined {
+    color: #b7791f;
+    font-size: 27px;
+}
+
+.delivery-section-heading h3 {
+    margin: 0 0 4px;
+    font-size: 17px;
+}
+
+.delivery-section-heading p {
+    margin: 0;
+    font-size: 12px;
+    opacity: .7;
+}
+
+.order-total-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-top: 1px solid #eee;
+    font-size: 14px;
+}
+
+.order-total-row strong {
+    color: #b7791f;
+    font-size: 21px;
+}
+
+.delivery-checkout-card .order-reference {
+    font-size: 12px;
+    overflow-wrap: anywhere;
+    opacity: .7;
+}
+
+.delivery-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.delivery-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.delivery-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.delivery-field label {
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.delivery-field input,
+.delivery-field select,
+.delivery-field textarea {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #d8d8d8;
+    border-radius: 9px;
+    outline: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 13px;
+}
+
+.delivery-field input:focus,
+.delivery-field select:focus,
+.delivery-field textarea:focus {
+    border-color: #c28b36;
+    box-shadow: 0 0 0 3px rgba(194, 139, 54, .12);
+}
+
+.delivery-field textarea {
+    resize: vertical;
+}
+
+.payment-method-section {
+    margin-top: 18px;
+}
+
+.secure-payment-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    min-height: 50px;
+    border: none;
+    border-radius: 10px;
+    background: #b7791f;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.secure-payment-button:hover {
+    background: #946116;
+    transform: translateY(-1px);
+}
+
+.payment-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    margin: 14px 0;
+    font-size: 12px;
+    line-height: 1.5;
+    opacity: .75;
+}
+
+.payment-warning .material-symbols-outlined {
+    color: #b7791f;
+    font-size: 18px;
+}
+
+.cancel-checkout-button {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 9px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+/* 18. DARK MODE */
 body.dark-mode {
     background: #111827;
     color: #f3f4f6;
@@ -1566,7 +1946,47 @@ body.dark-mode .orders-info p {
     color: #d1d5db;
 }
 
-/* 16. TABLET AND SMALL LAPTOP */
+body.dark-mode .notification-menu,
+body.dark-mode #notificationMenu {
+    background: #1f2937;
+    color: #f3f4f6;
+    border-color: #374151;
+}
+
+body.dark-mode .notification-item {
+    border-bottom-color: #374151;
+}
+
+body.dark-mode .notification-item.unread {
+    background: #3b2028;
+}
+
+body.dark-mode .notification-item small {
+    color: #d1d5db;
+}
+
+body.dark-mode .delivery-checkout-card {
+    background: #1f2937;
+    color: #f3f4f6;
+}
+
+body.dark-mode .delivery-checkout-card .payment-order,
+body.dark-mode .delivery-details-section {
+    border-color: #374151;
+}
+
+body.dark-mode .delivery-field input,
+body.dark-mode .delivery-field select,
+body.dark-mode .delivery-field textarea {
+    border-color: #4b5563;
+    color: #f3f4f6;
+}
+
+body.dark-mode .cancel-checkout-button {
+    border-color: #4b5563;
+}
+
+/* 19. TABLET AND SMALL LAPTOP */
 @media (max-width: 900px) {
     .nav {
         position: absolute;
@@ -1629,7 +2049,7 @@ body.dark-mode .orders-info p {
     }
 }
 
-/* 17. MOBILE */
+/* 20. MOBILE */
 @media (max-width: 600px) {
     .header {
         gap: 6px;
@@ -1656,6 +2076,15 @@ body.dark-mode .orders-info p {
 
     .cart-button .cart-icon {
         font-size: 26px;
+    }
+
+    .notification-button {
+        width: 36px;
+        height: 36px;
+    }
+
+    .notification-button .material-symbols-outlined {
+        font-size: 24px;
     }
 
     .profile-button {
@@ -1819,7 +2248,7 @@ body.dark-mode .orders-info p {
         font-size: 10px;
     }
 
-    /* My Orders: keep two cards side by side */
+    /* My Orders: one card per row on mobile */
     .my-orders-section,
     #myOrders {
         padding: 22px 10px;
@@ -1844,13 +2273,13 @@ body.dark-mode .orders-info p {
 
     .my-orders-list,
     #myOrdersList {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 15px;
     }
 
     .order-card {
         gap: 9px;
-        padding: 10px;
+        padding: 14px;
         border-radius: 9px;
     }
 
@@ -1870,7 +2299,7 @@ body.dark-mode .orders-info p {
     .order-card-header,
     .order-header {
         align-items: flex-start;
-        gap: 6px;
+        gap: 8px;
         padding-bottom: 8px;
     }
 
@@ -1890,7 +2319,8 @@ body.dark-mode .orders-info p {
     }
 
     .order-details {
-        gap: 6px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
     }
 
     .order-detail-label {
@@ -1902,9 +2332,8 @@ body.dark-mode .orders-info p {
     }
 
     .order-total {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 4px;
+        flex-wrap: wrap;
+        gap: 8px;
         padding-top: 8px;
         font-size: 10px;
     }
@@ -1914,14 +2343,14 @@ body.dark-mode .orders-info p {
     }
 
     .order-card .order-product {
-        align-items: flex-start;
-        gap: 6px;
+        align-items: center;
+        gap: 8px;
     }
 
     .order-card .order-product img {
-        flex-basis: 42px;
-        width: 42px;
-        height: 46px;
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
     }
 
     .order-card .order-product-info h3 {
@@ -1941,6 +2370,35 @@ body.dark-mode .orders-info p {
         font-size: 10px;
     }
 
+    /* Notifications */
+    #notificationMenu,
+    .notification-menu {
+        top: 70px;
+        left: 5px;
+        right: 5px;
+        width: auto;
+        max-width: none;
+        max-height: calc(100dvh - 85px);
+        overflow-y: auto;
+    }
+
+    #notificationList,
+    .notification-list {
+        max-height: calc(100dvh - 150px);
+        overflow-y: auto;
+    }
+
+    .notification-item {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .notification-item p {
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
+    /* Payment modal */
     .payment-overlay {
         padding: 12px;
     }
@@ -1958,9 +2416,27 @@ body.dark-mode .orders-info p {
     #receiverNumber {
         font-size: 21px;
     }
+
+    /* Delivery checkout */
+    .delivery-checkout-card {
+        width: 94%;
+        padding: 16px;
+    }
+
+    .delivery-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .delivery-field.full-width {
+        grid-column: auto;
+    }
+
+    .delivery-checkout-card .payment-header h2 {
+        font-size: 21px;
+    }
 }
 
-/* 18. VERY SMALL PHONES */
+/* 21. VERY SMALL PHONES */
 @media (max-width: 360px) {
     .header {
         gap: 4px;
@@ -1987,13 +2463,13 @@ body.dark-mode .orders-info p {
 
     .my-orders-list,
     #myOrdersList {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 5px;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
     }
 
     .order-card {
         gap: 7px;
-        padding: 7px;
+        padding: 10px;
     }
 
     .order-card h3 {
@@ -2006,7 +2482,8 @@ body.dark-mode .orders-info p {
     }
 
     .order-details {
-        gap: 5px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
     }
 
     .order-total strong {
@@ -2032,547 +2509,5 @@ body.dark-mode .orders-info p {
     .heroBtn .secondaryBtn {
         padding: .7rem;
         font-size: .75rem;
-    }
-}
-
-
-/* =========================================
-   SWEET'S KITCHEN & COLLECTIONS
-   FINAL MY ORDERS RESPONSIVE FIX
-========================================= */
-
-/* Desktop: two cards per row */
-.my-orders-list,
-#myOrdersList {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-/* Make every order card fit its column */
-.order-card {
-    width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-    overflow-wrap: anywhere;
-}
-
-/* Tablet: two cards per row */
-@media screen and (min-width: 601px) and (max-width: 900px) {
-    .my-orders-list,
-    #myOrdersList {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-    }
-}
-
-/* Mobile: one card per row */
-@media screen and (max-width: 600px) {
-    .my-orders-list,
-    #myOrdersList {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        gap: 15px;
-        width: 100%;
-    }
-
-    .order-card {
-        width: 100%;
-        min-width: 0;
-        padding: 14px;
-        box-sizing: border-box;
-    }
-
-    .order-card-header,
-    .order-header {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 8px;
-    }
-
-    .order-details {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-    }
-
-    .order-detail-value {
-        overflow-wrap: anywhere;
-    }
-
-    .order-total {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-    }
-
-    .order-card button {
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-
-    .order-card .order-product {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        min-width: 0;
-    }
-
-    .order-card .order-product img {
-        flex: 0 0 48px;
-        width: 48px;
-        height: 48px;
-        object-fit: cover;
-    }
-
-    .order-card .order-product-info {
-        flex: 1;
-        min-width: 0;
-        overflow-wrap: anywhere;
-    }
-}
-
-/* Very small phones */
-@media screen and (max-width: 360px) {
-    .my-orders-list,
-    #myOrdersList {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 12px;
-    }
-
-    .order-card {
-        padding: 10px;
-    }
-
-    .order-details {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px;
-    }
-}
-
-/* NOTIFICATION BELL */
-.notification-area {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.notification-button {
-    position: relative;
-    width: 42px;
-    height: 42px;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: inherit;
-}
-
-.notification-button .material-symbols-outlined {
-    font-size: 27px;
-}
-
-.notification-button.has-unread {
-    color: #e53935;
-}
-
-.notification-count {
-    position: absolute;
-    top: -3px;
-    right: -4px;
-    min-width: 17px;
-    height: 17px;
-    padding: 0 4px;
-    border-radius: 20px;
-    background: #e53935;
-    color: white;
-    font-size: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.notification-menu {
-    position: absolute;
-    top: 48px;
-    right: 0;
-    width: 320px;
-    max-width: 90vw;
-    background: white;
-    color: #222;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,.15);
-    z-index: 2000;
-    overflow: hidden;
-}
-
-.notification-menu[hidden],
-.notification-count[hidden] {
-    display: none;
-}
-
-.notification-menu-header {
-    padding: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid #eee;
-}
-
-.notification-menu-header h3 {
-    margin: 0;
-}
-
-.notification-menu-header button {
-    border: none;
-    background: transparent;
-    color: #1976d2;
-    cursor: pointer;
-}
-
-.notification-list {
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.notification-empty {
-    padding: 20px;
-    text-align: center;
-    color: #777;
-}
-
-.notification-item {
-    padding: 14px;
-    border-bottom: 1px solid #eee;
-}
-
-.notification-item.unread {
-    background: #fff4f4;
-}
-
-.notification-item p {
-    margin: 5px 0;
-}
-
-.notification-item small {
-    color: #777;
-}
-
-/* Notification menu - desktop and mobile */
-#notificationMenu {
-    position: fixed;
-    top: 75px;
-    right: 15px;
-    width: 350px;
-    max-width: calc(100vw - 30px);
-    max-height: calc(100dvh - 100px);
-    overflow-y: auto;
-    overflow-x: hidden;
-    box-sizing: border-box;
-    z-index: 99999;
-    border-radius: 12px;
-    background: white;
-}
-
-/* Make notification items fit properly */
-#notificationList {
-    width: 100%;
-    max-height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    box-sizing: border-box;
-}
-
-.notification-item {
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 14px;
-    overflow-wrap: anywhere;
-    white-space: normal;
-}
-
-/* Phone screen */
-@media screen and (max-width: 600px) {
-    #notificationMenu {
-        position: fixed;
-        top: 70px;
-        left: 10px;
-        right: 10px;
-        width: auto;
-        max-width: none;
-        max-height: calc(100dvh - 85px);
-        overflow-y: auto;
-        border-radius: 12px;
-    }
-
-    #notificationList {
-        max-height: calc(100dvh - 150px);
-        overflow-y: auto;
-    }
-
-    .notification-item {
-        padding: 12px;
-        font-size: 14px;
-    }
-
-    .notification-item p {
-        overflow-wrap: anywhere;
-        white-space: normal;
-    }
-}
-
-/* Fix notification card on mobile */
-#notificationMenu {
-    position: fixed !important;
-    top: 70px !important;
-    left: 10px !important;
-    right: 10px !important;
-    width: auto !important;
-    max-width: none !important;
-    height: auto !important;
-    max-height: calc(100vh - 90px) !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    box-sizing: border-box !important;
-    z-index: 999999 !important;
-}
-
-/* Keep notification content inside the card */
-#notificationList {
-    width: 100% !important;
-    box-sizing: border-box !important;
-    overflow-x: hidden !important;
-}
-
-/* Mobile adjustments */
-@media (max-width: 600px) {
-    #notificationMenu {
-        left: 5px !important;
-        right: 5px !important;
-        max-height: calc(100vh - 85px) !important;
-    }
-}
-
-
-/* =====================================
-   PROFESSIONAL DELIVERY CHECKOUT CARD
-===================================== */
-
-.delivery-checkout-card {
-    width: min(94%, 650px);
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 25px;
-    border-radius: 18px;
-    background: var(--card-bg, #ffffff);
-    color: var(--text-color, #222222);
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.18);
-}
-
-.delivery-checkout-card .payment-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 15px;
-    margin-bottom: 22px;
-}
-
-.checkout-eyebrow {
-    display: block;
-    color: #b7791f;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 1.2px;
-    margin-bottom: 7px;
-}
-
-.delivery-checkout-card .payment-header h2 {
-    font-size: 25px;
-    margin: 0 0 5px;
-}
-
-.delivery-checkout-card .payment-header p {
-    font-size: 13px;
-    opacity: 0.7;
-    margin: 0;
-}
-
-.delivery-checkout-card .payment-order,
-.delivery-details-section {
-    padding: 18px;
-    border: 1px solid #e8e8e8;
-    border-radius: 13px;
-    margin-bottom: 18px;
-}
-
-.delivery-section-heading {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 17px;
-}
-
-.delivery-section-heading > .material-symbols-outlined {
-    font-size: 27px;
-    color: #b7791f;
-}
-
-.delivery-section-heading h3 {
-    margin: 0 0 4px;
-    font-size: 17px;
-}
-
-.delivery-section-heading p {
-    margin: 0;
-    font-size: 12px;
-    opacity: 0.7;
-}
-
-.order-total-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-top: 1px solid #eeeeee;
-    font-size: 14px;
-}
-
-.order-total-row strong {
-    font-size: 21px;
-    color: #b7791f;
-}
-
-.order-reference {
-    font-size: 12px;
-    overflow-wrap: anywhere;
-    opacity: 0.7;
-}
-
-.delivery-form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
-.delivery-field {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    min-width: 0;
-}
-
-.delivery-field.full-width {
-    grid-column: 1 / -1;
-}
-
-.delivery-field label {
-    font-size: 13px;
-    font-weight: 650;
-}
-
-.delivery-field input,
-.delivery-field select,
-.delivery-field textarea {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 13px;
-    border: 1px solid #d8d8d8;
-    border-radius: 9px;
-    outline: none;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    font-size: 13px;
-}
-
-.delivery-field input:focus,
-.delivery-field select:focus,
-.delivery-field textarea:focus {
-    border-color: #c28b36;
-    box-shadow: 0 0 0 3px rgba(194, 139, 54, 0.12);
-}
-
-.delivery-field textarea {
-    resize: vertical;
-}
-
-.payment-method-section {
-    margin-top: 18px;
-}
-
-.secure-payment-button {
-    width: 100%;
-    min-height: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 9px;
-    border: none;
-    border-radius: 10px;
-    background: #b7791f;
-    color: #ffffff;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s ease;
-}
-
-.secure-payment-button:hover {
-    background: #946116;
-    transform: translateY(-1px);
-}
-
-.payment-warning {
-    display: flex;
-    align-items: flex-start;
-    gap: 7px;
-    margin: 14px 0;
-    font-size: 12px;
-    line-height: 1.5;
-    opacity: 0.75;
-}
-
-.payment-warning .material-symbols-outlined {
-    font-size: 18px;
-    color: #b7791f;
-}
-
-.cancel-checkout-button {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #dddddd;
-    border-radius: 9px;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-}
-
-@media (max-width: 550px) {
-    .delivery-checkout-card {
-        width: 94%;
-        padding: 16px;
-    }
-
-    .delivery-form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .delivery-field.full-width {
-        grid-column: auto;
-    }
-
-    .delivery-checkout-card .payment-header h2 {
-        font-size: 21px;
     }
 }
