@@ -1,7 +1,6 @@
-
 /* =====================================================
    SWEET'S KITCHEN & COLLECTIONS
-   CLEAN, CONSOLIDATED, RESPONSIVE STYLESHEET
+   CONSOLIDATED RESPONSIVE STYLESHEET
 ===================================================== */
 
 /* 1. GLOBAL */
@@ -32,7 +31,10 @@ a {
     text-decoration: none;
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
     font: inherit;
 }
 
@@ -123,7 +125,7 @@ img {
     font-size: 24px;
 }
 
-/* 4. SHOPPING CART ICON */
+/* 4. SHOPPING CART */
 .cart-button {
     position: relative;
     display: inline-flex;
@@ -312,7 +314,7 @@ img {
     padding: 2rem;
     background:
         linear-gradient(rgba(12, 34, 65, .6), rgba(43, 56, 12, .6)),
-        url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEXAzSRCC4Qrs2c3qTKnro3FN8_6w3_Oi1SKt-ndDJWg&s=10")
+        url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEXAzSRCC4Qrs2c3qTKnro3FN8_6w3O_i1SKt-ndDJWg&s=10")
         center / cover no-repeat;
 }
 
@@ -438,7 +440,7 @@ img {
     color: #fff;
 }
 
-/* 9. HORIZONTAL PRODUCT SLIDER */
+/* 9. PRODUCT SLIDER */
 .product-section {
     width: 100%;
     max-width: 100%;
@@ -527,8 +529,10 @@ img {
     font-size: 18px;
 }
 
-.products-grid .favourite-button.linked {
-    color: #e5e7eb;
+.products-grid .favourite-button.linked,
+.products-grid .favourite-button[aria-pressed="true"] {
+    background: #e11d48;
+    color: #fff;
 }
 
 .products-grid .product-info {
@@ -564,7 +568,8 @@ img {
     -webkit-box-orient: vertical;
 }
 
-.products-grid .product-buttom {
+.products-grid .product-buttom,
+.products-grid .product-bottom {
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -574,7 +579,8 @@ img {
     border-top: 1px solid #eee;
 }
 
-.products-grid .product-buttom strong {
+.products-grid .product-buttom strong,
+.products-grid .product-bottom strong {
     color: #222;
     font-size: 18px;
     font-weight: 700;
@@ -595,6 +601,11 @@ img {
 
 .products-grid .add-to-cart:hover {
     background: #0f45b9;
+}
+
+.products-grid .add-to-cart:disabled {
+    opacity: .6;
+    cursor: not-allowed;
 }
 
 .products-grid::-webkit-scrollbar {
@@ -627,6 +638,10 @@ img {
 
 .cart-overlay.show {
     display: flex;
+}
+
+.cart-overlay[hidden] {
+    display: none !important;
 }
 
 .cart-overlay .cart {
@@ -809,6 +824,10 @@ footer {
     -webkit-backdrop-filter: blur(7px);
 }
 
+.payment-overlay.show {
+    display: flex;
+}
+
 .payment-overlay[hidden],
 .payment-details[hidden] {
     display: none !important;
@@ -834,6 +853,7 @@ footer {
         opacity: 0;
         transform: translateY(18px) scale(.97);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -1043,10 +1063,7 @@ footer {
     box-shadow: 0 0 0 3px rgba(117, 70, 213, .12);
 }
 
-/* =====================================================
-   14. MY ORDERS — PROFESSIONAL CARDS
-===================================================== */
-
+/* 14. MY ORDERS */
 .my-orders-section,
 #myOrders {
     width: 100%;
@@ -1127,7 +1144,7 @@ footer {
     cursor: wait;
 }
 
-/* Orders information notice */
+/* Orders notice */
 .orders-info {
     display: flex;
     align-items: center;
@@ -1176,7 +1193,7 @@ footer {
     border-radius: 8px;
 }
 
-/* Two columns on desktop */
+/* Orders grid */
 .my-orders-list,
 #myOrdersList {
     display: grid;
@@ -1186,11 +1203,12 @@ footer {
     width: 100%;
 }
 
-/* Main card */
+/* Order card */
 .order-card {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    width: 100%;
     min-width: 0;
     padding: 18px;
     overflow-wrap: anywhere;
@@ -1269,7 +1287,7 @@ footer {
     overflow-wrap: anywhere;
 }
 
-/* Status badges */
+/* Status labels */
 .order-status,
 .payment-success,
 .payment-pending,
@@ -1313,7 +1331,7 @@ footer {
     color: #b91c1c;
 }
 
-/* Product inside an order */
+/* Products inside orders */
 .order-card .order-product {
     display: flex;
     align-items: center;
@@ -1351,7 +1369,7 @@ footer {
     font-weight: 700;
 }
 
-/* Order detail boxes */
+/* Order details */
 .order-card-divider {
     margin: 4px 0;
     border: 0;
@@ -1399,7 +1417,7 @@ footer {
     overflow-wrap: anywhere;
 }
 
-/* Summary */
+/* Order summary */
 .order-card .order-summary {
     display: flex;
     align-items: center;
@@ -1420,7 +1438,7 @@ footer {
     font-size: 15px;
 }
 
-/* Buttons in order cards */
+/* Order buttons */
 .order-card button {
     max-width: 100%;
     padding: 9px 12px;
@@ -1443,7 +1461,127 @@ footer {
     outline-offset: 3px;
 }
 
-/* 15. DARK MODE */
+/* 15. NOTIFICATIONS */
+.notification-area {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.notification-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.notification-button .material-symbols-outlined {
+    font-size: 27px;
+}
+
+.notification-button.has-unread {
+    color: #e53935;
+}
+
+.notification-count {
+    position: absolute;
+    top: -3px;
+    right: -4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 20px;
+    background: #e53935;
+    color: #fff;
+    font-size: 10px;
+}
+
+.notification-count[hidden] {
+    display: none !important;
+}
+
+.notification-menu {
+    position: fixed;
+    top: 75px;
+    right: 15px;
+    z-index: 99999;
+    width: 350px;
+    max-width: calc(100vw - 30px);
+    max-height: calc(100vh - 100px);
+    overflow: hidden;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background: #fff;
+    color: #222;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, .15);
+}
+
+.notification-menu[hidden] {
+    display: none !important;
+}
+
+.notification-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px;
+    border-bottom: 1px solid #eee;
+}
+
+.notification-menu-header h3 {
+    margin: 0;
+}
+
+.notification-menu-header button {
+    border: none;
+    background: transparent;
+    color: #1976d2;
+    cursor: pointer;
+}
+
+.notification-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.notification-empty {
+    padding: 20px;
+    color: #777;
+    text-align: center;
+}
+
+.notification-item {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    overflow-wrap: anywhere;
+    border-bottom: 1px solid #eee;
+    white-space: normal;
+}
+
+.notification-item.unread {
+    background: #fff4f4;
+}
+
+.notification-item p {
+    margin: 5px 0;
+}
+
+.notification-item small {
+    color: #777;
+}
+
+/* 16. DARK MODE */
 body.dark-mode {
     background: #111827;
     color: #f3f4f6;
@@ -1486,7 +1624,8 @@ body.dark-mode .cart-overlay .cart {
 }
 
 body.dark-mode .products-grid .product-info h3,
-body.dark-mode .products-grid .product-buttom strong {
+body.dark-mode .products-grid .product-buttom strong,
+body.dark-mode .products-grid .product-bottom strong {
     color: #f3f4f6;
 }
 
@@ -1494,7 +1633,8 @@ body.dark-mode .products-grid .product-description {
     color: #d1d5db;
 }
 
-body.dark-mode .products-grid .product-buttom {
+body.dark-mode .products-grid .product-buttom,
+body.dark-mode .products-grid .product-bottom {
     border-top-color: #374151;
 }
 
@@ -1566,7 +1706,26 @@ body.dark-mode .orders-info p {
     color: #d1d5db;
 }
 
-/* 16. TABLET AND SMALL LAPTOP */
+body.dark-mode .notification-menu {
+    background: #1f2937;
+    color: #f3f4f6;
+    border-color: #374151;
+}
+
+body.dark-mode .notification-menu-header,
+body.dark-mode .notification-item {
+    border-color: #374151;
+}
+
+body.dark-mode .notification-item.unread {
+    background: #3b2028;
+}
+
+body.dark-mode .notification-item small {
+    color: #d1d5db;
+}
+
+/* 17. TABLET AND SMALL LAPTOP */
 @media (max-width: 900px) {
     .nav {
         position: absolute;
@@ -1629,7 +1788,7 @@ body.dark-mode .orders-info p {
     }
 }
 
-/* 17. MOBILE */
+/* 18. MOBILE */
 @media (max-width: 600px) {
     .header {
         gap: 6px;
@@ -1656,6 +1815,11 @@ body.dark-mode .orders-info p {
 
     .cart-button .cart-icon {
         font-size: 26px;
+    }
+
+    .notification-button {
+        width: 36px;
+        height: 36px;
     }
 
     .profile-button {
@@ -1819,7 +1983,7 @@ body.dark-mode .orders-info p {
         font-size: 10px;
     }
 
-    /* My Orders: keep two cards side by side */
+    /* My Orders: one card per row on mobile */
     .my-orders-section,
     #myOrders {
         padding: 22px 10px;
@@ -1844,13 +2008,13 @@ body.dark-mode .orders-info p {
 
     .my-orders-list,
     #myOrdersList {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 15px;
     }
 
     .order-card {
         gap: 9px;
-        padding: 10px;
+        padding: 14px;
         border-radius: 9px;
     }
 
@@ -1870,7 +2034,7 @@ body.dark-mode .orders-info p {
     .order-card-header,
     .order-header {
         align-items: flex-start;
-        gap: 6px;
+        gap: 8px;
         padding-bottom: 8px;
     }
 
@@ -1890,7 +2054,7 @@ body.dark-mode .orders-info p {
     }
 
     .order-details {
-        gap: 6px;
+        gap: 8px;
     }
 
     .order-detail-label {
@@ -1902,9 +2066,9 @@ body.dark-mode .orders-info p {
     }
 
     .order-total {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 4px;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
         padding-top: 8px;
         font-size: 10px;
     }
@@ -1914,14 +2078,14 @@ body.dark-mode .orders-info p {
     }
 
     .order-card .order-product {
-        align-items: flex-start;
-        gap: 6px;
+        align-items: center;
+        gap: 8px;
     }
 
     .order-card .order-product img {
-        flex-basis: 42px;
-        width: 42px;
-        height: 46px;
+        flex: 0 0 48px;
+        width: 48px;
+        height: 48px;
     }
 
     .order-card .order-product-info h3 {
@@ -1958,9 +2122,32 @@ body.dark-mode .orders-info p {
     #receiverNumber {
         font-size: 21px;
     }
+
+    /* Notifications */
+    #notificationMenu {
+        top: 70px;
+        left: 5px;
+        right: 5px;
+        width: auto;
+        max-width: none;
+        max-height: calc(100vh - 85px);
+    }
+
+    #notificationList {
+        max-height: calc(100vh - 150px);
+    }
+
+    .notification-item {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .notification-item p {
+        overflow-wrap: anywhere;
+    }
 }
 
-/* 18. VERY SMALL PHONES */
+/* 19. VERY SMALL PHONES */
 @media (max-width: 360px) {
     .header {
         gap: 4px;
@@ -1987,13 +2174,13 @@ body.dark-mode .orders-info p {
 
     .my-orders-list,
     #myOrdersList {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 5px;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
     }
 
     .order-card {
         gap: 7px;
-        padding: 7px;
+        padding: 10px;
     }
 
     .order-card h3 {
@@ -2006,7 +2193,8 @@ body.dark-mode .orders-info p {
     }
 
     .order-details {
-        gap: 5px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
     }
 
     .order-total strong {
@@ -2032,334 +2220,5 @@ body.dark-mode .orders-info p {
     .heroBtn .secondaryBtn {
         padding: .7rem;
         font-size: .75rem;
-    }
-}
-
-
-/* =========================================
-   SWEET'S KITCHEN & COLLECTIONS
-   FINAL MY ORDERS RESPONSIVE FIX
-========================================= */
-
-/* Desktop: two cards per row */
-.my-orders-list,
-#myOrdersList {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-/* Make every order card fit its column */
-.order-card {
-    width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-    overflow-wrap: anywhere;
-}
-
-/* Tablet: two cards per row */
-@media screen and (min-width: 601px) and (max-width: 900px) {
-    .my-orders-list,
-    #myOrdersList {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-    }
-}
-
-/* Mobile: one card per row */
-@media screen and (max-width: 600px) {
-    .my-orders-list,
-    #myOrdersList {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        gap: 15px;
-        width: 100%;
-    }
-
-    .order-card {
-        width: 100%;
-        min-width: 0;
-        padding: 14px;
-        box-sizing: border-box;
-    }
-
-    .order-card-header,
-    .order-header {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 8px;
-    }
-
-    .order-details {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-    }
-
-    .order-detail-value {
-        overflow-wrap: anywhere;
-    }
-
-    .order-total {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-    }
-
-    .order-card button {
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-
-    .order-card .order-product {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        min-width: 0;
-    }
-
-    .order-card .order-product img {
-        flex: 0 0 48px;
-        width: 48px;
-        height: 48px;
-        object-fit: cover;
-    }
-
-    .order-card .order-product-info {
-        flex: 1;
-        min-width: 0;
-        overflow-wrap: anywhere;
-    }
-}
-
-/* Very small phones */
-@media screen and (max-width: 360px) {
-    .my-orders-list,
-    #myOrdersList {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 12px;
-    }
-
-    .order-card {
-        padding: 10px;
-    }
-
-    .order-details {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px;
-    }
-}
-
-/* NOTIFICATION BELL */
-.notification-area {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.notification-button {
-    position: relative;
-    width: 42px;
-    height: 42px;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: inherit;
-}
-
-.notification-button .material-symbols-outlined {
-    font-size: 27px;
-}
-
-.notification-button.has-unread {
-    color: #e53935;
-}
-
-.notification-count {
-    position: absolute;
-    top: -3px;
-    right: -4px;
-    min-width: 17px;
-    height: 17px;
-    padding: 0 4px;
-    border-radius: 20px;
-    background: #e53935;
-    color: white;
-    font-size: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.notification-menu {
-    position: absolute;
-    top: 48px;
-    right: 0;
-    width: 320px;
-    max-width: 90vw;
-    background: white;
-    color: #222;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,.15);
-    z-index: 2000;
-    overflow: hidden;
-}
-
-.notification-menu[hidden],
-.notification-count[hidden] {
-    display: none;
-}
-
-.notification-menu-header {
-    padding: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid #eee;
-}
-
-.notification-menu-header h3 {
-    margin: 0;
-}
-
-.notification-menu-header button {
-    border: none;
-    background: transparent;
-    color: #1976d2;
-    cursor: pointer;
-}
-
-.notification-list {
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.notification-empty {
-    padding: 20px;
-    text-align: center;
-    color: #777;
-}
-
-.notification-item {
-    padding: 14px;
-    border-bottom: 1px solid #eee;
-}
-
-.notification-item.unread {
-    background: #fff4f4;
-}
-
-.notification-item p {
-    margin: 5px 0;
-}
-
-.notification-item small {
-    color: #777;
-}
-
-/* Notification menu - desktop and mobile */
-#notificationMenu {
-    position: fixed;
-    top: 75px;
-    right: 15px;
-    width: 350px;
-    max-width: calc(100vw - 30px);
-    max-height: calc(100dvh - 100px);
-    overflow-y: auto;
-    overflow-x: hidden;
-    box-sizing: border-box;
-    z-index: 99999;
-    border-radius: 12px;
-    background: white;
-}
-
-/* Make notification items fit properly */
-#notificationList {
-    width: 100%;
-    max-height: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    box-sizing: border-box;
-}
-
-.notification-item {
-    display: block;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 14px;
-    overflow-wrap: anywhere;
-    white-space: normal;
-}
-
-/* Phone screen */
-@media screen and (max-width: 600px) {
-    #notificationMenu {
-        position: fixed;
-        top: 70px;
-        left: 10px;
-        right: 10px;
-        width: auto;
-        max-width: none;
-        max-height: calc(100dvh - 85px);
-        overflow-y: auto;
-        border-radius: 12px;
-    }
-
-    #notificationList {
-        max-height: calc(100dvh - 150px);
-        overflow-y: auto;
-    }
-
-    .notification-item {
-        padding: 12px;
-        font-size: 14px;
-    }
-
-    .notification-item p {
-        overflow-wrap: anywhere;
-        white-space: normal;
-    }
-}
-
-/* Fix notification card on mobile */
-#notificationMenu {
-    position: fixed !important;
-    top: 70px !important;
-    left: 10px !important;
-    right: 10px !important;
-    width: auto !important;
-    max-width: none !important;
-    height: auto !important;
-    max-height: calc(100vh - 90px) !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    box-sizing: border-box !important;
-    z-index: 999999 !important;
-}
-
-/* Keep notification content inside the card */
-#notificationList {
-    width: 100% !important;
-    box-sizing: border-box !important;
-    overflow-x: hidden !important;
-}
-
-/* Mobile adjustments */
-@media (max-width: 600px) {
-    #notificationMenu {
-        left: 5px !important;
-        right: 5px !important;
-        max-height: calc(100vh - 85px) !important;
     }
 }
