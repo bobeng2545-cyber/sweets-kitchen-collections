@@ -1,7 +1,7 @@
-
 // ==========================================
 // SWEET's KITCHEN & COLLECTIONS
 // COMPLETE ADMIN DASHBOARD
+// ORDERS + INVENTORY + FLASH SALES
 // ==========================================
 
 const SUPABASE_URL = "https://vbrlprrbtumonmroybdv.supabase.co";
@@ -70,6 +70,31 @@ let inventoryProducts = [];
 let inventoryLoading = false;
 
 // ==========================================
+// FLASH SALES ELEMENTS
+// ==========================================
+
+const flashSaleElements = {
+    panel: document.getElementById("flashSalesPanel"),
+    form: document.getElementById("flashSaleForm"),
+    id: document.getElementById("flashSaleId"),
+    product: document.getElementById("flashSaleProduct"),
+    discount: document.getElementById("flashSaleDiscount"),
+    start: document.getElementById("flashSaleStart"),
+    end: document.getElementById("flashSaleEnd"),
+    active: document.getElementById("flashSaleActive"),
+    saveButton: document.getElementById("saveFlashSaleButton"),
+    cancelButton: document.getElementById("cancelFlashSaleButton"),
+    addButton: document.getElementById("addFlashSaleButton"),
+    refreshButton: document.getElementById("refreshFlashSalesButton"),
+    tableBody: document.getElementById("flashSalesTableBody"),
+    message: document.getElementById("flashSalesMessage"),
+    formTitle: document.getElementById("flashSaleFormTitle")
+};
+
+let flashSales = [];
+let flashSalesLoading = false;
+
+// ==========================================
 // MESSAGE FUNCTIONS
 // ==========================================
 
@@ -92,6 +117,14 @@ function showInventoryMessage(message, isError = false) {
 
     inventoryElements.message.textContent = message;
     inventoryElements.message.style.color =
+        isError ? "#b91c1c" : "#166534";
+}
+
+function showFlashSalesMessage(message, isError = false) {
+    if (!flashSaleElements.message) return;
+
+    flashSaleElements.message.textContent = message;
+    flashSaleElements.message.style.color =
         isError ? "#b91c1c" : "#166534";
 }
 
@@ -180,6 +213,7 @@ if (loginForm) {
 
             await loadAdminOrders();
             await loadInventory();
+            await loadFlashSales();
 
             showLoginMessage("Administrator login successful.", false);
 
@@ -206,11 +240,19 @@ if (logoutButton) {
 
             allOrders = [];
             inventoryProducts = [];
+            flashSales = [];
 
             if (ordersTableBody) ordersTableBody.replaceChildren();
+
             if (inventoryElements.tableBody) {
                 inventoryElements.tableBody.replaceChildren();
             }
+
+            if (flashSaleElements.tableBody) {
+                flashSaleElements.tableBody.replaceChildren();
+            }
+
+            resetFlashSaleForm();
 
             showLoginPanel();
 
@@ -583,13 +625,11 @@ function renderInventory() {
         const actionCell = document.createElement("td");
         actionCell.style.padding = "10px";
 
-        // EDIT BUTTON
         const editButton = document.createElement("button");
         editButton.type = "button";
         editButton.textContent = "Edit";
         editButton.addEventListener("click", () => editProduct(product));
 
-        // ACTIVATE / DEACTIVATE BUTTON
         const toggleButton = document.createElement("button");
         toggleButton.type = "button";
         toggleButton.textContent =
@@ -599,7 +639,6 @@ function renderInventory() {
             changeProductAvailability(product)
         );
 
-        // PERMANENT DELETE BUTTON
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
         deleteButton.textContent = "Delete";
@@ -616,6 +655,9 @@ function renderInventory() {
 
         inventoryElements.tableBody.appendChild(row);
     });
+
+    // Update the Flash Sale product selector after inventory loads.
+    populateFlashSaleProducts();
 }
 
 // ==========================================
@@ -748,8 +790,6 @@ function editProduct(product) {
 
     inventoryElements.originalName.value = product.product_name;
     inventoryElements.name.value = product.product_name;
-
-    // Renaming is enabled.
     inventoryElements.name.disabled = false;
 
     inventoryElements.price.value = product.unit_price;
@@ -805,7 +845,6 @@ async function changeProductAvailability(product) {
     )) return;
 
     try {
-        // PATCH changes availability. It does NOT delete the product.
         await callInventoryFunction("PATCH", {
             original_product_name: product.product_name,
             product_name: product.product_name,
@@ -845,7 +884,6 @@ async function permanentlyDeleteProduct(product) {
     try {
         showInventoryMessage("Deleting " + product.product_name + "...");
 
-        // DELETE is reserved only for permanent deletion.
         await callInventoryFunction("DELETE", {
             product_name: product.product_name
         });
@@ -868,7 +906,6 @@ async function permanentlyDeleteProduct(product) {
 
 // ==========================================
 // UPDATE EXISTING PRODUCT
-// NO ADD PRODUCT FUNCTION
 // ==========================================
 
 if (inventoryElements.form) {
@@ -983,6 +1020,646 @@ if (inventoryElements.cancelButton) {
 }
 
 // ==========================================
+// FLASH SALES: FORMAT DATE
+// ==========================================
+
+function formatFlashSaleDate(value) {
+    if (!value) return "N/A";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "Invalid date";
+
+    return date.toLocaleString("en-GH", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
+
+// Convert datetime-local value to ISO timestamp.
+function localDateTimeToISO(value) {
+    if (!value) return null;
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        throw new Error("Please enter a valid sale date and time.");
+    }
+
+    return date.toISOString();
+}
+
+// Convert an ISO timestamp into a datetime-local input value.
+function isoToLocalDateTime(value) {
+    if (!value) return "";
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "";
+
+    const offset = date.getTimezoneOffset() * 60000;
+
+    return new Date(date.getTime() - offset)
+        .toISOString()
+        .slice(0, 16);
+}
+
+// ==========================================
+// FLASH SALES: API REQUEST
+// ==========================================
+
+async function callFlashSalesFunction(method = "GET", body) {
+    const options = { method };
+
+    if (body !== undefined) {
+        options.body = body;
+    }
+
+    const { data, error } =
+        await supabaseClient.functions.invoke("admin-flash-sales", options);
+
+    if (error) {
+        let detail = error.message || "Flash sale request failed.";
+
+        if (error.context && typeof error.context.json === "function") {
+            try {
+                const responseBody = await error.context.json();
+
+                if (responseBody.error) {
+                    detail = responseBody.error;
+                }
+            } catch (_) {}
+        }
+
+        throw new Error(detail);
+    }
+
+    if (data?.error) {
+        throw new Error(data.error);
+    }
+
+    return data;
+}
+
+// ==========================================
+// FLASH SALES: POPULATE PRODUCT SELECT
+// ==========================================
+
+function populateFlashSaleProducts(selectedProduct = "") {
+    const select = flashSaleElements.product;
+
+    if (!select) return;
+
+    const previousValue = selectedProduct || select.value;
+
+    select.replaceChildren();
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Choose a product";
+
+    select.appendChild(placeholder);
+
+    const availableProducts = inventoryProducts.filter(
+        product => product.active === true
+    );
+
+    availableProducts.forEach(product => {
+        const option = document.createElement("option");
+
+        option.value = product.product_name;
+        option.textContent =
+            `${product.product_name} — ${formatMoney(product.unit_price)}`;
+
+        select.appendChild(option);
+    });
+
+    if (
+        previousValue &&
+        availableProducts.some(
+            product => product.product_name === previousValue
+        )
+    ) {
+        select.value = previousValue;
+    }
+}
+
+// ==========================================
+// FLASH SALES: DETERMINE STATUS
+// ==========================================
+
+function getFlashSaleStatus(sale) {
+    if (sale.is_active !== true) {
+        return "Inactive";
+    }
+
+    const now = Date.now();
+    const start = new Date(sale.starts_at).getTime();
+    const end = new Date(sale.ends_at).getTime();
+
+    if (!Number.isFinite(start) || !Number.isFinite(end)) {
+        return "Invalid dates";
+    }
+
+    if (now < start) {
+        return "Scheduled";
+    }
+
+    if (now >= end) {
+        return "Expired";
+    }
+
+    return "Live";
+}
+
+// ==========================================
+// FLASH SALES: DISPLAY TABLE
+// ==========================================
+
+function renderFlashSales() {
+    const tableBody = flashSaleElements.tableBody;
+
+    if (!tableBody) return;
+
+    tableBody.replaceChildren();
+
+    if (!flashSales.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+
+        cell.colSpan = 6;
+        cell.textContent = "No flash sales found.";
+
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+
+        return;
+    }
+
+    flashSales.forEach(sale => {
+        const row = document.createElement("tr");
+
+        row.appendChild(createCell(sale.product_name || "Unknown product"));
+
+        row.appendChild(
+            createCell(`${Number(sale.discount_percentage).toFixed(2)}%`)
+        );
+
+        row.appendChild(createCell(formatFlashSaleDate(sale.starts_at)));
+        row.appendChild(createCell(formatFlashSaleDate(sale.ends_at)));
+
+        const status = getFlashSaleStatus(sale);
+        const statusCell = createCell(status);
+
+        statusCell.classList.add("flash-sale-status");
+
+        if (status === "Live") {
+            statusCell.style.color = "#15803d";
+        } else if (status === "Expired" || status === "Inactive") {
+            statusCell.style.color = "#b91c1c";
+        } else {
+            statusCell.style.color = "#b45309";
+        }
+
+        row.appendChild(statusCell);
+
+        const actionsCell = document.createElement("td");
+
+        const editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.textContent = "Edit";
+        editButton.className = "secondary-btn";
+
+        editButton.addEventListener("click", () => {
+            editFlashSale(sale);
+        });
+
+        const toggleButton = document.createElement("button");
+        toggleButton.type = "button";
+        toggleButton.textContent =
+            sale.is_active === true ? "Deactivate" : "Activate";
+
+        toggleButton.className = "secondary-btn";
+
+        toggleButton.addEventListener("click", () => {
+            toggleFlashSale(sale);
+        });
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.textContent = "Delete";
+        deleteButton.className = "danger-btn";
+
+        deleteButton.addEventListener("click", () => {
+            deleteFlashSale(sale);
+        });
+
+        actionsCell.append(
+            editButton,
+            toggleButton,
+            deleteButton
+        );
+
+        row.appendChild(actionsCell);
+
+        tableBody.appendChild(row);
+    });
+}
+
+// ==========================================
+// FLASH SALES: LOAD SALES
+// ==========================================
+
+async function loadFlashSales() {
+    if (flashSalesLoading) return;
+
+    if (!flashSaleElements.tableBody) return;
+
+    flashSalesLoading = true;
+
+    if (flashSaleElements.refreshButton) {
+        flashSaleElements.refreshButton.disabled = true;
+    }
+
+    showFlashSalesMessage("Loading flash sales...");
+
+    try {
+        const data = await callFlashSalesFunction("GET");
+
+        flashSales = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.sales)
+                ? data.sales
+                : [];
+
+        renderFlashSales();
+
+        showFlashSalesMessage(
+            `Loaded ${flashSales.length} flash sale(s).`
+        );
+
+    } catch (error) {
+        console.error("Loading flash sales failed:", error);
+
+        showFlashSalesMessage(
+            "Could not load flash sales: " + error.message,
+            true
+        );
+    } finally {
+        flashSalesLoading = false;
+
+        if (flashSaleElements.refreshButton) {
+            flashSaleElements.refreshButton.disabled = false;
+        }
+    }
+}
+
+// ==========================================
+// FLASH SALES: RESET FORM
+// ==========================================
+
+function resetFlashSaleForm() {
+    if (!flashSaleElements.form) return;
+
+    flashSaleElements.form.reset();
+
+    if (flashSaleElements.id) {
+        flashSaleElements.id.value = "";
+    }
+
+    if (flashSaleElements.active) {
+        flashSaleElements.active.checked = true;
+    }
+
+    if (flashSaleElements.formTitle) {
+        flashSaleElements.formTitle.textContent = "Create Flash Sale";
+    }
+
+    if (flashSaleElements.saveButton) {
+        flashSaleElements.saveButton.textContent = "Save Flash Sale";
+        flashSaleElements.saveButton.disabled = false;
+    }
+
+    if (flashSaleElements.cancelButton) {
+        flashSaleElements.cancelButton.hidden = true;
+    }
+
+    populateFlashSaleProducts();
+}
+
+// ==========================================
+// FLASH SALES: EDIT SALE
+// ==========================================
+
+function editFlashSale(sale) {
+    if (!flashSaleElements.form) return;
+
+    if (!sale.id) {
+        showFlashSalesMessage(
+            "This flash sale does not have a valid ID.",
+            true
+        );
+        return;
+    }
+
+    flashSaleElements.id.value = sale.id;
+
+    populateFlashSaleProducts(sale.product_name);
+
+    flashSaleElements.discount.value = sale.discount_percentage;
+
+    flashSaleElements.start.value =
+        isoToLocalDateTime(sale.starts_at);
+
+    flashSaleElements.end.value =
+        isoToLocalDateTime(sale.ends_at);
+
+    flashSaleElements.active.checked = sale.is_active === true;
+
+    if (flashSaleElements.formTitle) {
+        flashSaleElements.formTitle.textContent = "Edit Flash Sale";
+    }
+
+    if (flashSaleElements.saveButton) {
+        flashSaleElements.saveButton.textContent = "Update Flash Sale";
+    }
+
+    if (flashSaleElements.cancelButton) {
+        flashSaleElements.cancelButton.hidden = false;
+    }
+
+    showFlashSalesMessage(
+        `You are editing the flash sale for ${sale.product_name}.`
+    );
+
+    flashSaleElements.form.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+// ==========================================
+// FLASH SALES: SAVE NEW OR UPDATED SALE
+// ==========================================
+
+if (flashSaleElements.form) {
+    flashSaleElements.form.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const id = flashSaleElements.id?.value.trim();
+        const productName = flashSaleElements.product?.value.trim();
+        const discount = Number(flashSaleElements.discount?.value);
+
+        const startValue = flashSaleElements.start?.value;
+        const endValue = flashSaleElements.end?.value;
+
+        const isActive = flashSaleElements.active?.checked === true;
+
+        if (!productName) {
+            showFlashSalesMessage(
+                "Please select a product.",
+                true
+            );
+            return;
+        }
+
+        if (
+            !Number.isFinite(discount) ||
+            discount <= 0 ||
+            discount > 100
+        ) {
+            showFlashSalesMessage(
+                "Discount must be greater than 0 and not more than 100%.",
+                true
+            );
+            return;
+        }
+
+        if (!startValue || !endValue) {
+            showFlashSalesMessage(
+                "Please enter both the start and end dates.",
+                true
+            );
+            return;
+        }
+
+        let startsAt;
+        let endsAt;
+
+        try {
+            startsAt = localDateTimeToISO(startValue);
+            endsAt = localDateTimeToISO(endValue);
+        } catch (error) {
+            showFlashSalesMessage(error.message, true);
+            return;
+        }
+
+        if (new Date(endsAt).getTime() <= new Date(startsAt).getTime()) {
+            showFlashSalesMessage(
+                "The sale end date must be later than the start date.",
+                true
+            );
+            return;
+        }
+
+        const existingSaleForProduct = flashSales.find(sale =>
+            sale.product_name === productName &&
+            String(sale.id) !== String(id || "")
+        );
+
+        if (existingSaleForProduct) {
+            showFlashSalesMessage(
+                "This product already has a flash sale. Edit its existing sale instead.",
+                true
+            );
+            return;
+        }
+
+        const payload = {
+            product_name: productName,
+            discount_percentage: discount,
+            starts_at: startsAt,
+            ends_at: endsAt,
+            is_active: isActive
+        };
+
+        if (id) {
+            payload.id = id;
+        }
+
+        if (flashSaleElements.saveButton) {
+            flashSaleElements.saveButton.disabled = true;
+        }
+
+        showFlashSalesMessage(
+            id ? "Updating flash sale..." : "Creating flash sale..."
+        );
+
+        try {
+            const data = await callFlashSalesFunction(
+                id ? "PATCH" : "POST",
+                payload
+            );
+
+            if (data?.error) {
+                throw new Error(data.error);
+            }
+
+            resetFlashSaleForm();
+
+            await loadFlashSales();
+
+            showFlashSalesMessage(
+                id
+                    ? "Flash sale updated successfully."
+                    : "Flash sale created successfully."
+            );
+
+        } catch (error) {
+            console.error("Saving flash sale failed:", error);
+
+            showFlashSalesMessage(
+                "Could not save flash sale: " + error.message,
+                true
+            );
+        } finally {
+            if (flashSaleElements.saveButton) {
+                flashSaleElements.saveButton.disabled = false;
+            }
+        }
+    });
+}
+
+// ==========================================
+// FLASH SALES: ACTIVATE OR DEACTIVATE
+// ==========================================
+
+async function toggleFlashSale(sale) {
+    if (!sale.id) {
+        showFlashSalesMessage(
+            "Flash sale ID is missing.",
+            true
+        );
+        return;
+    }
+
+    const newStatus = sale.is_active !== true;
+
+    const action = newStatus ? "activate" : "deactivate";
+
+    const confirmed = window.confirm(
+        `Are you sure you want to ${action} the flash sale for ${sale.product_name}?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+        showFlashSalesMessage(`${action}ing flash sale...`);
+
+        await callFlashSalesFunction("PATCH", {
+            id: sale.id,
+            is_active: newStatus
+        });
+
+        await loadFlashSales();
+
+        showFlashSalesMessage(
+            `Flash sale ${action}d successfully.`
+        );
+
+    } catch (error) {
+        console.error("Changing flash sale status failed:", error);
+
+        showFlashSalesMessage(
+            "Could not change flash sale status: " + error.message,
+            true
+        );
+    }
+}
+
+// ==========================================
+// FLASH SALES: DELETE
+// ==========================================
+
+async function deleteFlashSale(sale) {
+    if (!sale.id) {
+        showFlashSalesMessage(
+            "Flash sale ID is missing.",
+            true
+        );
+        return;
+    }
+
+    const confirmed = window.confirm(
+        `Permanently delete the flash sale for "${sale.product_name}"?\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+        showFlashSalesMessage("Deleting flash sale...");
+
+        await callFlashSalesFunction("DELETE", {
+            id: sale.id
+        });
+
+        if (
+            String(flashSaleElements.id?.value || "") ===
+            String(sale.id)
+        ) {
+            resetFlashSaleForm();
+        }
+
+        await loadFlashSales();
+
+        showFlashSalesMessage("Flash sale deleted successfully.");
+
+    } catch (error) {
+        console.error("Deleting flash sale failed:", error);
+
+        showFlashSalesMessage(
+            "Could not delete flash sale: " + error.message,
+            true
+        );
+    }
+}
+
+// ==========================================
+// FLASH SALES: BUTTON EVENTS
+// ==========================================
+
+if (flashSaleElements.refreshButton) {
+    flashSaleElements.refreshButton.addEventListener(
+        "click",
+        loadFlashSales
+    );
+}
+
+if (flashSaleElements.addButton) {
+    flashSaleElements.addButton.addEventListener("click", () => {
+        resetFlashSaleForm();
+
+        showFlashSalesMessage("Ready to create a new flash sale.");
+
+        flashSaleElements.form?.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    });
+}
+
+if (flashSaleElements.cancelButton) {
+    flashSaleElements.cancelButton.addEventListener("click", () => {
+        resetFlashSaleForm();
+
+        showFlashSalesMessage("Flash sale editing cancelled.");
+    });
+}
+
+// ==========================================
 // INITIALIZE ADMIN DASHBOARD
 // ==========================================
 
@@ -1004,6 +1681,7 @@ async function initializeAdminDashboard() {
 
         await loadAdminOrders();
         await loadInventory();
+        await loadFlashSales();
 
     } catch (error) {
         console.error("Dashboard initialization failed:", error);
@@ -1019,4 +1697,6 @@ async function initializeAdminDashboard() {
 // START DASHBOARD
 initializeAdminDashboard();
 
-console.log("SWEET's KITCHEN admin dashboard initialized.");
+console.log(
+    "SWEET's KITCHEN admin dashboard initialized with Flash Sales."
+);
