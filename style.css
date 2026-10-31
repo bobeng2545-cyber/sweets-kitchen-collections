@@ -2833,3 +2833,16 @@ body.dark-mode .checkout-button {
 .notification-updated {
     color: #666666;
 }
+
+
+/* Notification dropdown visibility */
+#notificationMenu[hidden] {
+    display: none !important;
+}
+
+.empty-notifications {
+    text-align: center;
+    padding: 20px 12px;
+    color: #777;
+    font-size: 14px;
+}
