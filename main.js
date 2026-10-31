@@ -312,6 +312,7 @@ if (cartItem) {
 updateCart();
 
 
+
 /* =========================================================
    4. SEARCH AND CATEGORY FILTERING
 ========================================================= */
@@ -323,7 +324,6 @@ const productSection = document.getElementById("products");
 const productsGrid = document.getElementById("productsGrid");
 
 let selectedCategory = "all";
-
 let searchMessage = document.getElementById("searchMessage");
 
 if (productsGrid && !searchMessage) {
@@ -337,12 +337,8 @@ if (productsGrid && !searchMessage) {
     productsGrid.insertAdjacentElement("afterend", searchMessage);
 }
 
-
 function filterProducts() {
-    if (!productsGrid) {
-        console.error("Product grid #productsGrid was not found.");
-        return;
-    }
+    if (!productsGrid) return;
 
     const searchTerm = (searchInput?.value || "")
         .trim()
@@ -376,32 +372,24 @@ function filterProducts() {
             selectedCategory === "all" ||
             productCategory === selectedCategory;
 
+        // Do not show products deactivated in Supabase.
+        const isAvailable = card.dataset.storeAvailable !== "false";
+
         const shouldShow =
             matchesSearch &&
             matchesCategory &&
-            !card.hidden;
+            isAvailable;
 
+        card.hidden = !shouldShow;
         card.style.display = shouldShow ? "" : "none";
 
-        if (shouldShow) {
-            matchingProducts++;
-        }
+        if (shouldShow) matchingProducts++;
     });
 
     if (searchMessage) {
         searchMessage.hidden = matchingProducts > 0;
     }
-
-    console.log(
-        "Products found:",
-        productCards.length,
-        "| Matching products:",
-        matchingProducts,
-        "| Category:",
-        selectedCategory
-    );
 }
-
 
 if (searchButton) {
     searchButton.addEventListener("click", function () {
@@ -414,14 +402,12 @@ if (searchButton) {
     });
 }
 
-
 if (searchInput) {
     searchInput.addEventListener("input", filterProducts);
 
     searchInput.addEventListener("keydown", function (event) {
         if (event.key === "Enter") {
             event.preventDefault();
-
             filterProducts();
 
             productSection?.scrollIntoView({
@@ -431,7 +417,6 @@ if (searchInput) {
         }
     });
 }
-
 
 categoryButtons.forEach(function (button) {
     button.addEventListener("click", function () {
@@ -454,192 +439,258 @@ categoryButtons.forEach(function (button) {
     });
 });
 
-filterProducts();
-
 
 /* =========================================================
-   5. LIVE PRODUCT PRICES FROM SUPABASE
-   Updates the storefront when admin edits a product.
+   5. FLASH SALES + LIVE PRODUCT PRICES
 ========================================================= */
 
-async function loadLiveStoreProducts() {
-    if (!productsGrid) {
-        console.error("Cannot load live products: productsGrid is missing.");
-        return;
+const flashSalesMap = new Map();
+const originalProductPrices = new Map();
+
+function getProductKey(name) {
+    return String(name || "").trim().toLowerCase();
+}
+
+function getCurrentFlashSale(productName) {
+    const sale = flashSalesMap.get(getProductKey(productName));
+
+    if (!sale || sale.is_active !== true) return null;
+
+    const now = Date.now();
+    const startsAt = new Date(sale.starts_at).getTime();
+    const endsAt = new Date(sale.ends_at).getTime();
+
+    if (
+        !Number.isFinite(startsAt) ||
+        !Number.isFinite(endsAt) ||
+        now < startsAt ||
+        now >= endsAt
+    ) {
+        return null;
     }
+
+    return sale;
+}
+
+function getDiscountedPrice(originalPrice, percentage) {
+    return Math.round(
+        (originalPrice * (1 - percentage / 100) + Number.EPSILON) * 100
+    ) / 100;
+}
+
+function formatStoreMoney(amount) {
+    return "GH₵" + Number(amount).toLocaleString("en-GH", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function updateProductSaleDisplay(card, basePrice) {
+    const heading = card.querySelector("h3");
+    const priceElement = card.querySelector(".product-buttom strong");
+    const addButton = card.querySelector(".add-to-cart");
+
+    const productName = (
+        heading?.textContent ||
+        card.dataset.name ||
+        ""
+    ).trim();
+
+    if (!productName || !Number.isFinite(basePrice)) return;
+
+    originalProductPrices.set(getProductKey(productName), basePrice);
+
+    const sale = getCurrentFlashSale(productName);
+
+    let displayedPrice = basePrice;
+
+    if (sale) {
+        displayedPrice = getDiscountedPrice(
+            basePrice,
+            Number(sale.discount_percentage)
+        );
+
+        if (priceElement) {
+            priceElement.replaceChildren();
+
+            const oldPrice = document.createElement("del");
+            oldPrice.className = "flash-sale-old-price";
+            oldPrice.textContent = formatStoreMoney(basePrice);
+
+            const newPrice = document.createElement("strong");
+            newPrice.className = "flash-sale-new-price";
+            newPrice.textContent = formatStoreMoney(displayedPrice);
+
+            priceElement.append(oldPrice, document.createTextNode(" "), newPrice);
+        }
+
+        let badge = card.querySelector(".flash-sale-badge");
+
+        if (!badge) {
+            badge = document.createElement("span");
+            badge.className = "flash-sale-badge";
+            card.appendChild(badge);
+        }
+
+        badge.textContent =
+            "FLASH SALE -" + Number(sale.discount_percentage) + "%";
+
+    } else {
+        if (priceElement) {
+            priceElement.textContent = formatStoreMoney(basePrice);
+        }
+
+        card.querySelector(".flash-sale-badge")?.remove();
+    }
+
+    if (addButton) {
+        addButton.dataset.name = productName;
+        addButton.dataset.price = String(displayedPrice);
+    }
+
+    // Keep an existing cart item synchronized with the displayed price.
+    const cartItem = cart.find(
+        item => getProductKey(item.name) === getProductKey(productName)
+    );
+
+    if (cartItem) {
+        cartItem.price = displayedPrice;
+    }
+}
+
+function refreshFlashSaleDisplays() {
+    if (!productsGrid) return;
+
+    productsGrid.querySelectorAll(".product-card").forEach(function (card) {
+        const name = card.querySelector("h3")?.textContent ||
+            card.dataset.name;
+
+        const basePrice = originalProductPrices.get(getProductKey(name));
+
+        if (Number.isFinite(basePrice)) {
+            updateProductSaleDisplay(card, basePrice);
+        }
+    });
+
+    updateCart();
+}
+
+async function loadFlashSales() {
+    try {
+        const { data, error } = await supabaseClient
+            .from("store_flash_sales")
+            .select("product_name, discount_percentage, starts_at, ends_at, is_active");
+
+        if (error) throw error;
+
+        flashSalesMap.clear();
+
+        (data || []).forEach(function (sale) {
+            flashSalesMap.set(
+                getProductKey(sale.product_name),
+                sale
+            );
+        });
+
+        refreshFlashSaleDisplays();
+
+        console.log("Flash Sales loaded successfully.");
+
+    } catch (error) {
+        console.error("Could not load Flash Sales:", error);
+    }
+}
+
+async function loadLiveStoreProducts() {
+    if (!productsGrid) return;
 
     try {
         const { data: products, error } = await supabaseClient
             .from("store_products")
             .select("product_name, unit_price, active");
 
-        if (error) {
-            throw error;
-        }
-
-        /*
-          Do not hide the existing HTML products if Supabase
-          returns no rows. This can happen if the public read
-          permission has not been configured.
-        */
+        if (error) throw error;
 
         if (!products || products.length === 0) {
-            console.warn(
-                "No products were returned from Supabase. Check the store_products SELECT permission."
-            );
+            console.warn("No products returned from Supabase.");
             return;
         }
 
         const productMap = new Map();
 
         products.forEach(function (product) {
-            const key = String(product.product_name || "")
-                .trim()
-                .toLowerCase();
-
-            if (key) {
-                productMap.set(key, product);
-            }
+            productMap.set(
+                getProductKey(product.product_name),
+                product
+            );
         });
 
-        const productCards =
-            productsGrid.querySelectorAll(".product-card");
-
-        productCards.forEach(function (card) {
+        productsGrid.querySelectorAll(".product-card").forEach(function (card) {
             const heading = card.querySelector("h3");
-            const priceElement =
-                card.querySelector(".product-buttom strong");
-            const addButton = card.querySelector(".add-to-cart");
-
             const productName = (
                 heading?.textContent ||
                 card.dataset.name ||
                 ""
-            ).trim().toLowerCase();
+            ).trim();
 
-            const product = productMap.get(productName);
-
-            /*
-              Hide a product if it does not exist in the
-              database or has been deactivated.
-            */
+            const product = productMap.get(getProductKey(productName));
 
             if (!product || product.active === false) {
+                card.dataset.storeAvailable = "false";
                 card.hidden = true;
                 card.style.display = "none";
                 return;
             }
 
+            card.dataset.storeAvailable = "true";
             card.hidden = false;
 
-            const currentPrice = Number(product.unit_price);
+            const basePrice = Number(product.unit_price);
 
-            if (
-                !Number.isFinite(currentPrice) ||
-                currentPrice < 0
-            ) {
-                console.warn(
-                    "Invalid price received for:",
-                    product.product_name
-                );
+            if (!Number.isFinite(basePrice) || basePrice < 0) {
+                console.warn("Invalid price for:", product.product_name);
                 return;
             }
 
-            /*
-              Update the price displayed under the product.
-            */
-
-            if (priceElement) {
-                priceElement.textContent =
-                    "GH₵" + currentPrice.toLocaleString("en-GH");
-            }
-
-            /*
-              Update the Add to Cart button's data-price.
-            */
-
-            if (addButton) {
-                addButton.dataset.name = product.product_name;
-                addButton.dataset.price = String(currentPrice);
-            }
-
-            /*
-              Keep the product card name synchronized.
-            */
-
             card.dataset.name = product.product_name;
 
-            /*
-              Update the price of this product if it is
-              already inside the customer's cart.
-            */
-
-            cart.forEach(function (item) {
-                if (
-                    item.name.trim().toLowerCase() === productName
-                ) {
-                    item.price = currentPrice;
-                }
-            });
+            updateProductSaleDisplay(card, basePrice);
         });
 
-        /*
-          Refresh the cart total after product prices change.
-        */
-
         updateCart();
-
-        /*
-          Reapply search and category filters.
-        */
-
         filterProducts();
 
-        /*
-          Restore the correct Add to Cart button state.
-        */
+        document.querySelectorAll(".add-to-cart").forEach(function (button) {
+            const alreadyAdded = cart.some(
+                item => getProductKey(item.name) ===
+                    getProductKey(button.dataset.name)
+            );
 
-        document.querySelectorAll(".add-to-cart").forEach(
-            function (button) {
-                const alreadyAdded = cart.some(
-                    item =>
-                        item.name.trim().toLowerCase() ===
-                        String(button.dataset.name || "")
-                            .trim()
-                            .toLowerCase()
-                );
+            button.textContent = alreadyAdded
+                ? "Added to Cart"
+                : "Add to Cart";
 
-                if (alreadyAdded) {
-                    button.textContent = "Added to Cart";
-                    button.disabled = true;
-                } else {
-                    button.textContent = "Add to Cart";
-                    button.disabled = false;
-                }
-            }
-        );
+            button.disabled = alreadyAdded;
+        });
 
-        console.log(
-            "Live product prices successfully synchronized with Supabase."
-        );
+        console.log("Live product prices synchronized.");
 
     } catch (error) {
-        console.error(
-            "Could not load live products from Supabase:",
-            error
-        );
+        console.error("Could not load live products:", error);
     }
 }
 
-
-/* LOAD LIVE PRODUCTS WHEN THE PAGE OPENS */
-
+// Load products and Flash Sales.
 loadLiveStoreProducts();
+loadFlashSales();
 
+// Refresh sale status periodically, including start/end times.
+setInterval(function () {
+    refreshFlashSaleDisplays();
+}, 15000);
 
-/* LISTEN FOR ADMIN PRODUCT CHANGES */
-
-const liveProductChannel = supabaseClient
+// Listen for changes made by the administrator.
+supabaseClient
     .channel("store-products-live-updates")
     .on(
         "postgres_changes",
@@ -648,13 +699,23 @@ const liveProductChannel = supabaseClient
             schema: "public",
             table: "store_products"
         },
-        function () {
-            console.log("A product changed. Refreshing storefront prices.");
-
-            loadLiveStoreProducts();
-        }
+        loadLiveStoreProducts
     )
     .subscribe();
+
+supabaseClient
+    .channel("store-flash-sales-live-updates")
+    .on(
+        "postgres_changes",
+        {
+            event: "*",
+            schema: "public",
+            table: "store_flash_sales"
+        },
+        loadFlashSales
+    )
+    .subscribe();
+
 
 
 /* =========================================================
