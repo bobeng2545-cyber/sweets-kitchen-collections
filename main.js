@@ -86,19 +86,31 @@ const cartButton = document.getElementById("cartButton");
 
 /* OPEN CART */
 
-if (cartButton && cartOverlay) {
-    cartButton.addEventListener("click", function () {
-        cartOverlay.classList.add("show");
-    });
-}
+function openCart() {
+    if (!cartOverlay) return;
 
+    cartOverlay.classList.add("show");
+    cartOverlay.style.display = "flex";
+}
 
 /* CLOSE CART */
 
-if (closeCart && cartOverlay) {
-    closeCart.addEventListener("click", function () {
-        cartOverlay.classList.remove("show");
+function closeCartWindow() {
+    if (!cartOverlay) return;
+
+    cartOverlay.classList.remove("show");
+    cartOverlay.style.display = "none";
+}
+
+if (cartButton) {
+    cartButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        openCart();
     });
+}
+
+if (closeCart) {
+    closeCart.addEventListener("click", closeCartWindow);
 }
 
 
