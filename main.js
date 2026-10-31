@@ -1597,9 +1597,15 @@ console.log(
     data
 );
 
-                if (!data || !data.success || !data.notification) {
-                    continue;
-                }
+               if (!data || !data.success || !data.notification) {
+
+    console.warn(
+        "ORDER NOTIFICATION WAS NOT RETURNED:",
+        data
+    );
+
+    continue;
+}
 
                 displayOrderNotification(
                     order,
