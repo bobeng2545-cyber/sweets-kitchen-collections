@@ -1,3 +1,4 @@
+
 // ==========================================
 // SWEET's KITCHEN & COLLECTIONS
 // COMPLETE ADMIN DASHBOARD
@@ -53,21 +54,36 @@ const inventoryElements = {
     totalStock: document.getElementById("totalStockCount"),
     lowStock: document.getElementById("lowStockCount"),
     refreshButton: document.getElementById("refreshInventoryButton"),
+
+    addButton: document.getElementById("addProductButton"),
+
     form: document.getElementById("productForm"),
+    formTitle: document.getElementById("productFormTitle"),
     originalName: document.getElementById("originalProductName"),
+
     name: document.getElementById("productName"),
+    category: document.getElementById("productCategory"),
     price: document.getElementById("productPrice"),
     stock: document.getElementById("productStock"),
     threshold: document.getElementById("productLowStock"),
     active: document.getElementById("productActive"),
+
+    image: document.getElementById("productImage"),
+    imagePreview: document.getElementById("productImagePreview"),
+    imageMessage: document.getElementById("productImageMessage"),
+
     saveButton: document.getElementById("saveProductButton"),
     cancelButton: document.getElementById("cancelProductButton"),
+
     tableBody: document.getElementById("productsTableBody"),
     message: document.getElementById("inventoryMessage")
 };
 
 let inventoryProducts = [];
 let inventoryLoading = false;
+
+// Keep the existing image URL while editing a product.
+let editingProductImageUrl = null;
 
 // ==========================================
 // FLASH SALES ELEMENTS
@@ -241,6 +257,7 @@ if (logoutButton) {
             allOrders = [];
             inventoryProducts = [];
             flashSales = [];
+            editingProductImageUrl = null;
 
             if (ordersTableBody) ordersTableBody.replaceChildren();
 
@@ -250,6 +267,12 @@ if (logoutButton) {
 
             if (flashSaleElements.tableBody) {
                 flashSaleElements.tableBody.replaceChildren();
+            }
+
+            resetProductForm();
+
+            if (inventoryElements.form) {
+                inventoryElements.form.hidden = true;
             }
 
             resetFlashSaleForm();
@@ -590,6 +613,8 @@ function renderInventory() {
         cell.colSpan = 7;
         row.appendChild(cell);
         inventoryElements.tableBody.appendChild(row);
+
+        populateFlashSaleProducts();
         return;
     }
 
@@ -656,7 +681,6 @@ function renderInventory() {
         inventoryElements.tableBody.appendChild(row);
     });
 
-    // Update the Flash Sale product selector after inventory loads.
     populateFlashSaleProducts();
 }
 
@@ -737,6 +761,114 @@ async function loadInventory() {
 }
 
 // ==========================================
+// IMAGE UPLOAD TO SUPABASE STORAGE
+// ==========================================
+
+async function uploadProductImage(file) {
+    if (!file) return editingProductImageUrl;
+
+    const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+        throw new Error("Choose a JPG, PNG or WEBP image.");
+    }
+
+    const maximumSize = 5 * 1024 * 1024;
+
+    if (file.size > maximumSize) {
+        throw new Error("Image must not exceed 5MB.");
+    }
+
+    const extensions = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp"
+    };
+
+    const safeName = crypto.randomUUID();
+    const filePath = `products/${safeName}.${extensions[file.type]}`;
+
+    showInventoryMessage("Uploading product image...");
+
+    const { data, error } = await supabaseClient.storage
+        .from("product-images")
+        .upload(filePath, file, {
+            upsert: false,
+            contentType: file.type
+        });
+
+    if (error) {
+        throw new Error("Image upload failed: " + error.message);
+    }
+
+    const { data: publicData } = supabaseClient.storage
+        .from("product-images")
+        .getPublicUrl(data.path);
+
+    if (!publicData?.publicUrl) {
+        throw new Error("Could not generate the product image URL.");
+    }
+
+    return publicData.publicUrl;
+}
+
+// ==========================================
+// IMAGE PREVIEW
+// ==========================================
+
+if (inventoryElements.image) {
+    inventoryElements.image.addEventListener("change", () => {
+        const file = inventoryElements.image.files?.[0];
+
+        if (!file) return;
+
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+            inventoryElements.image.value = "";
+
+            showInventoryMessage(
+                "Choose a JPG, PNG or WEBP image.",
+                true
+            );
+
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            inventoryElements.image.value = "";
+
+            showInventoryMessage(
+                "Image must not exceed 5MB.",
+                true
+            );
+
+            return;
+        }
+
+        if (inventoryElements.imagePreview) {
+            const previewURL = URL.createObjectURL(file);
+
+            inventoryElements.imagePreview.src = previewURL;
+            inventoryElements.imagePreview.hidden = false;
+        }
+
+        if (inventoryElements.imageMessage) {
+            inventoryElements.imageMessage.textContent =
+                "Image selected: " + file.name;
+        }
+    });
+}
+
+// ==========================================
 // RESET PRODUCT FORM
 // ==========================================
 
@@ -744,6 +876,8 @@ function resetProductForm() {
     if (!inventoryElements.form) return;
 
     inventoryElements.form.reset();
+
+    editingProductImageUrl = null;
 
     if (inventoryElements.originalName) {
         inventoryElements.originalName.value = "";
@@ -753,30 +887,54 @@ function resetProductForm() {
         inventoryElements.name.disabled = false;
     }
 
+    if (inventoryElements.active) {
+        setActiveValue(true);
+    }
+
     if (inventoryElements.saveButton) {
-        inventoryElements.saveButton.textContent = "Update Product";
+        inventoryElements.saveButton.textContent = "Add Product";
+        inventoryElements.saveButton.disabled = false;
     }
 
-    const formTitle = document.getElementById("productFormTitle");
-
-    if (formTitle) {
-        formTitle.textContent = "Edit existing product";
+    if (inventoryElements.formTitle) {
+        inventoryElements.formTitle.textContent = "Add New Product";
     }
 
-    const imagePreview = document.getElementById("productImagePreview");
-    const imageMessage = document.getElementById("productImageMessage");
-    const imageInput = document.getElementById("productImage");
-
-    if (imagePreview) {
-        imagePreview.src = "";
-        imagePreview.hidden = true;
+    if (inventoryElements.imagePreview) {
+        inventoryElements.imagePreview.removeAttribute("src");
+        inventoryElements.imagePreview.hidden = true;
     }
 
-    if (imageInput) imageInput.value = "";
-
-    if (imageMessage) {
-        imageMessage.textContent = "Select an image to preview it.";
+    if (inventoryElements.imageMessage) {
+        inventoryElements.imageMessage.textContent =
+            "Select an image to preview it.";
     }
+}
+
+// ==========================================
+// OPEN ADD PRODUCT FORM
+// ==========================================
+
+function openAddProductForm() {
+    if (!inventoryElements.form) return;
+
+    resetProductForm();
+
+    inventoryElements.form.hidden = false;
+
+    showInventoryMessage("Enter the details of your new product.");
+
+    inventoryElements.form.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+if (inventoryElements.addButton) {
+    inventoryElements.addButton.addEventListener(
+        "click",
+        openAddProductForm
+    );
 }
 
 // ==========================================
@@ -786,42 +944,44 @@ function resetProductForm() {
 function editProduct(product) {
     if (!inventoryElements.form) return;
 
+    resetProductForm();
+
     inventoryElements.form.hidden = false;
 
-    inventoryElements.originalName.value = product.product_name;
-    inventoryElements.name.value = product.product_name;
-    inventoryElements.name.disabled = false;
+    inventoryElements.originalName.value = product.product_name || "";
+    inventoryElements.name.value = product.product_name || "";
 
-    inventoryElements.price.value = product.unit_price;
-    inventoryElements.stock.value = product.stock_quantity;
-    inventoryElements.threshold.value = product.low_stock_threshold;
+    if (inventoryElements.category) {
+        inventoryElements.category.value = product.category || "";
+    }
 
-    setActiveValue(product.active);
+    inventoryElements.price.value = product.unit_price ?? "";
+    inventoryElements.stock.value = product.stock_quantity ?? 0;
+    inventoryElements.threshold.value =
+        product.low_stock_threshold ?? 0;
 
-    const formTitle = document.getElementById("productFormTitle");
+    setActiveValue(product.active === true);
 
-    if (formTitle) {
-        formTitle.textContent = "Edit or Rename Product";
+    editingProductImageUrl = product.image_url || null;
+
+    if (inventoryElements.imageMessage) {
+        inventoryElements.imageMessage.textContent =
+            product.image_url
+                ? "Current image retained unless you select a replacement."
+                : "This product has no image yet.";
+    }
+
+    if (inventoryElements.imagePreview && product.image_url) {
+        inventoryElements.imagePreview.src = product.image_url;
+        inventoryElements.imagePreview.hidden = false;
+    }
+
+    if (inventoryElements.formTitle) {
+        inventoryElements.formTitle.textContent = "Edit or Rename Product";
     }
 
     if (inventoryElements.saveButton) {
         inventoryElements.saveButton.textContent = "Update Product";
-    }
-
-    const imageInput = document.getElementById("productImage");
-    const imagePreview = document.getElementById("productImagePreview");
-    const imageMessage = document.getElementById("productImageMessage");
-
-    if (imageInput) imageInput.value = "";
-
-    if (imagePreview) {
-        imagePreview.src = "";
-        imagePreview.hidden = true;
-    }
-
-    if (imageMessage) {
-        imageMessage.textContent =
-            "Image replacement is not enabled in this update form.";
     }
 
     showInventoryMessage("Editing " + product.product_name);
@@ -848,9 +1008,11 @@ async function changeProductAvailability(product) {
         await callInventoryFunction("PATCH", {
             original_product_name: product.product_name,
             product_name: product.product_name,
+            category: product.category,
             unit_price: Number(product.unit_price),
             stock_quantity: Number(product.stock_quantity),
             low_stock_threshold: Number(product.low_stock_threshold),
+            image_url: product.image_url || null,
             active: newStatus
         });
 
@@ -905,7 +1067,7 @@ async function permanentlyDeleteProduct(product) {
 }
 
 // ==========================================
-// UPDATE EXISTING PRODUCT
+// ADD OR UPDATE PRODUCT
 // ==========================================
 
 if (inventoryElements.form) {
@@ -913,23 +1075,26 @@ if (inventoryElements.form) {
         event.preventDefault();
 
         const originalName =
-            inventoryElements.originalName?.value.trim();
+            inventoryElements.originalName?.value.trim() || "";
 
-        if (!originalName) {
-            showInventoryMessage(
-                "Select an existing product before updating.",
-                true
-            );
-            return;
-        }
+        const isEditing = Boolean(originalName);
 
-        const productName = inventoryElements.name.value.trim();
-        const unitPrice = Number(inventoryElements.price.value);
-        const stockQuantity = Number(inventoryElements.stock.value);
-        const lowStockThreshold = Number(inventoryElements.threshold.value);
+        const productName = inventoryElements.name?.value.trim();
+        const category = inventoryElements.category?.value.trim();
+
+        const unitPrice = Number(inventoryElements.price?.value);
+        const stockQuantity = Number(inventoryElements.stock?.value);
+        const lowStockThreshold = Number(inventoryElements.threshold?.value);
+
+        const imageFile = inventoryElements.image?.files?.[0] || null;
 
         if (!productName) {
             showInventoryMessage("Product name is required.", true);
+            return;
+        }
+
+        if (!category) {
+            showInventoryMessage("Please select a product category.", true);
             return;
         }
 
@@ -954,36 +1119,71 @@ if (inventoryElements.form) {
             return;
         }
 
-        const payload = {
-            original_product_name: originalName,
-            product_name: productName,
-            unit_price: unitPrice,
-            stock_quantity: stockQuantity,
-            low_stock_threshold: lowStockThreshold,
-            active: getActiveValue()
-        };
+        const duplicate = inventoryProducts.find(product =>
+            String(product.product_name).toLowerCase() ===
+                productName.toLowerCase() &&
+            String(product.product_name).toLowerCase() !==
+                originalName.toLowerCase()
+        );
+
+        if (duplicate) {
+            showInventoryMessage(
+                "A product with that name already exists.",
+                true
+            );
+            return;
+        }
 
         if (inventoryElements.saveButton) {
             inventoryElements.saveButton.disabled = true;
         }
 
-        showInventoryMessage("Updating product...");
-
         try {
-            await callInventoryFunction("PATCH", payload);
+            let imageUrl = editingProductImageUrl;
+
+            if (imageFile) {
+                imageUrl = await uploadProductImage(imageFile);
+            }
+
+            const payload = {
+                product_name: productName,
+                category,
+                unit_price: unitPrice,
+                stock_quantity: stockQuantity,
+                low_stock_threshold: lowStockThreshold,
+                image_url: imageUrl || null,
+                active: getActiveValue()
+            };
+
+            if (isEditing) {
+                payload.original_product_name = originalName;
+
+                showInventoryMessage("Updating product...");
+
+                await callInventoryFunction("PATCH", payload);
+
+            } else {
+                showInventoryMessage("Adding new product...");
+
+                await callInventoryFunction("POST", payload);
+            }
 
             resetProductForm();
             inventoryElements.form.hidden = true;
 
             await loadInventory();
 
-            showInventoryMessage("Product updated successfully.");
+            showInventoryMessage(
+                isEditing
+                    ? "Product updated successfully."
+                    : "New product added successfully."
+            );
 
         } catch (error) {
-            console.error("Updating product failed:", error);
+            console.error("Saving product failed:", error);
 
             showInventoryMessage(
-                "Could not update product: " + error.message,
+                "Could not save product: " + error.message,
                 true
             );
         } finally {
@@ -1006,7 +1206,7 @@ if (inventoryElements.refreshButton) {
 }
 
 // ==========================================
-// CANCEL PRODUCT EDITING
+// CANCEL PRODUCT FORM
 // ==========================================
 
 if (inventoryElements.cancelButton) {
@@ -1015,7 +1215,7 @@ if (inventoryElements.cancelButton) {
 
         inventoryElements.form.hidden = true;
 
-        showInventoryMessage("Product editing cancelled.");
+        showInventoryMessage("Product operation cancelled.");
     });
 }
 
@@ -1039,7 +1239,6 @@ function formatFlashSaleDate(value) {
     });
 }
 
-// Convert datetime-local value to ISO timestamp.
 function localDateTimeToISO(value) {
     if (!value) return null;
 
@@ -1052,7 +1251,6 @@ function localDateTimeToISO(value) {
     return date.toISOString();
 }
 
-// Convert an ISO timestamp into a datetime-local input value.
 function isoToLocalDateTime(value) {
     if (!value) return "";
 
@@ -1111,15 +1309,15 @@ async function callFlashSalesFunction(method = "GET", body) {
 function populateFlashSaleProducts(selectedProduct = "") {
     const select = flashSaleElements.product;
 
-    if (!select) {
-        console.error("Flash Sale product dropdown was not found.");
-        return;
-    }
+    if (!select) return;
 
-    // Keep the default option
-    select.innerHTML = '<option value="">Choose a product</option>';
+    select.replaceChildren();
 
-    // Add every product loaded from Inventory Management
+    const defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.textContent = "Choose a product";
+    select.appendChild(defaultOption);
+
     inventoryProducts.forEach(product => {
         if (!product.product_name) return;
 
@@ -1134,12 +1332,8 @@ function populateFlashSaleProducts(selectedProduct = "") {
 
         select.appendChild(option);
     });
-
-    console.log(
-        "Products available for Flash Sales:",
-        inventoryProducts.map(product => product.product_name)
-    );
 }
+
 // ==========================================
 // FLASH SALES: DETERMINE STATUS
 // ==========================================
@@ -1157,13 +1351,8 @@ function getFlashSaleStatus(sale) {
         return "Invalid dates";
     }
 
-    if (now < start) {
-        return "Scheduled";
-    }
-
-    if (now >= end) {
-        return "Expired";
-    }
+    if (now < start) return "Scheduled";
+    if (now >= end) return "Expired";
 
     return "Live";
 }
@@ -1492,14 +1681,10 @@ if (flashSaleElements.form) {
         );
 
         try {
-            const data = await callFlashSalesFunction(
+            await callFlashSalesFunction(
                 id ? "PATCH" : "POST",
                 payload
             );
-
-            if (data?.error) {
-                throw new Error(data.error);
-            }
 
             resetFlashSaleForm();
 
@@ -1691,5 +1876,5 @@ async function initializeAdminDashboard() {
 initializeAdminDashboard();
 
 console.log(
-    "SWEET's KITCHEN admin dashboard initialized with Flash Sales."
+    "SWEET's KITCHEN admin dashboard initialized with Orders, Inventory and Flash Sales."
 );
