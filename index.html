@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,7 +31,7 @@
 
     <div class="header-actions">
 
-        <!-- THEME BUTTON -->
+        <!-- DARK / LIGHT MODE BUTTON -->
         <button type="button"
                 class="theme-toggle"
                 id="themeToggle"
@@ -40,7 +41,7 @@
                   id="themeIcon">dark_mode</span>
         </button>
 
-        <!-- SHOPPING CART -->
+        <!-- SHOPPING CART ICON WITH COUNT BADGE -->
         <button type="button"
                 class="cart-button"
                 id="cartButton"
@@ -55,7 +56,7 @@
                   aria-live="polite">0</span>
         </button>
 
-        <!-- NOTIFICATIONS -->
+        <!-- CUSTOMER NOTIFICATION BELL -->
         <div class="notification-area" id="notificationArea">
 
             <button type="button"
@@ -74,6 +75,7 @@
                       hidden>0</span>
             </button>
 
+            <!-- NOTIFICATION DROPDOWN -->
             <div class="notification-menu"
                  id="notificationMenu"
                  hidden>
@@ -96,6 +98,7 @@
 
                 </div>
             </div>
+
         </div>
 
         <!-- CUSTOMER PROFILE -->
@@ -140,7 +143,6 @@
                 aria-label="Toggle navigation menu"
                 aria-controls="nav"
                 aria-expanded="false">
-
             <span class="material-symbols-outlined">menu</span>
         </button>
 
@@ -149,11 +151,10 @@
 
 <main>
 
-    <!-- HERO SECTION -->
+    <!-- HERO -->
     <section class="hero" id="home">
 
         <div class="hero-content">
-
             <h2>Welcome to Sweet Kitchens &amp; Collections</h2>
 
             <h3>
@@ -165,7 +166,6 @@
                 Discover products from local sellers and find exactly
                 what you need at affordable prices.
             </p>
-
         </div>
 
         <div class="heroBtn">
@@ -175,9 +175,8 @@
 
     </section>
 
-    <!-- SEARCH SECTION -->
+    <!-- SEARCH -->
     <section class="search-section">
-
         <div class="search-box">
 
             <input type="search"
@@ -185,15 +184,12 @@
                    placeholder="Search for products"
                    aria-label="Search products">
 
-            <button type="button" id="searchButton">
-                Search
-            </button>
+            <button type="button" id="searchButton">Search</button>
 
         </div>
-
     </section>
 
-    <!-- CATEGORIES SECTION -->
+    <!-- CATEGORIES -->
     <section class="categories" id="categories">
 
         <div class="section-heading">
@@ -205,39 +201,28 @@
 
             <button type="button"
                     class="category-btn active"
-                    data-category="all">
-                ALL
-            </button>
+                    data-category="all">ALL</button>
 
             <button type="button"
                     class="category-btn"
-                    data-category="fashion">
-                FASHION
-            </button>
+                    data-category="fashion">FASHION</button>
 
             <button type="button"
                     class="category-btn"
-                    data-category="electronics">
-                ELECTRONICS
-            </button>
+                    data-category="electronics">ELECTRONICS</button>
 
             <button type="button"
                     class="category-btn"
-                    data-category="kitchen tools">
-                KITCHEN TOOLS
-            </button>
+                    data-category="kitchen tools">KITCHEN TOOLS</button>
 
             <button type="button"
                     class="category-btn"
-                    data-category="beauty">
-                BEAUTY
-            </button>
+                    data-category="beauty">BEAUTY</button>
 
         </div>
-
     </section>
 
-    <!-- PRODUCTS SECTION -->
+    <!-- PRODUCTS -->
     <section class="product-section" id="products">
 
         <div class="section-heading">
@@ -247,596 +232,391 @@
 
         <div class="products-grid" id="productsGrid">
 
-            <!-- PRODUCT 1: HEATER -->
+            <!-- PRODUCT 1 -->
             <article class="product-card"
-                     data-product-id="heater-001"
                      data-category="electronics"
                      data-name="Heater">
 
                 <div class="product-image">
-
-                    <img src="./images/Heater.jpeg"
-                         alt="Heater"
-                         loading="lazy">
+                    <img src="./images/Heater.jpeg" alt="Heater">
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Heater"
-                            aria-pressed="false">💖</button>
-
+                            aria-label="Favourite Heater">💖</button>
                 </div>
 
                 <div class="product-info">
-
                     <p class="products-category">Electronics</p>
-
                     <h3>Heater</h3>
-
                     <p class="product-description">
                         Start your morning right! Crispy outside, soft inside.
                         With 6 browning levels and auto shut-off, you get
                         perfect bread every time. Saves time and power.
                     </p>
-
                 </div>
 
                 <div class="product-buttom">
-
                     <strong>GH₵250</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-product-id="heater-001"
-                            data-name="Heater"
-                            data-price="250">
+                    <button type="button" class="add-to-cart"
+                            data-name="Heater" data-price="250">
                         Add to cart
                     </button>
-
                 </div>
-
             </article>
 
-            <!-- PRODUCT 2: BLENDER -->
+            <!-- PRODUCT 2 -->
             <article class="product-card"
-                     data-product-id="blender-001"
                      data-category="electronics"
                      data-name="Blender">
 
                 <div class="product-image">
-
-                    <img src="./images/Blender.jpeg"
-                         alt="Blender"
-                         loading="lazy">
+                    <img src="./images/Blender.jpeg" alt="Blender">
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Blender"
-                            aria-pressed="false">💖</button>
-
+                            aria-label="Favourite Blender">💖</button>
                 </div>
 
                 <div class="product-info">
-
                     <p class="products-category">Electronics</p>
-
                     <h3>Blender</h3>
-
                     <p class="product-description">
                         A useful kitchen appliance for blending ingredients
                         and preparing drinks and smoothies.
                     </p>
-
                 </div>
 
                 <div class="product-buttom">
-
                     <strong>GH₵400</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-product-id="blender-001"
-                            data-name="Blender"
-                            data-price="400">
+                    <button type="button" class="add-to-cart"
+                            data-name="Blender" data-price="400">
                         Add to cart
                     </button>
-
                 </div>
-
             </article>
 
-            <!-- PRODUCT 3: AIR FRYER -->
+            <!-- PRODUCT 3 -->
             <article class="product-card"
-                     data-product-id="air-fryer-001"
                      data-category="electronics"
                      data-name="Air Fryer">
 
                 <div class="product-image">
-
-                    <img src="./images/Airfryer.jpeg"
-                         alt="Air Fryer"
-                         loading="lazy">
+                    <img src="./images/Airfryer.jpeg" alt="Air Fryer">
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Air Fryer"
-                            aria-pressed="false">💖</button>
-
+                            aria-label="Air fryer">💖</button>
                 </div>
 
                 <div class="product-info">
-
-                    <p class="products-category">Electronics</p>
-
+                    <p class="products-category">Air Fryer</p>
                     <h3>Air Fryer</h3>
-
                     <p class="product-description">
-                        Heat your food without stress. All you need is to
-                        give it time.
+                        Heat your food without stress. All you need is to give it time
                     </p>
-
                 </div>
 
                 <div class="product-buttom">
-
                     <strong>GH₵750</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-product-id="air-fryer-001"
-                            data-name="Air Fryer"
-                            data-price="750">
+                    <button type="button" class="add-to-cart"
+                            data-name="Air Fryer" data-price="750">
                         Add to cart
                     </button>
-
                 </div>
-
             </article>
 
-            <!-- PRODUCT 4: CUTLERY SET -->
+            <!-- PRODUCT 4 -->
             <article class="product-card"
-                     data-product-id="cutlery-set-001"
                      data-category="kitchen tools"
                      data-name="Cutlery Set">
 
                 <div class="product-image">
-
-                    <img src="./images/Cutlery Set.jpeg"
-                         alt="Cutlery Set"
-                         loading="lazy">
+                    <img src="./Cutlery Set.jpeg" alt="Cutlery Set">
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Cutlery Set"
-                            aria-pressed="false">💖</button>
-
+                            aria-label="Favourite Cutlery Set">💖</button>
                 </div>
 
                 <div class="product-info">
-
                     <p class="products-category">Kitchen Tools</p>
-
                     <h3>Cutlery Set</h3>
-
                     <p class="product-description">
                         A useful cutlery set for serving and enjoying meals.
                     </p>
-
                 </div>
 
                 <div class="product-buttom">
-
                     <strong>GH₵300</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-product-id="cutlery-set-001"
-                            data-name="Cutlery Set"
-                            data-price="300">
+                    <button type="button" class="add-to-cart"
+                            data-name="Cutlery Set" data-price="300">
                         Add to cart
                     </button>
-
                 </div>
-
             </article>
 
-            <!-- PRODUCT 5: BOWLS -->
+            <!-- PRODUCT 5 -->
             <article class="product-card"
-                     data-product-id="bowls-001"
                      data-category="kitchen tools"
                      data-name="Bowls">
 
                 <div class="product-image">
-
-                    <img src="./images/Bowls.jpeg"
-                         alt="Bowls"
-                         loading="lazy">
+                    <img src="./Bowls.jpeg" alt="Bowls">
+                         
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Bowls"
-                            aria-pressed="false">💖</button>
-
+                            aria-label="Bowls">💖</button>
                 </div>
 
                 <div class="product-info">
-
                     <p class="products-category">Kitchen Tools</p>
-
                     <h3>Bowls</h3>
-
                     <p class="product-description">
-                        Quality set of bowls for your kitchen and serving needs.
+                        Quality set of Bowls for your services.
                     </p>
-
                 </div>
 
                 <div class="product-buttom">
-
                     <strong>GH₵1200</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-product-id="bowls-001"
-                            data-name="Bowls"
-                            data-price="1200">
+                    <button type="button" class="add-to-cart"
+                            data-name="Bowls" data-price="1200">
                         Add to cart
                     </button>
-
                 </div>
-
             </article>
 
-            <!-- PRODUCT 6: JUICER MIXER -->
+            <!-- PRODUCT 6 -->
             <article class="product-card"
-                     data-product-id="juicer-mixer-001"
                      data-category="electronics"
                      data-name="Juicer Mixer">
 
                 <div class="product-image">
-
                     <img src="https://scontent-los4-1.xx.fbcdn.net/v/t39.30808-6/858524439_2232811774314336_7557054570693863543_n.jpg?stp=c0.8.1055.1055a_dst-jpg_tt6&amp;cstp=mx1055x1055&amp;ctp=s206x206&amp;_nc_cat=101&amp;ccb=1-7&amp;_nc_sid=50ad20&amp;_nc_eui2=AeFLEGHz4ownXuGf_VsOZUH0PdKmYZ6wZ8890qZhnrBnz66bICIiKM5ocd_zFhbdS17UW0aaa888pZEE6TbpNSeE&amp;_nc_ohc=yc2OfjPfwLoQ7kNvwELqAy-&amp;_nc_oc=AdoJtepnLC50Q5LsKMysUFOZaomW2WPaOGTAHVo67S9PUQpipAFulg6BacfwpZ7mmJ4&amp;_nc_zt=23&amp;_nc_ht=scontent-los4-1.xx&amp;_nc_gid=HhZf4VF5DJQUtzI-SKlDFA&amp;_nc_ss=7d2a8&amp;oh=00_AQOZGn2nvVrDKgVtCwww9YefGPsWKZkOdx9FXXmeVH2QNQ&amp;oe=6ADF0383"
-                         alt="Juicer Mixer"
-                         loading="lazy">
+                         alt="Juicer Mixer">
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Juicer Mixer"
-                            aria-pressed="false">💖</button>
-
+                            aria-label="Favourite Juicer Mixer">💖</button>
                 </div>
 
                 <div class="product-info">
-
                     <p class="products-category">Electronics</p>
-
                     <h3>Juicer Mixer</h3>
-
                     <p class="product-description">
                         Prepare juice, smoothies and blended ingredients at home.
                     </p>
-
                 </div>
 
                 <div class="product-buttom">
-
                     <strong>GH₵400</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-product-id="juicer-mixer-001"
-                            data-name="Juicer Mixer"
-                            data-price="400">
+                    <button type="button" class="add-to-cart"
+                            data-name="Juicer Mixer" data-price="400">
                         Add to cart
                     </button>
-
                 </div>
-
             </article>
 
-            <!-- PRODUCT 7: CREST BOWLS -->
+            <!-- PRODUCT 7 -->
             <article class="product-card"
-                     data-product-id="crest-bowls-001"
                      data-category="kitchen tools"
                      data-name="Crest Bowls">
 
                 <div class="product-image">
-
                     <img src="https://scontent-los4-1.xx.fbcdn.net/v/t39.30808-6/859938119_2232811884314325_2911690826473600116_n.jpg?stp=c0.84.768.768a_dst-jpg_tt6&amp;cstp=mx768x768&amp;ctp=s206x206&amp;_nc_cat=101&amp;ccb=1-7&amp;_nc_sid=50ad20&amp;_nc_eui2=AeEU4d2DO3t0jWTLdTtFzFDhAENSqBdJS_4AQ1KoF0lL_kjkIhzF4Dp6i1RGtTuyRn4Kcoa_ms_j7P1pFIvMJv-5&amp;_nc_ohc=Qc5gl3Rtg-0Q7kNvwGVmIiy&amp;_nc_oc=AdpT5xA4xjwSAORQPKtnwLKSQsH2ZVbfSsYIzM6frYI0IgA9d29b-Ag3yWlEQlIuiXY&amp;_nc_zt=23&amp;_nc_ht=scontent-los4-1.xx&amp;_nc_gid=HhZf4VF5DJQUtzI-SKlDFA&amp;_nc_ss=7d2a8&amp;oh=00_AQNoTMCOlSxXozL1VaeGUlD5RQfi0M5TMvtTzfvxXzZk8g&amp;oe=6ADF1B5F"
-                         alt="Crest Bowls"
-                         loading="lazy">
+                         alt="Crest Bowls">
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Crest Bowls"
-                            aria-pressed="false">💖</button>
-
+                            aria-label="Favourite Crest Bowls">💖</button>
                 </div>
 
                 <div class="product-info">
-
                     <p class="products-category">Kitchen Tools</p>
-
                     <h3>Crest Bowls</h3>
-
                     <p class="product-description">
                         Bowls for preparing, serving and storing food.
                     </p>
-
                 </div>
 
                 <div class="product-buttom">
-
                     <strong>GH₵1200</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-product-id="crest-bowls-001"
-                            data-name="Crest Bowls"
-                            data-price="1200">
+                    <button type="button" class="add-to-cart"
+                            data-name="Crest Bowls" data-price="1200">
                         Add to cart
                     </button>
-
                 </div>
-
             </article>
 
-            <!-- PRODUCT 8: AIR FRYER 2 -->
+            <!-- PRODUCT 8 -->
             <article class="product-card"
-                     data-product-id="air-fryer-002"
                      data-category="electronics"
                      data-name="Air Fryer">
 
                 <div class="product-image">
-
                     <img src="https://scontent-los4-1.xx.fbcdn.net/v/t39.30808-6/858212870_2232811764314337_3741852310302824679_n.jpg?stp=dst-jpg_tt6&amp;cstp=mx1080x1080&amp;ctp=s206x206&amp;_nc_cat=100&amp;ccb=1-7&amp;_nc_sid=50ad20&amp;_nc_eui2=AeHMC2QmGIAi9qsZX0KioF_ItEygvTotebK0TKC9Oi15ssL9oP2cZuRNSqb9YShA0C9nxkiQs4dzWTLDtdY7T-BA&amp;_nc_ohc=LR0-VnCHQeMQ7kNvwHRusY7&amp;_nc_oc=AdoXZjXA4EyekW8PnaakVpLcibUVDKJEo3SpGBN3zZklJnbfP0YUmHlcaZZd6Ht6yM8&amp;_nc_zt=23&amp;_nc_ht=scontent-los4-1.xx&amp;_nc_gid=HhZf4VF5DJQUtzI-SKlDFA&amp;_nc_ss=7d2a8&amp;oh=00_AQM1oTQfLhYruSq0AgMeLXgOFtSEoeYW21-pIK-EJ-DxHw&amp;oe=6ADF1538"
-                         alt="Air Fryer"
-                         loading="lazy">
+                         alt="Air Fryer">
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Air Fryer"
-                            aria-pressed="false">💖</button>
-
+                            aria-label="Favourite Air Fryer">💖</button>
                 </div>
 
                 <div class="product-info">
-
                     <p class="products-category">Electronics</p>
-
                     <h3>Air Fryer</h3>
-
                     <p class="product-description">
                         Prepare a variety of meals using an air fryer.
                     </p>
-
                 </div>
 
                 <div class="product-buttom">
-
                     <strong>GH₵900</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-product-id="air-fryer-002"
-                            data-name="Air Fryer"
-                            data-price="900">
+                    <button type="button" class="add-to-cart"
+                            data-name="Air Fryer" data-price="900">
                         Add to cart
                     </button>
-
                 </div>
-
             </article>
 
-            <!-- PRODUCT 9: BLENDER 2 -->
+            <!-- PRODUCT 9 -->
             <article class="product-card"
-                     data-product-id="blender-002"
                      data-category="electronics"
                      data-name="Blender">
 
                 <div class="product-image">
-
                     <img src="https://scontent-los4-1.xx.fbcdn.net/v/t39.30808-6/856008531_2232811760981004_1547539672564525983_n.jpg?stp=dst-jpg_tt6&amp;cstp=mx1069x1080&amp;ctp=s206x206&amp;_nc_cat=105&amp;ccb=1-7&amp;_nc_sid=50ad20&amp;_nc_eui2=AeGyUX4ZZrf0Owqit9ZjjDdP9rZFFhApHbn2tkUWECkdufiBpMU7Ji21QtlY0oBPg1Bl5TgASVdBnuJ2pllS3mOq&amp;_nc_ohc=nr5nxPLYdmsQ7kNvwHiHVhW&amp;_nc_oc=Adr_5FA0nm6c1JAjDhIjzjXS89-sEQphIcEiuERjcsMZ-GNAJL-BhuL6RzmhiFPUTdY&amp;_nc_zt=23&amp;_nc_ht=scontent-los4-1.xx&amp;_nc_gid=HhZf4VF5DJQUtzI-SKlDFA&amp;_nc_ss=7d2a8&amp;oh=00_AQM-YfckoriQTr51eJCFHIjkLh0rr_K6pXG8awr3jR2Fpg&amp;oe=6ADF1FAA"
-                         alt="Blender"
-                         loading="lazy">
+                         alt="Blender">
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Blender"
-                            aria-pressed="false">💖</button>
-
+                            aria-label="Favourite Blender">💖</button>
                 </div>
 
                 <div class="product-info">
-
                     <p class="products-category">Electronics</p>
-
                     <h3>Blender</h3>
-
                     <p class="product-description">
                         A blender for preparing drinks and blending ingredients.
                     </p>
-
                 </div>
 
                 <div class="product-buttom">
-
                     <strong>GH₵1300</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-product-id="blender-002"
-                            data-name="Blender"
-                            data-price="1300">
+                    <button type="button" class="add-to-cart"
+                            data-name="Blender" data-price="1300">
                         Add to cart
                     </button>
-
                 </div>
-
             </article>
 
-            <!-- PRODUCT 10: TOASTER -->
+            <!-- PRODUCT 10 -->
             <article class="product-card"
-                     data-product-id="toaster-001"
                      data-category="electronics"
                      data-name="Toaster">
 
                 <div class="product-image">
-
                     <img src="https://scontent-los4-1.xx.fbcdn.net/v/t39.30808-6/856008501_2232811540981026_3320611442983196488_n.jpg?stp=dst-jpg_tt6&amp;cstp=mx800x800&amp;ctp=s800x800&amp;_nc_cat=103&amp;ccb=1-7&amp;_nc_sid=833d8c&amp;_nc_eui2=AeH6OoShBdFlwXSh6XPlYnwob5Q97ioEiopvlD3uKgSKipoqMLrr0x9_DGY-vFBEwWmoYoeJoNtSCkAUmTU-dytS&amp;_nc_ohc=0yPAQMU1C9MQ7kNvwGIwTNI&amp;_nc_oc=AdoEMQyUR-aY3nhESWsdco8I1YmlpS90Y32RehO4UVd5G81yy88Eh5VQcF6NxFnuGKA&amp;_nc_zt=23&amp;_nc_ht=scontent-los4-1.xx&amp;_nc_gid=a5HW4yU6UwxBD-cc6BzxoQ&amp;_nc_ss=7d2a8&amp;oh=00_AQOlb0DwQR-Ddh9FfEhmSUjkCXeq9uMtPhtaUK3Ew-QfdQ&amp;oe=6AE1628B"
-                         alt="Toaster"
-                         loading="lazy">
+                         alt="Toaster">
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Toaster"
-                            aria-pressed="false">💖</button>
-
+                            aria-label="Favourite Toaster">💖</button>
                 </div>
 
                 <div class="product-info">
-
                     <p class="products-category">Electronics</p>
-
                     <h3>Toaster</h3>
-
                     <p class="product-description">
                         Toast bread for breakfast and snacks.
                     </p>
-
                 </div>
 
                 <div class="product-buttom">
-
                     <strong>GH₵200</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-product-id="toaster-001"
-                            data-name="Toaster"
-                            data-price="200">
+                    <button type="button" class="add-to-cart"
+                            data-name="Toaster" data-price="200">
                         Add to cart
                     </button>
-
                 </div>
-
             </article>
 
-            <!-- PRODUCT 11: BLENDER 3 -->
+            <!-- PRODUCT 11 -->
             <article class="product-card"
-                     data-product-id="blender-003"
                      data-category="electronics"
                      data-name="Blender 2">
 
                 <div class="product-image">
-
                     <img src="https://scontent-los4-1.xx.fbcdn.net/v/t39.30808-6/856534921_2232811664314347_8850761562379264864_n.jpg?stp=dst-jpg_tt6&amp;cstp=mx1170x1091&amp;ctp=s1170x1091&amp;_nc_cat=108&amp;ccb=1-7&amp;_nc_sid=833d8c&amp;_nc_eui2=AeHCF-XHVahMkPsxFv7w7fgSh8KjW2W2wqqHwqNbZbbCqijy6RmcfhD7L_He5rDKZcjFsjmPk9oNaw-3vTqgLQ5v&amp;_nc_ohc=Q_cmSerOdSsQ7kNvwHBGWFC&amp;_nc_oc=AdpmZiRSBI4OUSAI5lLVcCKtDnSwJFMfdfmDmTUownErR-vPWV9NVh7aaX2R6eXtVPo&amp;_nc_zt=23&amp;_nc_ht=scontent-los4-1.xx&amp;_nc_gid=mU-ZJbnj-Yc0NES8s1ot9A&amp;_nc_ss=7d2a8&amp;oh=00_AQNaRdU8wPZEClLMh5p0OVAb47Tma_BG5JutXHNC1LQWGg&amp;oe=6AE18C42"
-                         alt="Blender 2"
-                         loading="lazy">
+                         alt="Blender 2">
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Blender 2"
-                            aria-pressed="false">💖</button>
-
+                            aria-label="Favourite Blender 2">💖</button>
                 </div>
 
                 <div class="product-info">
-
                     <p class="products-category">Electronics</p>
-
                     <h3>Blender 2</h3>
-
                     <p class="product-description">
                         A blender option for preparing drinks and ingredients.
                     </p>
-
                 </div>
 
                 <div class="product-buttom">
-
                     <strong>GH₵400</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-product-id="blender-003"
-                            data-name="Blender 2"
-                            data-price="400">
+                    <button type="button" class="add-to-cart"
+                            data-name="Blender 2" data-price="400">
                         Add to cart
                     </button>
-
                 </div>
-
             </article>
 
-            <!-- PRODUCT 12: BEAUTY COLLECTION -->
+            <!-- PRODUCT 12 -->
             <article class="product-card"
-                     data-product-id="beauty-collection-001"
                      data-category="beauty"
                      data-name="Beauty Collection">
 
                 <div class="product-image">
-
                     <img src="https://scontent-los4-1.xx.fbcdn.net/v/t39.30808-6/861996425_2234629100799270_5463062004348270296_n.jpg?stp=dst-jpg_tt6&amp;cstp=mx1354x1250&amp;ctp=s1354x1250&amp;_nc_cat=106&amp;ccb=1-7&amp;_nc_sid=127cfc&amp;_nc_eui2=AeEkbWM86DUm54ncy4iUMXXVoeiTjAIJoySh6JOMAgmjJOh-mg3-ln0ZLbE8hKSoRM337Zu7mRhie31tsAWMjmt1&amp;_nc_ohc=gjXqmhXcPOsQ7kNvwF-K9-W&amp;_nc_oc=AdoNAUu4-Y5IMIdSmoz5ZYUcgP2Zs3vR781JJTTSiTiswtEj5EtsZ4GSA55m9SieWY0&amp;_nc_zt=23&amp;_nc_ht=scontent-los4-1.xx&amp;_nc_gid=aSU2bdYeCnbU4ZUiGpKj_g&amp;_nc_ss=7d2a8&amp;oh=00_AQP0JEdhIQbCkhJh-u6oqitlF_D62hizy8LzlV2W6enu7g&amp;oe=6AE1759A"
-                         alt="Beauty Collection"
-                         loading="lazy">
+                         alt="Beauty Collection">
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Beauty Collection"
-                            aria-pressed="false">💖</button>
-
+                            aria-label="Favourite Beauty Collection">💖</button>
                 </div>
 
                 <div class="product-info">
-
                     <p class="products-category">Beauty</p>
-
                     <h3>Beauty Collection</h3>
-
                     <p class="product-description">
                         Beauty products for your personal care routine.
                     </p>
-
                 </div>
 
                 <div class="product-buttom">
-
                     <strong>GH₵400</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-product-id="beauty-collection-001"
-                            data-name="Beauty Collection"
-                            data-price="400">
+                    <button type="button" class="add-to-cart"
+                            data-name="Beauty Collection" data-price="400">
                         Add to cart
                     </button>
-
                 </div>
-
             </article>
 
         </div>
-
     </section>
 
-    <!-- SHOPPING CART OVERLAY -->
+    <!-- SHOPPING CART -->
     <div class="cart-overlay" id="cartOverlay" hidden>
-
         <div class="cart"
              role="dialog"
              aria-modal="true"
              aria-labelledby="cartTitle">
 
             <div class="cart-header">
-
                 <h2 id="cartTitle">Your Cart</h2>
-
-                <button type="button"
-                        id="closeCart"
-                        aria-label="Close cart">
-                    &times;
-                </button>
-
+                <button type="button" id="closeCart"
+                        aria-label="Close cart">&times;</button>
             </div>
 
             <div class="cart-items" id="cartItem">
@@ -844,7 +624,6 @@
             </div>
 
             <div class="cart-footer">
-
                 <div class="cart-total">
                     <span>Total:</span>
                     <strong id="cartTotal">GH₵0</strong>
@@ -855,103 +634,70 @@
                         id="checkoutButton">
                     Checkout
                 </button>
-
             </div>
-
         </div>
-
     </div>
 
-    <!-- PAYSTACK CHECKOUT OVERLAY -->
+    <!-- PAYSTACK CHECKOUT -->
     <div class="payment-overlay" id="paymentOverlay" hidden>
-
         <div class="payment-box"
              role="dialog"
              aria-modal="true"
              aria-labelledby="paymentTitle">
 
             <div class="payment-header">
-
                 <h2 id="paymentTitle">Secure Checkout with Paystack</h2>
-
-                <button type="button"
-                        id="closePayment"
-                        aria-label="Close checkout">
-                    &times;
-                </button>
-
+                <button type="button" id="closePayment"
+                        aria-label="Close checkout">&times;</button>
             </div>
 
             <p>Complete your details below to pay securely.</p>
 
             <div class="payment-order">
-
                 <p>Order total:</p>
-
                 <strong id="paymentTotal">GH₵0.00</strong>
 
                 <p>
                     Order reference:
-                    <span id="paymentReference">
-                        Generated during checkout
-                    </span>
+                    <span id="paymentReference">Generated during checkout</span>
                 </p>
-
             </div>
 
-            <label for="paymentNetwork">
-                Select Mobile Money network
-            </label>
-
+            <label for="paymentNetwork">Select Mobile Money network</label>
             <select id="paymentNetwork" required>
-
                 <option value="">-- Choose network --</option>
                 <option value="mtn">MTN MoMo</option>
                 <option value="telecel">Telecel Cash</option>
                 <option value="at">AT Money</option>
-
             </select>
 
             <div class="customer-details">
-
                 <h3>Customer Details</h3>
 
                 <label for="customerEmail">Email Address</label>
-
-                <input type="email"
-                       id="customerEmail"
+                <input type="email" id="customerEmail"
                        placeholder="Enter your email address"
-                       autocomplete="email"
-                       required>
+                       autocomplete="email" required>
 
                 <label for="customerName">Full Name</label>
-
-                <input type="text"
-                       id="customerName"
+                <input type="text" id="customerName"
                        placeholder="Enter your full name"
-                       autocomplete="name"
-                       required>
+                       autocomplete="name" required>
 
                 <label for="customerPhone">Phone Number</label>
-
-                <input type="tel"
-                       id="customerPhone"
+                <input type="tel" id="customerPhone"
                        placeholder="Enter your phone number"
-                       autocomplete="tel"
-                       required>
+                       autocomplete="tel" required>
 
                 <label for="deliveryAddress">Delivery Address</label>
-
                 <textarea id="deliveryAddress"
                           placeholder="Enter your delivery address"
                           rows="3"
                           autocomplete="street-address"
                           required></textarea>
-
             </div>
 
-            <button type="button"
-                    id="confirmPaymentInstructions">
+            <button type="button" id="confirmPaymentInstructions">
                 Pay Securely with Paystack
             </button>
 
@@ -962,18 +708,14 @@
             <button type="button" id="closePaymentBottom">
                 Cancel
             </button>
-
         </div>
-
     </div>
 
     <!-- CUSTOMER ORDER HISTORY -->
-    <section id="myOrders" hidden>
-
+    <section id="myOrders" style="display: none;">
         <div class="orders-container">
 
             <div class="orders-header">
-
                 <div>
                     <h2>My Orders</h2>
                     <p>Track your purchases and payment status.</p>
@@ -982,26 +724,20 @@
                 <button type="button" id="refreshOrdersBtn">
                     Refresh Orders
                 </button>
-
             </div>
 
-            <p id="ordersMessage"
-               role="status"
-               aria-live="polite">
+            <p id="ordersMessage" role="status" aria-live="polite">
                 Your orders will appear here.
             </p>
 
             <div id="myOrdersList"></div>
-
         </div>
-
     </section>
 
 </main>
 
 <!-- FOOTER -->
 <footer>
-
     <div class="footer-content">
 
         <div>
@@ -1035,20 +771,17 @@
     </div>
 
     <div class="copyright">
-
         <p>
             &copy; 2026 Sweet's Kitchen &amp; Collections.
             All Rights Reserved.
         </p>
-
     </div>
-
 </footer>
 
 <!-- SUPABASE LIBRARY -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- MAIN JAVASCRIPT -->
+<!-- YOUR EXISTING JAVASCRIPT -->
 <script src="./main.js"></script>
 
 </body>
