@@ -114,6 +114,7 @@ const productsGrid = document.getElementById("productsGrid");
 
 if (cartButton && cartOverlay) {
     cartButton.addEventListener("click", function () {
+        cartOverlay.hidden = false;
         cartOverlay.classList.add("show");
     });
 }
@@ -124,6 +125,7 @@ if (cartButton && cartOverlay) {
 if (closeCart && cartOverlay) {
     closeCart.addEventListener("click", function () {
         cartOverlay.classList.remove("show");
+        cartOverlay.hidden = true;
     });
 }
 
