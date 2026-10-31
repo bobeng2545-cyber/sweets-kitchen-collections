@@ -421,78 +421,192 @@
         </div>
     </div>
 
-    <!-- PAYSTACK CHECKOUT -->
-    <div class="payment-overlay" id="paymentOverlay" hidden>
-        <div class="payment-box"
-             role="dialog"
-             aria-modal="true"
-             aria-labelledby="paymentTitle">
+    
+<!-- PROFESSIONAL PAYSTACK CHECKOUT -->
+<div class="payment-overlay" id="paymentOverlay" hidden>
 
-            <div class="payment-header">
-                <h2 id="paymentTitle">Secure Checkout with Paystack</h2>
-                <button type="button" id="closePayment"
-                        aria-label="Close checkout">&times;</button>
+    <div class="payment-box delivery-checkout-card"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="paymentTitle">
+
+        <div class="payment-header">
+            <div>
+                <span class="checkout-eyebrow">SWEET'S KITCHEN & COLLECTIONS</span>
+                <h2 id="paymentTitle">Checkout</h2>
+                <p>Delivery information and secure payment</p>
             </div>
 
-            <p>Complete your details below to pay securely.</p>
-
-            <div class="payment-order">
-                <p>Order total:</p>
-                <strong id="paymentTotal">GH₵0.00</strong>
-
-                <p>
-                    Order reference:
-                    <span id="paymentReference">Generated during checkout</span>
-                </p>
-            </div>
-
-            <label for="paymentNetwork">Select Mobile Money network</label>
-            <select id="paymentNetwork" required>
-                <option value="">-- Choose network --</option>
-                <option value="mtn">MTN MoMo</option>
-                <option value="telecel">Telecel Cash</option>
-                <option value="at">AT Money</option>
-            </select>
-
-            <div class="customer-details">
-                <h3>Customer Details</h3>
-
-                <label for="customerEmail">Email Address</label>
-                <input type="email" id="customerEmail"
-                       placeholder="Enter your email address"
-                       autocomplete="email" required>
-
-                <label for="customerName">Full Name</label>
-                <input type="text" id="customerName"
-                       placeholder="Enter your full name"
-                       autocomplete="name" required>
-
-                <label for="customerPhone">Phone Number</label>
-                <input type="tel" id="customerPhone"
-                       placeholder="Enter your phone number"
-                       autocomplete="tel" required>
-
-                <label for="deliveryAddress">Delivery Address</label>
-                <textarea id="deliveryAddress"
-                          placeholder="Enter your delivery address"
-                          rows="3"
-                          autocomplete="street-address"
-                          required></textarea>
-            </div>
-
-            <button type="button" id="confirmPaymentInstructions">
-                Pay Securely with Paystack
-            </button>
-
-            <p class="payment-warning">
-                Your order is not confirmed as paid until payment is verified.
-            </p>
-
-            <button type="button" id="closePaymentBottom">
-                Cancel
-            </button>
+            <button type="button" id="closePayment"
+                    aria-label="Close checkout">&times;</button>
         </div>
+
+        <!-- ORDER SUMMARY -->
+        <div class="payment-order">
+            <div class="delivery-section-heading">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <h3>Order Summary</h3>
+            </div>
+
+            <div class="order-total-row">
+                <span>Order total</span>
+                <strong id="paymentTotal">GH₵0.00</strong>
+            </div>
+
+            <p class="order-reference">
+                Order reference:
+                <span id="paymentReference">Generated during checkout</span>
+            </p>
+        </div>
+
+        <!-- DELIVERY DETAILS -->
+        <div class="delivery-details-section">
+
+            <div class="delivery-section-heading">
+                <span class="material-symbols-outlined">local_shipping</span>
+                <div>
+                    <h3>Delivery Details</h3>
+                    <p>Where should we deliver your order?</p>
+                </div>
+            </div>
+
+            <div class="delivery-form-grid">
+
+                <div class="delivery-field full-width">
+                    <label for="customerName">Full Name *</label>
+                    <input type="text"
+                           id="customerName"
+                           placeholder="Enter your full name"
+                           autocomplete="name"
+                           required>
+                </div>
+
+                <div class="delivery-field">
+                    <label for="customerEmail">Email Address *</label>
+                    <input type="email"
+                           id="customerEmail"
+                           placeholder="example@email.com"
+                           autocomplete="email"
+                           required>
+                </div>
+
+                <div class="delivery-field">
+                    <label for="customerPhone">Phone Number *</label>
+                    <input type="tel"
+                           id="customerPhone"
+                           placeholder="024 XXX XXXX"
+                           autocomplete="tel"
+                           required>
+                </div>
+
+                <div class="delivery-field full-width">
+                    <label for="deliveryRegion">Region *</label>
+                    <select id="deliveryRegion" required>
+                        <option value="">Select your region</option>
+                        <option value="Ahafo">Ahafo</option>
+                        <option value="Ashanti">Ashanti</option>
+                        <option value="Bono">Bono</option>
+                        <option value="Bono East">Bono East</option>
+                        <option value="Central">Central</option>
+                        <option value="Eastern">Eastern</option>
+                        <option value="Greater Accra">Greater Accra</option>
+                        <option value="North East">North East</option>
+                        <option value="Northern">Northern</option>
+                        <option value="Oti">Oti</option>
+                        <option value="Savannah">Savannah</option>
+                        <option value="Upper East">Upper East</option>
+                        <option value="Upper West">Upper West</option>
+                        <option value="Volta">Volta</option>
+                        <option value="Western">Western</option>
+                        <option value="Western North">Western North</option>
+                    </select>
+                </div>
+
+                <div class="delivery-field full-width">
+                    <label for="deliveryTown">Town / City *</label>
+                    <input type="text"
+                           id="deliveryTown"
+                           placeholder="Enter your town or city"
+                           required>
+                </div>
+
+                <div class="delivery-field full-width">
+                    <label for="deliveryAddress">
+                        House Address / Landmark *
+                    </label>
+                    <textarea id="deliveryAddress"
+                              placeholder="House number, street name, nearby landmark..."
+                              rows="3"
+                              autocomplete="street-address"
+                              required></textarea>
+                </div>
+
+                <div class="delivery-field full-width">
+                    <label for="ghanaPostAddress">
+                        GhanaPost GPS Address
+                    </label>
+                    <input type="text"
+                           id="ghanaPostAddress"
+                           placeholder="e.g. GA-123-4567">
+                </div>
+
+                <div class="delivery-field full-width">
+                    <label for="deliveryInstructions">
+                        Additional Delivery Instructions
+                    </label>
+                    <textarea id="deliveryInstructions"
+                              placeholder="Any directions that will help our rider find you?"
+                              rows="2"></textarea>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PAYMENT METHOD -->
+        <div class="delivery-details-section payment-method-section">
+
+            <div class="delivery-section-heading">
+                <span class="material-symbols-outlined">payments</span>
+                <div>
+                    <h3>Payment Method</h3>
+                    <p>Choose your Mobile Money network</p>
+                </div>
+            </div>
+
+            <div class="delivery-field">
+                <label for="paymentNetwork">Mobile Money Network *</label>
+                <select id="paymentNetwork" required>
+                    <option value="">Choose your network</option>
+                    <option value="mtn">MTN MoMo</option>
+                    <option value="telecel">Telecel Cash</option>
+                    <option value="at">AT Money</option>
+                </select>
+            </div>
+
+        </div>
+
+        <!-- PAYMENT BUTTON -->
+        <button type="button"
+                id="confirmPaymentInstructions"
+                class="secure-payment-button">
+
+            <span class="material-symbols-outlined">lock</span>
+            Pay Securely with Paystack
+        </button>
+
+        <p class="payment-warning">
+            <span class="material-symbols-outlined">info</span>
+            Your order is confirmed only after your payment has been verified.
+        </p>
+
+        <button type="button"
+                id="closePaymentBottom"
+                class="cancel-checkout-button">
+            Cancel Checkout
+        </button>
+
     </div>
+</div>
 
     <!-- CUSTOMER ORDER HISTORY -->
     <section id="myOrders" style="display: none;">
