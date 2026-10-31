@@ -2708,3 +2708,82 @@ body.dark-mode .empty-cart {
 .theme-toggle {
     cursor: pointer;
 }
+
+
+/* =========================================
+   FINAL CART DARK MODE FIX
+   SWEET'S KITCHEN & COLLECTIONS
+========================================= */
+
+/* Keep the cart overlay transparent */
+body.dark-mode .cart-overlay {
+    background: rgba(0, 0, 0, 0.65) !important;
+    display: none;
+    justify-content: flex-end;
+}
+
+/* Show overlay only when JavaScript adds show */
+body.dark-mode .cart-overlay.show {
+    display: flex !important;
+}
+
+/* Keep the cart drawer visible */
+body.dark-mode .cart-overlay .cart {
+    display: flex !important;
+    flex-direction: column;
+    width: 400px;
+    max-width: 90%;
+    height: 100%;
+    background: #1f2937 !important;
+    color: #f3f4f6 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Cart heading */
+body.dark-mode .cart-header {
+    background: #1f2937 !important;
+    border-bottom: 1px solid #374151 !important;
+}
+
+body.dark-mode .cart-header h2 {
+    color: #60a5fa !important;
+}
+
+/* Cart items */
+body.dark-mode .cart-items {
+    background: #1f2937 !important;
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode .cart-item-info h3,
+body.dark-mode .cart-item-info p,
+body.dark-mode .cart-total {
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode .empty-cart {
+    color: #fca5a5 !important;
+}
+
+/* Cart footer */
+body.dark-mode .cart-footer {
+    background: #1f2937 !important;
+    border-top: 1px solid #374151 !important;
+}
+
+body.dark-mode .quantity-controls button {
+    background: #374151 !important;
+    color: #ffffff !important;
+    border-color: #4b5563 !important;
+}
+
+body.dark-mode .remove-item {
+    color: #f87171 !important;
+}
+
+/* Keep checkout button visible */
+body.dark-mode .checkout-button {
+    background: #2563eb !important;
+    color: #ffffff !important;
+}
