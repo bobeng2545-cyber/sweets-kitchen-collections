@@ -1,9 +1,10 @@
+
 /* =====================================================
    SWEET'S KITCHEN & COLLECTIONS
-   CONSOLIDATED RESPONSIVE STYLESHEET
+   COMPLETE RESPONSIVE STYLESHEET
 ===================================================== */
 
-/* 1. GLOBAL */
+/* 1. GLOBAL STYLES */
 * {
     margin: 0;
     padding: 0;
@@ -12,15 +13,14 @@
 
 html {
     width: 100%;
-    max-width: 100%;
     scroll-behavior: smooth;
-    overflow-x: clip;
+    overflow-x: hidden;
 }
 
 body {
     width: 100%;
-    max-width: 100%;
-    overflow-x: clip;
+    min-height: 100vh;
+    overflow-x: hidden;
     font-family: Arial, Helvetica, sans-serif;
     background: #f7f8fa;
     color: #111827;
@@ -42,29 +42,40 @@ button {
     cursor: pointer;
 }
 
+button:disabled {
+    cursor: not-allowed;
+    opacity: .6;
+}
+
 img {
+    display: block;
     max-width: 100%;
 }
 
-/* 2. HEADER AND NAVIGATION */
+[hidden] {
+    display: none !important;
+}
+
+/* 2. HEADER */
 .header {
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
     min-width: 0;
-    padding: 12px 16px;
+    padding: 12px 18px;
     background: #e5e7eb;
     border-bottom: 1px solid #d1d5db;
 }
 
 .logo {
-    min-width: 0;
     flex-shrink: 1;
+    min-width: 0;
+    font-size: 17px;
     font-weight: 700;
 }
 
@@ -73,16 +84,33 @@ img {
     font-size: large;
 }
 
+/* 3. NAVIGATION */
 .nav {
-    z-index: 101;
     display: flex;
     align-items: center;
     gap: 1rem;
     min-width: 0;
 }
 
+.nav a {
+    font-size: 14px;
+    font-weight: 600;
+    transition: color .2s;
+}
+
 .nav a:hover {
     color: #2563eb;
+}
+
+.menu-button {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 7px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 25px;
 }
 
 .header-actions {
@@ -92,17 +120,7 @@ img {
     flex-shrink: 0;
 }
 
-.menu-button {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 6px;
-    border: 0;
-    background: transparent;
-    color: inherit;
-}
-
-/* 3. THEME TOGGLE */
+/* 4. THEME BUTTON */
 .theme-toggle {
     display: inline-flex;
     align-items: center;
@@ -114,7 +132,7 @@ img {
     border-radius: 50%;
     background: transparent;
     color: inherit;
-    transition: background-color .3s, color .3s, transform .3s;
+    transition: .3s;
 }
 
 .theme-toggle:hover {
@@ -125,7 +143,7 @@ img {
     font-size: 24px;
 }
 
-/* 4. SHOPPING CART */
+/* 5. CART BUTTON */
 .cart-button {
     position: relative;
     display: inline-flex;
@@ -139,7 +157,12 @@ img {
     border-radius: 50%;
     background: transparent;
     color: inherit;
-    transition: background-color .2s, transform .2s;
+    transition: .2s;
+}
+
+.cart-button:hover {
+    background: rgba(128, 128, 128, .15);
+    transform: scale(1.05);
 }
 
 .cart-button .cart-icon {
@@ -165,21 +188,136 @@ img {
     color: #fff;
     font-size: 11px;
     font-weight: 700;
-    line-height: 1;
 }
 
-.cart-button:hover {
+/* 6. NOTIFICATIONS */
+.notification-area {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.notification-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+}
+
+.notification-button:hover {
     background: rgba(128, 128, 128, .15);
-    transform: scale(1.05);
 }
 
-.cart-button:focus-visible,
-.theme-toggle:focus-visible {
-    outline: 2px solid #1976d2;
-    outline-offset: 3px;
+.notification-button .material-symbols-outlined {
+    font-size: 27px;
 }
 
-/* 5. CUSTOMER PROFILE */
+.notification-button.has-unread {
+    color: #e53935;
+}
+
+.notification-count {
+    position: absolute;
+    top: -3px;
+    right: -4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 20px;
+    background: #e53935;
+    color: #fff;
+    font-size: 10px;
+}
+
+.notification-count[hidden] {
+    display: none !important;
+}
+
+.notification-menu {
+    position: fixed;
+    top: 75px;
+    right: 15px;
+    z-index: 2000;
+    width: 350px;
+    max-width: calc(100vw - 30px);
+    max-height: calc(100vh - 100px);
+    overflow: hidden;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background: #fff;
+    color: #222;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, .15);
+}
+
+.notification-menu[hidden] {
+    display: none !important;
+}
+
+.notification-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px;
+    border-bottom: 1px solid #eee;
+}
+
+.notification-menu-header h3 {
+    font-size: 16px;
+}
+
+.notification-menu-header button {
+    border: none;
+    background: transparent;
+    color: #1976d2;
+}
+
+.notification-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.notification-empty {
+    padding: 20px;
+    color: #777;
+    text-align: center;
+}
+
+.notification-item {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    overflow-wrap: anywhere;
+    border: 0;
+    border-bottom: 1px solid #eee;
+    background: #fff;
+    color: #222;
+    text-align: left;
+    white-space: normal;
+}
+
+.notification-item.unread {
+    background: #fff4f4;
+}
+
+.notification-item p {
+    margin: 5px 0;
+}
+
+.notification-item small {
+    color: #777;
+}
+
+/* 7. CUSTOMER PROFILE */
 .profile-area {
     position: relative;
     display: flex;
@@ -197,7 +335,6 @@ img {
     color: #222;
     font-size: 13px;
     font-weight: 600;
-    transition: border-color .2s, box-shadow .2s;
 }
 
 .profile-button:hover {
@@ -239,12 +376,13 @@ img {
     position: absolute;
     top: calc(100% + 9px);
     right: 0;
-    z-index: 1000;
+    z-index: 3000;
     width: 220px;
     padding: 14px;
     border: 1px solid #eee;
     border-radius: 12px;
     background: #fff;
+    color: #222;
     box-shadow: 0 8px 25px rgba(0, 0, 0, .12);
 }
 
@@ -253,15 +391,14 @@ img {
 }
 
 .profile-menu-title {
-    margin: 0 0 5px;
-    color: #222;
+    margin-bottom: 5px;
     font-size: 15px;
     font-weight: 700;
     overflow-wrap: anywhere;
 }
 
 .profile-email {
-    margin: 0 0 12px;
+    margin-bottom: 12px;
     color: #777;
     font-size: 12px;
     line-height: 1.5;
@@ -294,16 +431,7 @@ img {
     color: #c62828;
 }
 
-.profile-menu button:hover {
-    background: #ffe0e0;
-}
-
-.profile-menu button:disabled {
-    opacity: .6;
-    cursor: wait;
-}
-
-/* 6. HERO SECTION */
+/* 8. HERO */
 .hero {
     display: flex;
     align-items: center;
@@ -369,7 +497,7 @@ img {
     background: rgba(48, 61, 88, .23);
 }
 
-/* 7. SEARCH */
+/* 9. SEARCH */
 .search-section {
     padding: 1rem;
     background: #f5f5f5;
@@ -378,6 +506,8 @@ img {
 .search-box {
     display: flex;
     gap: .5rem;
+    max-width: 800px;
+    margin: auto;
 }
 
 .search-box input {
@@ -412,7 +542,7 @@ img {
     font-size: 36px;
 }
 
-/* 8. CATEGORIES */
+/* 10. CATEGORIES */
 .categories {
     padding: 1rem;
 }
@@ -440,10 +570,9 @@ img {
     color: #fff;
 }
 
-/* 9. PRODUCT SLIDER */
+/* 11. PRODUCTS */
 .product-section {
     width: 100%;
-    max-width: 100%;
     padding: 30px 0;
     overflow: hidden;
 }
@@ -542,7 +671,7 @@ img {
 }
 
 .products-grid .products-category {
-    margin: 0 0 8px;
+    margin-bottom: 8px;
     color: #2563eb;
     font-size: 12px;
     font-weight: 700;
@@ -550,7 +679,7 @@ img {
 }
 
 .products-grid .product-info h3 {
-    margin: 0 0 10px;
+    margin-bottom: 10px;
     color: #222;
     font-size: 18px;
     line-height: 1.4;
@@ -622,15 +751,11 @@ img {
     background: #d69e2e;
 }
 
-.products-grid::-webkit-scrollbar-thumb:hover {
-    background: #b98217;
-}
-
-/* 10. CART DRAWER */
+/* 12. CART OVERLAY AND DRAWER */
 .cart-overlay {
     position: fixed;
     inset: 0;
-    z-index: 500;
+    z-index: 5000;
     display: none;
     justify-content: flex-end;
     background: rgba(0, 0, 0, .55);
@@ -650,7 +775,10 @@ img {
     width: 400px;
     max-width: 90%;
     height: 100%;
+    overflow: hidden;
     background: #fff;
+    color: #222;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, .15);
 }
 
 .cart-header {
@@ -671,6 +799,7 @@ img {
     background: transparent;
     color: #b90f0f;
     font-weight: 700;
+    font-size: 20px;
 }
 
 .cart-items {
@@ -685,19 +814,54 @@ img {
     text-align: center;
 }
 
+.cart-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
 .cart-item-info {
     flex: 1;
     min-width: 0;
 }
 
 .cart-item-info h3 {
-    margin-top: 1rem;
+    margin-bottom: 6px;
     color: #676768;
+    font-size: 15px;
+    overflow-wrap: anywhere;
 }
 
 .cart-item-info p {
     color: #2563eb;
+    font-size: 13px;
     font-weight: 700;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.quantity-controls button {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #fff;
+    color: #222;
+}
+
+.remove-item {
+    border: 0;
+    background: transparent;
+    color: #f10505;
+    font-size: 13px;
 }
 
 .cart-footer {
@@ -710,6 +874,8 @@ img {
     justify-content: space-between;
     gap: 12px;
     margin-bottom: 1rem;
+    font-size: 17px;
+    font-weight: 700;
 }
 
 .checkout-button {
@@ -726,90 +892,7 @@ img {
     background: #0f45b9;
 }
 
-.quantity-controls {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.quantity-controls button {
-    width: 30px;
-    height: 30px;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    background: #fff;
-}
-
-.remove-item {
-    border: 0;
-    background: transparent;
-    color: #f10505;
-}
-
-/* 11. FOOTER */
-footer {
-    width: 100%;
-    max-width: 100%;
-    margin-top: 15px;
-    padding: 24px;
-    overflow-wrap: anywhere;
-    background: #0f45b9;
-    color: #fff;
-}
-
-.footer-content {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
-    gap: 24px;
-    width: 100%;
-    min-width: 0;
-    margin-bottom: 20px;
-}
-
-.footer-content > div {
-    min-width: 0;
-}
-
-.footer-content h2 {
-    margin-bottom: 8px;
-    font-size: 20px;
-    line-height: 1.4;
-}
-
-.footer-content h3 {
-    margin-bottom: 10px;
-    font-size: 16px;
-}
-
-.footer-content p {
-    color: #d5def3;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.footer-content a {
-    display: block;
-    margin-bottom: 7px;
-    color: #e0e7ff;
-    font-size: 13px;
-    line-height: 1.5;
-    overflow-wrap: anywhere;
-}
-
-.footer-content a:hover {
-    color: #eeec6a;
-}
-
-.copyright {
-    padding-top: 12px;
-    border-top: 1px solid rgba(255, 255, 255, .2);
-    color: #d5def3;
-    font-size: 12px;
-    line-height: 1.5;
-    text-align: center;
-}
-
-/* 12. PAYMENT MODAL */
+/* 13. PAYMENT MODAL */
 .payment-overlay {
     position: fixed;
     inset: 0;
@@ -821,7 +904,6 @@ footer {
     overflow-y: auto;
     background: rgba(16, 12, 30, .72);
     backdrop-filter: blur(7px);
-    -webkit-backdrop-filter: blur(7px);
 }
 
 .payment-overlay.show {
@@ -871,12 +953,6 @@ footer {
     background: #f2eff9;
     color: #51416f;
     font-size: 25px;
-    transition: background .2s, transform .2s;
-}
-
-#closePayment:hover {
-    background: #e5ddf8;
-    transform: rotate(90deg);
 }
 
 .payment-box > strong:first-of-type {
@@ -884,7 +960,6 @@ footer {
     margin: 8px 0 5px;
     color: #30204f;
     font-size: 13px;
-    font-weight: 600;
     letter-spacing: 1.5px;
     text-transform: uppercase;
 }
@@ -899,12 +974,11 @@ footer {
     font-size: 32px;
     font-weight: 800;
     text-align: center;
-    box-shadow: 0 8px 20px rgba(92, 54, 178, .2);
 }
 
 #paymentReference {
     display: block;
-    margin: 0 0 24px;
+    margin-bottom: 24px;
     padding: 11px 12px;
     border: 1px dashed #d7c8f3;
     border-radius: 10px;
@@ -930,12 +1004,6 @@ footer {
     outline: none;
 }
 
-.payment-box select:focus,
-#paymentNetwork:focus {
-    border-color: #7546d5;
-    box-shadow: 0 0 0 4px rgba(117, 70, 213, .12);
-}
-
 #paymentDetails {
     margin-top: 15px;
     padding: 20px;
@@ -945,7 +1013,7 @@ footer {
 }
 
 #paymentDetails h3 {
-    margin: 0 0 12px;
+    margin-bottom: 12px;
     color: #4c2a91;
     font-size: 17px;
 }
@@ -960,13 +1028,12 @@ footer {
     color: #246b45;
     font-size: 23px;
     font-weight: 800;
-    letter-spacing: 1px;
     text-align: center;
     overflow-wrap: anywhere;
 }
 
 #paymentInstructions {
-    margin: 12px 0 0;
+    margin-top: 12px;
     color: #655d70;
     font-size: 13px;
     line-height: 1.8;
@@ -983,18 +1050,11 @@ footer {
     border-radius: 12px;
     font-size: 15px;
     font-weight: 700;
-    transition: transform .2s, box-shadow .2s, background .2s;
 }
 
 #confirmPaymentInstructions {
     background: linear-gradient(135deg, #7545d5, #4b2697);
     color: #fff;
-    box-shadow: 0 6px 15px rgba(90, 49, 174, .2);
-}
-
-#confirmPaymentInstructions:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 9px 22px rgba(90, 49, 174, .3);
 }
 
 #closePaymentBottom {
@@ -1002,16 +1062,7 @@ footer {
     color: #55476a;
 }
 
-#closePaymentBottom:hover {
-    background: #e7e0f2;
-}
-
-#confirmPaymentInstructions:active,
-#closePaymentBottom:active {
-    transform: scale(.98);
-}
-
-/* 13. CUSTOMER DETAILS FORM */
+/* 14. CUSTOMER DETAILS */
 .customer-details {
     display: flex;
     flex-direction: column;
@@ -1025,7 +1076,7 @@ footer {
 }
 
 .customer-details h3 {
-    margin: 0 0 8px;
+    margin-bottom: 8px;
     color: #4c2a91;
     font-size: 18px;
 }
@@ -1056,14 +1107,7 @@ footer {
     resize: vertical;
 }
 
-.customer-details input:focus,
-.customer-details textarea:focus {
-    outline: none;
-    border-color: #7546d5;
-    box-shadow: 0 0 0 3px rgba(117, 70, 213, .12);
-}
-
-/* 14. MY ORDERS */
+/* 15. MY ORDERS */
 .my-orders-section,
 #myOrders {
     width: 100%;
@@ -1092,7 +1136,7 @@ footer {
 }
 
 .orders-eyebrow {
-    margin: 0 0 7px;
+    margin-bottom: 7px;
     color: #b87925;
     font-size: 11px;
     font-weight: 700;
@@ -1101,13 +1145,12 @@ footer {
 
 .my-orders-heading h2,
 #myOrders h2 {
-    margin: 0 0 8px;
+    margin-bottom: 8px;
     color: #20242b;
     font-size: 27px;
 }
 
 .my-orders-heading > div > p:last-child {
-    margin: 0;
     color: #6b7280;
     font-size: 13px;
     line-height: 1.6;
@@ -1123,7 +1166,6 @@ footer {
     color: #20242b;
     font-size: 12px;
     font-weight: 700;
-    cursor: pointer;
 }
 
 #refreshOrdersBtn {
@@ -1133,18 +1175,6 @@ footer {
     color: #222;
 }
 
-.refresh-orders-btn:hover,
-#refreshOrdersBtn:hover {
-    opacity: .85;
-}
-
-.refresh-orders-btn:disabled,
-#refreshOrdersBtn:disabled {
-    opacity: .6;
-    cursor: wait;
-}
-
-/* Orders notice */
 .orders-info {
     display: flex;
     align-items: center;
@@ -1168,13 +1198,11 @@ footer {
 }
 
 .orders-info h3 {
-    margin: 0 0 5px;
-    color: #292929;
+    margin-bottom: 5px;
     font-size: 14px;
 }
 
 .orders-info p {
-    margin: 0;
     color: #6b7280;
     font-size: 12px;
     line-height: 1.5;
@@ -1193,7 +1221,6 @@ footer {
     border-radius: 8px;
 }
 
-/* Orders grid */
 .my-orders-list,
 #myOrdersList {
     display: grid;
@@ -1203,7 +1230,6 @@ footer {
     width: 100%;
 }
 
-/* Order card */
 .order-card {
     display: flex;
     flex-direction: column;
@@ -1216,43 +1242,35 @@ footer {
     border-radius: 13px;
     background: #fff;
     box-shadow: 0 3px 12px rgba(15, 23, 42, .05);
-    transition: transform .2s ease, box-shadow .2s ease;
-}
-
-.order-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 7px 20px rgba(15, 23, 42, .09);
 }
 
 .order-card h3 {
-    margin: 0 0 5px;
+    margin-bottom: 5px;
     color: #252a32;
     font-size: 15px;
-    line-height: 1.4;
-    overflow-wrap: anywhere;
 }
 
 .order-card h4 {
-    margin: 0 0 5px;
+    margin-bottom: 5px;
     color: #252a32;
     font-size: 13px;
 }
 
-.order-card p {
-    margin: 5px 0;
+.order-card p,
+.order-card ul {
     color: #606875;
     font-size: 12px;
     line-height: 1.55;
 }
 
-.order-card ul {
-    padding-left: 17px;
-    color: #606875;
-    font-size: 12px;
-    line-height: 1.7;
+.order-card p {
+    margin: 5px 0;
 }
 
-/* Order heading */
+.order-card ul {
+    padding-left: 17px;
+}
+
 .order-card-header,
 .order-header {
     display: flex;
@@ -1261,7 +1279,6 @@ footer {
     flex-wrap: wrap;
     gap: 10px;
     padding-bottom: 12px;
-    margin-bottom: 2px;
     border-bottom: 1px solid #edf0f4;
 }
 
@@ -1287,7 +1304,6 @@ footer {
     overflow-wrap: anywhere;
 }
 
-/* Status labels */
 .order-status,
 .payment-success,
 .payment-pending,
@@ -1331,7 +1347,6 @@ footer {
     color: #b91c1c;
 }
 
-/* Products inside orders */
 .order-card .order-product {
     display: flex;
     align-items: center;
@@ -1358,10 +1373,6 @@ footer {
     font-size: 13px;
 }
 
-.order-card .order-product-info p {
-    font-size: 11px;
-}
-
 .order-card .order-product-price {
     margin-top: 4px;
     color: #1769e0;
@@ -1369,7 +1380,6 @@ footer {
     font-weight: 700;
 }
 
-/* Order details */
 .order-card-divider {
     margin: 4px 0;
     border: 0;
@@ -1397,7 +1407,6 @@ footer {
     overflow-wrap: anywhere;
 }
 
-/* Order total */
 .order-total {
     display: flex;
     align-items: center;
@@ -1414,10 +1423,8 @@ footer {
 .order-total strong {
     color: #1769e0;
     font-size: 19px;
-    overflow-wrap: anywhere;
 }
 
-/* Order summary */
 .order-card .order-summary {
     display: flex;
     align-items: center;
@@ -1438,7 +1445,6 @@ footer {
     font-size: 15px;
 }
 
-/* Order buttons */
 .order-card button {
     max-width: 100%;
     padding: 9px 12px;
@@ -1448,140 +1454,67 @@ footer {
     color: #fff;
     font-size: 11px;
     font-weight: 600;
-    cursor: pointer;
-    transition: background .2s;
 }
 
-.order-card button:hover {
-    background: #1054b8;
-}
-
-.order-card button:focus-visible {
-    outline: 2px solid #2563eb;
-    outline-offset: 3px;
-}
-
-/* 15. NOTIFICATIONS */
-.notification-area {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.notification-button {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 42px;
-    height: 42px;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-}
-
-.notification-button .material-symbols-outlined {
-    font-size: 27px;
-}
-
-.notification-button.has-unread {
-    color: #e53935;
-}
-
-.notification-count {
-    position: absolute;
-    top: -3px;
-    right: -4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 17px;
-    height: 17px;
-    padding: 0 4px;
-    border-radius: 20px;
-    background: #e53935;
+/* 16. FOOTER */
+footer {
+    width: 100%;
+    margin-top: 15px;
+    padding: 24px;
+    overflow-wrap: anywhere;
+    background: #0f45b9;
     color: #fff;
-    font-size: 10px;
 }
 
-.notification-count[hidden] {
-    display: none !important;
+.footer-content {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+    width: 100%;
+    margin-bottom: 20px;
 }
 
-.notification-menu {
-    position: fixed;
-    top: 75px;
-    right: 15px;
-    z-index: 99999;
-    width: 350px;
-    max-width: calc(100vw - 30px);
-    max-height: calc(100vh - 100px);
-    overflow: hidden;
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    background: #fff;
-    color: #222;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, .15);
+.footer-content > div {
+    min-width: 0;
 }
 
-.notification-menu[hidden] {
-    display: none !important;
+.footer-content h2 {
+    margin-bottom: 8px;
+    font-size: 20px;
+    line-height: 1.4;
 }
 
-.notification-menu-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px;
-    border-bottom: 1px solid #eee;
+.footer-content h3 {
+    margin-bottom: 10px;
+    font-size: 16px;
 }
 
-.notification-menu-header h3 {
-    margin: 0;
+.footer-content p,
+.footer-content a {
+    color: #d5def3;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
-.notification-menu-header button {
-    border: none;
-    background: transparent;
-    color: #1976d2;
-    cursor: pointer;
+.footer-content a {
+    display: block;
+    margin-bottom: 7px;
+    overflow-wrap: anywhere;
 }
 
-.notification-list {
-    max-height: 300px;
-    overflow-y: auto;
+.footer-content a:hover {
+    color: #eeec6a;
 }
 
-.notification-empty {
-    padding: 20px;
-    color: #777;
+.copyright {
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, .2);
+    color: #d5def3;
+    font-size: 12px;
     text-align: center;
 }
 
-.notification-item {
-    display: block;
-    width: 100%;
-    padding: 14px;
-    overflow-wrap: anywhere;
-    border-bottom: 1px solid #eee;
-    white-space: normal;
-}
-
-.notification-item.unread {
-    background: #fff4f4;
-}
-
-.notification-item p {
-    margin: 5px 0;
-}
-
-.notification-item small {
-    color: #777;
-}
-
-/* 16. DARK MODE */
+/* 17. DARK MODE */
 body.dark-mode {
     background: #111827;
     color: #f3f4f6;
@@ -1645,14 +1578,7 @@ body.dark-mode .profile-button {
     border-color: #374151;
 }
 
-body.dark-mode .profile-menu-title {
-    color: #f3f4f6;
-}
-
-body.dark-mode .profile-email {
-    color: #d1d5db;
-}
-
+body.dark-mode .profile-menu-title,
 body.dark-mode .my-orders-heading h2,
 body.dark-mode #myOrders h2,
 body.dark-mode .order-card h3,
@@ -1662,6 +1588,10 @@ body.dark-mode .order-total,
 body.dark-mode .order-detail-value,
 body.dark-mode .order-card .order-summary strong {
     color: #f3f4f6;
+}
+
+body.dark-mode .profile-email {
+    color: #d1d5db;
 }
 
 body.dark-mode .order-card {
@@ -1717,6 +1647,11 @@ body.dark-mode .notification-item {
     border-color: #374151;
 }
 
+body.dark-mode .notification-item {
+    background: #1f2937;
+    color: #f3f4f6;
+}
+
 body.dark-mode .notification-item.unread {
     background: #3b2028;
 }
@@ -1725,7 +1660,7 @@ body.dark-mode .notification-item small {
     color: #d1d5db;
 }
 
-/* 17. TABLET AND SMALL LAPTOP */
+/* 18. TABLET AND SMALL LAPTOP */
 @media (max-width: 900px) {
     .nav {
         position: absolute;
@@ -1780,15 +1715,9 @@ body.dark-mode .notification-item small {
     #myOrders {
         padding: 25px 14px;
     }
-
-    .my-orders-list,
-    #myOrdersList {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-    }
 }
 
-/* 18. MOBILE */
+/* 19. MOBILE */
 @media (max-width: 600px) {
     .header {
         gap: 6px;
@@ -1942,6 +1871,10 @@ body.dark-mode .notification-item small {
         font-size: 17px;
     }
 
+    .cart-overlay {
+        justify-content: flex-end;
+    }
+
     .cart-overlay .cart {
         width: 100%;
         max-width: 100%;
@@ -1965,7 +1898,6 @@ body.dark-mode .notification-item small {
     .footer-content h3 {
         margin-bottom: 7px;
         font-size: 12px;
-        line-height: 1.4;
     }
 
     .footer-content p,
@@ -1974,16 +1906,12 @@ body.dark-mode .notification-item small {
         line-height: 1.5;
     }
 
-    .footer-content a {
-        margin-bottom: 6px;
-    }
-
     .copyright {
         padding-top: 10px;
         font-size: 10px;
     }
 
-    /* My Orders: one card per row on mobile */
+    /* ORDERS */
     .my-orders-section,
     #myOrders {
         padding: 22px 10px;
@@ -2067,7 +1995,6 @@ body.dark-mode .notification-item small {
 
     .order-total {
         flex-wrap: wrap;
-        align-items: center;
         gap: 8px;
         padding-top: 8px;
         font-size: 10px;
@@ -2077,27 +2004,10 @@ body.dark-mode .notification-item small {
         font-size: 14px;
     }
 
-    .order-card .order-product {
-        align-items: center;
-        gap: 8px;
-    }
-
     .order-card .order-product img {
-        flex: 0 0 48px;
+        flex-basis: 48px;
         width: 48px;
         height: 48px;
-    }
-
-    .order-card .order-product-info h3 {
-        font-size: 10px;
-    }
-
-    .order-card .order-product-info p {
-        font-size: 9px;
-    }
-
-    .order-card .order-product-price {
-        font-size: 11px;
     }
 
     .order-card button {
@@ -2105,6 +2015,7 @@ body.dark-mode .notification-item small {
         font-size: 10px;
     }
 
+    /* PAYMENT */
     .payment-overlay {
         padding: 12px;
     }
@@ -2123,8 +2034,8 @@ body.dark-mode .notification-item small {
         font-size: 21px;
     }
 
-    /* Notifications */
-    #notificationMenu {
+    /* NOTIFICATIONS */
+    .notification-menu {
         top: 70px;
         left: 5px;
         right: 5px;
@@ -2133,7 +2044,7 @@ body.dark-mode .notification-item small {
         max-height: calc(100vh - 85px);
     }
 
-    #notificationList {
+    .notification-list {
         max-height: calc(100vh - 150px);
     }
 
@@ -2141,13 +2052,9 @@ body.dark-mode .notification-item small {
         padding: 12px;
         font-size: 14px;
     }
-
-    .notification-item p {
-        overflow-wrap: anywhere;
-    }
 }
 
-/* 19. VERY SMALL PHONES */
+/* 20. VERY SMALL PHONES */
 @media (max-width: 360px) {
     .header {
         gap: 4px;
@@ -2166,34 +2073,6 @@ body.dark-mode .notification-item small {
         max-width: 42px;
     }
 
-   #cartOverlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.65);
-    z-index: 99999;
-    justify-content: center;
-    align-items: center;
-    padding: 15px;
-    box-sizing: border-box;
-}
-
-#cartOverlay.show {
-    display: flex !important;
-}
-
-#cartOverlay .cart-container {
-    background: white;
-    color: #222;
-    width: 100%;
-    max-width: 500px;
-    max-height: 85vh;
-    overflow-y: auto;
-    padding: 20px;
-    border-radius: 12px;
-}
     .my-orders-section,
     #myOrders {
         padding-right: 6px;
@@ -2221,7 +2100,6 @@ body.dark-mode .notification-item small {
     }
 
     .order-details {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
     }
 
