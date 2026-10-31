@@ -1,14 +1,10 @@
+
 /* =========================================================
    SWEET'S KITCHEN & COLLECTIONS
    COMPLETE MAIN.JS
-   Supabase + Products + Cart + Search + Flash Sales
-   Profile + Paystack + Orders + Theme + Notifications
 ========================================================= */
 
-
-/* =========================================================
-   1. SUPABASE CONNECTION
-========================================================= */
+/* 1. SUPABASE CONNECTION */
 
 const SUPABASE_URL = "https://vbrlprrbtumonmroybdv.supabase.co";
 
@@ -16,9 +12,7 @@ const SUPABASE_PUBLISHABLE_KEY =
     "sb_publishable_jOGj9C6m_fFryLL8yrcQmw_5wyZoidy";
 
 if (!window.supabase) {
-    throw new Error(
-        "Supabase library is missing. Load Supabase before main.js."
-    );
+    throw new Error("Supabase library is missing.");
 }
 
 const supabaseClient = window.supabase.createClient(
@@ -28,17 +22,15 @@ const supabaseClient = window.supabase.createClient(
 
 window.sweetSupabase = supabaseClient;
 
+/* 2. HELPERS */
 
-/* =========================================================
-   2. COMMON HELPERS
-========================================================= */
-
-const $ = (id) => document.getElementById(id);
-
+const $ = id => document.getElementById(id);
 const CART_STORAGE_KEY = "sweetKitchenCart";
 
+const safeText = value => String(value ?? "").trim();
+
 function getProductKey(name) {
-    return String(name || "").trim().toLowerCase();
+    return safeText(name).toLowerCase();
 }
 
 function formatStoreMoney(amount) {
@@ -56,31 +48,87 @@ function showMessage(message) {
     alert(message);
 }
 
-function safeText(value) {
-    return String(value ?? "").trim();
-}
+/*
+   IMAGE HELPER
 
-function saveCart() {
-    try {
-        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-    } catch (error) {
-        console.error("Cart could not be saved:", error);
+   Accepts:
+   1. Full image URLs.
+   2. Local image paths.
+   3. Supabase Storage file paths.
+*/
+
+function getProductImageUrl(imagePath, productName = "") {
+    const path = safeText(imagePath);
+
+    if (!path) {
+        return getLocalProductImage(productName);
     }
+
+    if (/^https?:\/\//i.test(path)) {
+        return path;
+    }
+
+    if (
+        path.startsWith("./") ||
+        path.startsWith("../") ||
+        path.startsWith("/")
+    ) {
+        return path;
+    }
+
+    const cleanPath = path
+        .replace(/^product-images\//, "")
+        .replace(/^\/+/, "");
+
+    const { data } = supabaseClient
+        .storage
+        .from("product-images")
+        .getPublicUrl(cleanPath);
+
+    return data?.publicUrl || getLocalProductImage(productName);
 }
 
+function getLocalProductImage(productName) {
+    const images = {
+        "heater": "./images/Heater.jpeg",
+        "blender": "./images/Blender.jpeg",
+        "air fryer": "./images/Airfryer.jpeg",
+        "cutlery set": "./images/Cutlery Set.jpeg",
+        "bowls": "./images/Bowls.jpeg"
+    };
 
-/* =========================================================
-   3. MOBILE NAVIGATION
-========================================================= */
+    return images[getProductKey(productName)] || "";
+}
+
+function setUnavailableImage(image) {
+    image.onerror = null;
+
+    image.src = "data:image/svg+xml;charset=UTF-8," +
+        encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="400" height="300">
+                <rect width="100%" height="100%" fill="#eeeeee"/>
+                <text x="50%" y="50%"
+                      text-anchor="middle"
+                      dominant-baseline="middle"
+                      font-family="Arial"
+                      font-size="20"
+                      fill="#777">
+                    Image unavailable
+                </text>
+            </svg>
+        `);
+}
+
+/* 3. MOBILE NAVIGATION */
 
 const menuButton = $("menuButton");
 const navMenu = $("nav");
 
 if (menuButton && navMenu) {
     menuButton.addEventListener("click", () => {
-        const isOpen = navMenu.classList.toggle("show");
-
-        menuButton.setAttribute("aria-expanded", String(isOpen));
+        const opened = navMenu.classList.toggle("show");
+        menuButton.setAttribute("aria-expanded", String(opened));
     });
 
     navMenu.querySelectorAll("a").forEach(link => {
@@ -91,35 +139,31 @@ if (menuButton && navMenu) {
     });
 }
 
-
-/* =========================================================
-   4. SHOPPING CART
-========================================================= */
+/* 4. SHOPPING CART */
 
 let cart = [];
 
 try {
-    const savedCart = JSON.parse(
+    const saved = JSON.parse(
         localStorage.getItem(CART_STORAGE_KEY) || "[]"
     );
 
-    if (Array.isArray(savedCart)) {
-        cart = savedCart
+    if (Array.isArray(saved)) {
+        cart = saved
             .filter(item =>
                 item &&
                 typeof item.name === "string" &&
                 Number.isFinite(Number(item.price)) &&
-                Number.isInteger(Number(item.quantity)) &&
                 Number(item.quantity) > 0
             )
             .map(item => ({
                 name: item.name,
                 price: Number(item.price),
-                quantity: Number(item.quantity)
+                quantity: Math.max(1, Number(item.quantity))
             }));
     }
 } catch (error) {
-    console.error("Could not restore cart:", error);
+    console.error("Cart restoration error:", error);
 }
 
 const cartOverlay = $("cartOverlay");
@@ -127,10 +171,20 @@ const cartItem = $("cartItem");
 const cartTotal = $("cartTotal");
 const cartCount = $("cartCount");
 const cartButton = $("cartButton");
-const closeCart = $("closeCart");
+const closeCartButton = $("closeCart");
 const checkoutButton = $("checkoutButton");
 const productsGrid = $("productsGrid");
 
+function saveCart() {
+    try {
+        localStorage.setItem(
+            CART_STORAGE_KEY,
+            JSON.stringify(cart)
+        );
+    } catch (error) {
+        console.error("Cart saving error:", error);
+    }
+}
 
 function openCart() {
     if (!cartOverlay) return;
@@ -147,52 +201,40 @@ function closeCartWindow() {
 }
 
 cartButton?.addEventListener("click", openCart);
-closeCart?.addEventListener("click", closeCartWindow);
-
+closeCartButton?.addEventListener("click", closeCartWindow);
 
 function updateProductCartButtons() {
-    if (!productsGrid) return;
-
-    productsGrid.querySelectorAll(".add-to-cart").forEach(button => {
-        const alreadyAdded = cart.some(item =>
+    document.querySelectorAll(".add-to-cart").forEach(button => {
+        const exists = cart.some(item =>
             getProductKey(item.name) ===
             getProductKey(button.dataset.name)
         );
 
-        button.textContent = alreadyAdded
-            ? "Added to Cart"
-            : "Add to Cart";
-
-        button.disabled = alreadyAdded;
+        button.textContent = exists ? "Added to Cart" : "Add to Cart";
+        button.disabled = false;
     });
 }
-
 
 function updateCart() {
     saveCart();
 
-    if (!cartItem || !cartCount || !cartTotal) {
-        console.warn("Some cart HTML elements are missing.");
-        updateProductCartButtons();
-        return;
-    }
+    if (!cartItem || !cartCount || !cartTotal) return;
 
     cartItem.replaceChildren();
 
     let total = 0;
-    let itemCount = 0;
+    let count = 0;
 
-    if (cart.length === 0) {
-        const emptyMessage = document.createElement("p");
-        emptyMessage.className = "empty-cart";
-        emptyMessage.textContent = "Your cart is empty.";
-
-        cartItem.appendChild(emptyMessage);
+    if (!cart.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty-cart";
+        empty.textContent = "Your cart is empty.";
+        cartItem.appendChild(empty);
     }
 
     cart.forEach((item, index) => {
         total += item.price * item.quantity;
-        itemCount += item.quantity;
+        count += item.quantity;
 
         const wrapper = document.createElement("div");
         wrapper.className = "cart-item";
@@ -238,20 +280,16 @@ function updateCart() {
         cartItem.appendChild(wrapper);
     });
 
-    cartCount.textContent = String(itemCount);
+    cartCount.textContent = String(count);
     cartTotal.textContent = formatStoreMoney(total);
 
     updateProductCartButtons();
 }
 
-
-/* ADD PRODUCTS TO CART */
-
 document.addEventListener("click", event => {
     if (!(event.target instanceof Element)) return;
 
     const button = event.target.closest(".add-to-cart");
-
     if (!button) return;
 
     event.preventDefault();
@@ -260,7 +298,7 @@ document.addEventListener("click", event => {
     const price = Number(button.dataset.price);
 
     if (!name || !Number.isFinite(price) || price < 0) {
-        showMessage("This product has invalid information.");
+        showMessage("Invalid product information.");
         return;
     }
 
@@ -269,22 +307,14 @@ document.addEventListener("click", event => {
     );
 
     if (existing) {
-        showMessage("This product is already in your cart.");
-        return;
+        existing.quantity++;
+    } else {
+        cart.push({ name, price, quantity: 1 });
     }
 
-    cart.push({
-        name,
-        price,
-        quantity: 1
-    });
-
     updateCart();
-    showMessage(name + " has been added to your cart.");
+    showMessage(name + " added to your cart.");
 });
-
-
-/* CHANGE QUANTITY OR REMOVE PRODUCTS */
 
 cartItem?.addEventListener("click", event => {
     if (!(event.target instanceof Element)) return;
@@ -296,8 +326,7 @@ cartItem?.addEventListener("click", event => {
     if (!button) return;
 
     const index = Number(button.dataset.index);
-
-    if (!Number.isInteger(index) || !cart[index]) return;
+    if (!cart[index]) return;
 
     if (button.classList.contains("increase")) {
         cart[index].quantity++;
@@ -320,10 +349,7 @@ cartItem?.addEventListener("click", event => {
 
 updateCart();
 
-
-/* =========================================================
-   5. SEARCH AND CATEGORY FILTERING
-========================================================= */
+/* 5. SEARCH AND CATEGORIES */
 
 const searchInput = $("searchInput");
 const searchButton = $("searchButton");
@@ -331,35 +357,26 @@ const categoryButtons = document.querySelectorAll(".category-btn");
 const productSection = $("products");
 
 let selectedCategory = "all";
-
 let searchMessage = $("searchMessage");
 
 if (productsGrid && !searchMessage) {
     searchMessage = document.createElement("p");
     searchMessage.id = "searchMessage";
     searchMessage.textContent = "No matching products found.";
-    searchMessage.style.textAlign = "center";
-    searchMessage.style.padding = "20px";
     searchMessage.hidden = true;
-
     productsGrid.insertAdjacentElement("afterend", searchMessage);
 }
-
 
 function filterProducts() {
     if (!productsGrid) return;
 
-    const searchTerm = safeText(searchInput?.value).toLowerCase();
-
+    const term = safeText(searchInput?.value).toLowerCase();
     const cards = productsGrid.querySelectorAll(".product-card");
 
     let visibleCount = 0;
 
     cards.forEach(card => {
-        const name = safeText(
-            card.dataset.name ||
-            card.querySelector("h3")?.textContent
-        ).toLowerCase();
+        const name = safeText(card.dataset.name).toLowerCase();
 
         const category = safeText(
             card.dataset.category ||
@@ -367,8 +384,7 @@ function filterProducts() {
         ).toLowerCase();
 
         const matchesSearch =
-            name.includes(searchTerm) ||
-            category.includes(searchTerm);
+            name.includes(term) || category.includes(term);
 
         const matchesCategory =
             selectedCategory === "all" ||
@@ -386,7 +402,6 @@ function filterProducts() {
         searchMessage.hidden = visibleCount > 0;
     }
 }
-
 
 function scrollToProducts() {
     productSection?.scrollIntoView({
@@ -421,16 +436,12 @@ categoryButtons.forEach(button => {
         );
 
         button.classList.add("active");
-
         filterProducts();
         scrollToProducts();
     });
 });
 
-
-/* =========================================================
-   6. SUPABASE PRODUCTS AND FLASH SALES
-========================================================= */
+/* 6. FLASH SALES AND PRODUCTS */
 
 const flashSalesMap = new Map();
 const originalProductPrices = new Map();
@@ -438,9 +449,8 @@ const originalProductPrices = new Map();
 let productsRealtimeChannel = null;
 let flashSalesRealtimeChannel = null;
 
-
-function getCurrentFlashSale(productName) {
-    const sale = flashSalesMap.get(getProductKey(productName));
+function getCurrentFlashSale(name) {
+    const sale = flashSalesMap.get(getProductKey(name));
 
     if (!sale || sale.is_active !== true) return null;
 
@@ -453,22 +463,16 @@ function getCurrentFlashSale(productName) {
         !Number.isFinite(end) ||
         now < start ||
         now >= end
-    ) {
-        return null;
-    }
+    ) return null;
 
     return sale;
 }
 
-
 function getDiscountedPrice(price, percentage) {
     return Math.round(
-        (price * (1 - percentage / 100) + Number.EPSILON) * 100
+        price * (1 - percentage / 100) * 100
     ) / 100;
 }
-
-
-/* CREATE PRODUCT CARD */
 
 function createProductCard(product) {
     const card = document.createElement("article");
@@ -483,35 +487,48 @@ function createProductCard(product) {
     imageContainer.className = "product-image";
 
     const image = document.createElement("img");
-
-    image.src = getProductImageUrl(product.image_url);
+    image.src = getProductImageUrl(
+        product.image_url,
+        product.product_name
+    );
     image.alt = safeText(product.product_name);
     image.loading = "lazy";
 
     image.onerror = function () {
-        this.onerror = null;
-        this.src = "./images/product-placeholder.png";
+        if (this.dataset.localFallback !== "used") {
+            this.dataset.localFallback = "used";
+
+            const localImage = getLocalProductImage(
+                product.product_name
+            );
+
+            if (localImage && this.src !== new URL(
+                localImage, window.location.href
+            ).href) {
+                this.src = localImage;
+                return;
+            }
+        }
+
+        setUnavailableImage(this);
     };
 
-    const favouriteButton = document.createElement("button");
-    favouriteButton.type = "button";
-    favouriteButton.className = "favourite-button";
-    favouriteButton.textContent = "♡";
-    favouriteButton.setAttribute(
+    const favourite = document.createElement("button");
+    favourite.type = "button";
+    favourite.className = "favourite-button";
+    favourite.textContent = "♡";
+    favourite.setAttribute(
         "aria-label",
         "Favourite " + product.product_name
     );
 
-    favouriteButton.addEventListener("click", () => {
-        favouriteButton.classList.toggle("active");
-
-        favouriteButton.textContent =
-            favouriteButton.classList.contains("active")
-                ? "♥"
-                : "♡";
+    favourite.addEventListener("click", () => {
+        favourite.classList.toggle("active");
+        favourite.textContent =
+            favourite.classList.contains("active") ? "♥" : "♡";
     });
 
-    imageContainer.append(image, favouriteButton);
+    imageContainer.append(image, favourite);
 
     const info = document.createElement("div");
     info.className = "product-info";
@@ -539,24 +556,19 @@ function createProductCard(product) {
     addButton.textContent = "Add to Cart";
 
     bottom.append(price, addButton);
-
     card.append(imageContainer, info, bottom);
 
     return card;
 }
 
-
-/* UPDATE FLASH SALE DISPLAY */
-
 function updateProductSaleDisplay(card, basePrice) {
-    const productName = safeText(card.dataset.name);
+    const name = card.dataset.name;
     const priceElement = card.querySelector(".product-bottom > strong");
     const addButton = card.querySelector(".add-to-cart");
 
-    if (!productName || !Number.isFinite(basePrice)) return;
+    if (!name || !Number.isFinite(basePrice)) return;
 
-    const sale = getCurrentFlashSale(productName);
-
+    const sale = getCurrentFlashSale(name);
     let displayedPrice = basePrice;
 
     if (sale) {
@@ -566,9 +578,7 @@ function updateProductSaleDisplay(card, basePrice) {
             !Number.isFinite(discount) ||
             discount <= 0 ||
             discount >= 100
-        ) {
-            return;
-        }
+        ) return;
 
         displayedPrice = getDiscountedPrice(basePrice, discount);
 
@@ -580,11 +590,7 @@ function updateProductSaleDisplay(card, basePrice) {
             newPrice.className = "flash-sale-new-price";
             newPrice.textContent = formatStoreMoney(displayedPrice);
 
-            priceElement.replaceChildren(
-                oldPrice,
-                document.createTextNode(" "),
-                newPrice
-            );
+            priceElement.replaceChildren(oldPrice, newPrice);
         }
 
         let badge = card.querySelector(".flash-sale-badge");
@@ -596,7 +602,6 @@ function updateProductSaleDisplay(card, basePrice) {
         }
 
         badge.textContent = "FLASH SALE -" + discount + "%";
-
     } else {
         if (priceElement) {
             priceElement.textContent = formatStoreMoney(basePrice);
@@ -610,42 +615,34 @@ function updateProductSaleDisplay(card, basePrice) {
     }
 }
 
-
-/* REFRESH FLASH SALES */
-
 function refreshFlashSaleDisplays() {
     if (!productsGrid) return;
 
     productsGrid.querySelectorAll(".product-card").forEach(card => {
-        const name = card.dataset.name;
-        const basePrice = originalProductPrices.get(getProductKey(name));
+        const price = originalProductPrices.get(
+            getProductKey(card.dataset.name)
+        );
 
-        if (Number.isFinite(basePrice)) {
-            updateProductSaleDisplay(card, basePrice);
+        if (Number.isFinite(price)) {
+            updateProductSaleDisplay(card, price);
         }
     });
 }
 
-
-/* RENDER PRODUCTS */
-
 function renderStoreProducts(products) {
     if (!productsGrid) return;
 
-    productsGrid.replaceChildren();
-    originalProductPrices.clear();
-
+    // Preserve the HTML products if Supabase has no active products.
     if (!products || products.length === 0) {
-        const message = document.createElement("p");
-        message.className = "products-empty";
-        message.textContent = "No products are currently available.";
-
-        productsGrid.appendChild(message);
-
-        if (searchMessage) searchMessage.hidden = true;
-
+        console.warn("No active Supabase products. Showing HTML products.");
+        refreshFlashSaleDisplays();
+        filterProducts();
+        updateProductCartButtons();
         return;
     }
+
+    productsGrid.replaceChildren();
+    originalProductPrices.clear();
 
     const fragment = document.createDocumentFragment();
 
@@ -656,10 +653,7 @@ function renderStoreProducts(products) {
             !product.product_name ||
             !Number.isFinite(price) ||
             price < 0
-        ) {
-            console.warn("Invalid product skipped:", product);
-            return;
-        }
+        ) return;
 
         originalProductPrices.set(
             getProductKey(product.product_name),
@@ -676,23 +670,13 @@ function renderStoreProducts(products) {
     updateProductCartButtons();
 }
 
-
-/* LOAD PRODUCTS */
-
 async function loadLiveStoreProducts() {
     if (!productsGrid) return;
-
-    productsGrid.setAttribute("aria-busy", "true");
-
-    productsGrid.innerHTML =
-        '<p class="products-loading">Loading products...</p>';
 
     try {
         const { data, error } = await supabaseClient
             .from("store_products")
-            .select(
-                "product_name, category, unit_price, image_url, active"
-            )
+            .select("product_name, category, unit_price, image_url, active")
             .eq("active", true)
             .order("product_name", { ascending: true });
 
@@ -701,28 +685,18 @@ async function loadLiveStoreProducts() {
         renderStoreProducts(data || []);
 
         console.log("Products loaded:", data?.length || 0);
-
     } catch (error) {
         console.error("Product loading error:", error);
-
-        productsGrid.innerHTML =
-            '<p class="products-error">Products could not be loaded. Please try again.</p>';
-
-    } finally {
-        productsGrid.setAttribute("aria-busy", "false");
+        console.warn("Keeping existing HTML products visible.");
+        filterProducts();
     }
 }
-
-
-/* LOAD FLASH SALES */
 
 async function loadFlashSales() {
     try {
         const { data, error } = await supabaseClient
             .from("store_flash_sales")
-            .select(
-                "product_name, discount_percentage, starts_at, ends_at, is_active"
-            );
+            .select("product_name, discount_percentage, starts_at, ends_at, is_active");
 
         if (error) throw error;
 
@@ -736,16 +710,10 @@ async function loadFlashSales() {
         });
 
         refreshFlashSaleDisplays();
-
-        console.log("Flash sales loaded.");
-
     } catch (error) {
         console.error("Flash sale loading error:", error);
     }
 }
-
-
-/* START PRODUCT REALTIME */
 
 function startProductRealtime() {
     if (productsRealtimeChannel) {
@@ -754,20 +722,13 @@ function startProductRealtime() {
 
     productsRealtimeChannel = supabaseClient
         .channel("store-products-live-updates")
-        .on(
-            "postgres_changes",
-            {
-                event: "*",
-                schema: "public",
-                table: "store_products"
-            },
-            () => loadLiveStoreProducts()
-        )
+        .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "store_products"
+        }, loadLiveStoreProducts)
         .subscribe();
 }
-
-
-/* START FLASH SALE REALTIME */
 
 function startFlashSalesRealtime() {
     if (flashSalesRealtimeChannel) {
@@ -776,22 +737,15 @@ function startFlashSalesRealtime() {
 
     flashSalesRealtimeChannel = supabaseClient
         .channel("store-flash-sales-live-updates")
-        .on(
-            "postgres_changes",
-            {
-                event: "*",
-                schema: "public",
-                table: "store_flash_sales"
-            },
-            () => loadFlashSales()
-        )
+        .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "store_flash_sales"
+        }, loadFlashSales)
         .subscribe();
 }
 
-
-/* =========================================================
-   7. CUSTOMER PROFILE
-========================================================= */
+/* 7. CUSTOMER PROFILE */
 
 function setupCustomerProfile() {
     const profileButton = $("profileButton");
@@ -803,24 +757,13 @@ function setupCustomerProfile() {
     const accountLink = $("accountLink");
     const logoutButton = $("logoutButton");
 
-    if (!profileButton || !profileArea || !profileMenu) {
-        console.warn("Profile HTML elements are missing.");
-        return;
-    }
+    if (!profileButton || !profileArea || !profileMenu) return;
 
     function showSignedOut() {
         if (profileName) profileName.textContent = "Sign in";
-        if (profileNameDisplay) {
-            profileNameDisplay.textContent = "My Account";
-        }
+        if (profileNameDisplay) profileNameDisplay.textContent = "My Account";
         if (profileEmail) profileEmail.textContent = "";
-
-        if (accountLink) {
-            accountLink.hidden = false;
-            accountLink.href = "./account.html";
-            accountLink.textContent = "My Account";
-        }
-
+        if (accountLink) accountLink.hidden = false;
         if (logoutButton) logoutButton.hidden = true;
     }
 
@@ -833,11 +776,8 @@ function setupCustomerProfile() {
             "Customer";
 
         if (profileName) profileName.textContent = firstName;
-        if (profileNameDisplay) {
-            profileNameDisplay.textContent = firstName;
-        }
+        if (profileNameDisplay) profileNameDisplay.textContent = firstName;
         if (profileEmail) profileEmail.textContent = user.email || "";
-
         if (accountLink) accountLink.hidden = true;
         if (logoutButton) logoutButton.hidden = false;
     }
@@ -851,11 +791,8 @@ function setupCustomerProfile() {
         try {
             const { data, error } = await supabaseClient.auth.getUser();
 
-            if (error || !data.user) {
-                showSignedOut();
-            } else {
-                showSignedIn(data.user);
-            }
+            if (error || !data.user) showSignedOut();
+            else showSignedIn(data.user);
         } catch (error) {
             console.error("Profile loading error:", error);
             showSignedOut();
@@ -873,16 +810,13 @@ function setupCustomerProfile() {
             return;
         }
 
-        const shouldOpen = profileMenu.hidden;
-
-        profileMenu.hidden = !shouldOpen;
-        profileButton.setAttribute("aria-expanded", String(shouldOpen));
+        const open = profileMenu.hidden;
+        profileMenu.hidden = !open;
+        profileButton.setAttribute("aria-expanded", String(open));
     });
 
     document.addEventListener("click", event => {
-        if (!profileArea.contains(event.target)) {
-            closeProfileMenu();
-        }
+        if (!profileArea.contains(event.target)) closeProfileMenu();
     });
 
     logoutButton?.addEventListener("click", async event => {
@@ -893,25 +827,20 @@ function setupCustomerProfile() {
 
         try {
             const { error } = await supabaseClient.auth.signOut();
-
             if (error) throw error;
 
-            closeProfileMenu();
             window.location.href = "./login.html";
-
         } catch (error) {
             console.error("Logout error:", error);
             showMessage("Unable to log out. Please try again.");
-
         } finally {
             logoutButton.disabled = false;
         }
     });
 
     supabaseClient.auth.onAuthStateChange((_event, session) => {
-        if (session?.user) {
-            showSignedIn(session.user);
-        } else {
+        if (session?.user) showSignedIn(session.user);
+        else {
             showSignedOut();
             closeProfileMenu();
         }
@@ -920,16 +849,10 @@ function setupCustomerProfile() {
     refreshProfile();
 }
 
-
-/* =========================================================
-   8. PAYSTACK CHECKOUT
-========================================================= */
+/* 8. PAYSTACK CHECKOUT */
 
 function setupPaystackCheckout() {
     const paymentOverlay = $("paymentOverlay");
-    const closePayment = $("closePayment");
-    const closePaymentBottom = $("closePaymentBottom");
-
     const paymentNetwork = $("paymentNetwork");
     const paymentTotal = $("paymentTotal");
     const paymentReference = $("paymentReference");
@@ -946,18 +869,8 @@ function setupPaystackCheckout() {
 
     const confirmButton = $("confirmPaymentInstructions");
 
-    if (
-        !checkoutButton ||
-        !paymentOverlay ||
-        !paymentNetwork ||
-        !paymentTotal ||
-        !customerEmail ||
-        !customerName ||
-        !customerPhone ||
-        !deliveryAddress ||
-        !confirmButton
-    ) {
-        console.warn("Checkout HTML elements are missing.");
+    if (!checkoutButton || !paymentOverlay || !confirmButton) {
+        console.warn("Checkout elements are missing.");
         return;
     }
 
@@ -969,7 +882,7 @@ function setupPaystackCheckout() {
     checkoutButton.addEventListener("click", async event => {
         event.preventDefault();
 
-        if (cart.length === 0) {
+        if (!cart.length) {
             showMessage("Your cart is empty.");
             return;
         }
@@ -994,18 +907,15 @@ function setupPaystackCheckout() {
             paymentTotal.textContent = formatStoreMoney(total);
 
             if (paymentReference) {
-                paymentReference.textContent =
-                    "Generated securely when checkout starts.";
+                paymentReference.textContent = "Generated securely at checkout.";
             }
 
             paymentNetwork.value = "";
-
             paymentOverlay.hidden = false;
             paymentOverlay.style.display = "flex";
-
         } catch (error) {
             console.error("Checkout opening error:", error);
-            showMessage("Unable to open checkout. Please try again.");
+            showMessage("Unable to open checkout.");
         }
     });
 
@@ -1013,32 +923,31 @@ function setupPaystackCheckout() {
         event.preventDefault();
 
         if (
-            !customerEmail.value.trim() ||
+            !customerEmail?.value.trim() ||
             !customerEmail.checkValidity() ||
-            !customerName.value.trim() ||
-            !customerPhone.value.trim() ||
-            !deliveryAddress.value.trim()
+            !customerName?.value.trim() ||
+            !customerPhone?.value.trim() ||
+            !deliveryRegion?.value ||
+            !deliveryTown?.value.trim() ||
+            !deliveryAddress?.value.trim()
         ) {
-            showMessage(
-                "Please complete your name, valid email, phone number and delivery address."
-            );
+            showMessage("Complete all required delivery details.");
             return;
         }
 
         const network = paymentNetwork.value;
 
         if (!["mtn", "telecel", "at"].includes(network)) {
-            showMessage("Please select your Mobile Money network.");
+            showMessage("Choose your Mobile Money network.");
             return;
         }
 
-        if (cart.length === 0) {
+        if (!cart.length) {
             showMessage("Your cart is empty.");
             return;
         }
 
         const originalText = confirmButton.textContent;
-
         confirmButton.disabled = true;
         confirmButton.textContent = "Connecting to Paystack...";
 
@@ -1049,6 +958,10 @@ function setupPaystackCheckout() {
                 customerName: customerName.value.trim(),
                 customerPhone: customerPhone.value.trim(),
                 deliveryAddress: deliveryAddress.value.trim(),
+                deliveryRegion: deliveryRegion.value,
+                deliveryTown: deliveryTown.value.trim(),
+                ghanaPostAddress: ghanaPostAddress?.value.trim() || "",
+                deliveryInstructions: deliveryInstructions?.value.trim() || "",
                 network,
                 items: cart.map(item => ({
                     name: item.name,
@@ -1056,44 +969,13 @@ function setupPaystackCheckout() {
                 }))
             };
 
-            if (deliveryRegion) {
-                checkoutBody.deliveryRegion = deliveryRegion.value.trim();
-            }
-
-            if (deliveryTown) {
-                checkoutBody.deliveryTown = deliveryTown.value.trim();
-            }
-
-            if (ghanaPostAddress) {
-                checkoutBody.ghanaPostAddress =
-                    ghanaPostAddress.value.trim();
-            }
-
-            if (deliveryInstructions) {
-                checkoutBody.deliveryInstructions =
-                    deliveryInstructions.value.trim();
-            }
-
             const { data, error } =
                 await supabaseClient.functions.invoke(
                     "initialize-paystack",
                     { body: checkoutBody }
                 );
 
-            if (error) {
-                console.error("Paystack function error:", error);
-
-                if (error.context) {
-                    try {
-                        console.error(
-                            "Server response:",
-                            await error.context.clone().text()
-                        );
-                    } catch (_) {}
-                }
-
-                throw new Error("Payment connection failed.");
-            }
+            if (error) throw error;
 
             if (!data?.authorization_url) {
                 throw new Error(
@@ -1102,23 +984,19 @@ function setupPaystackCheckout() {
             }
 
             window.location.href = data.authorization_url;
-
         } catch (error) {
             console.error("Paystack checkout error:", error);
-
             showMessage(error.message || "Payment could not start.");
-
             confirmButton.disabled = false;
             confirmButton.textContent = originalText;
         }
     });
 
-    closePayment?.addEventListener("click", closePaymentWindow);
-    closePaymentBottom?.addEventListener("click", closePaymentWindow);
+    $("closePayment")?.addEventListener("click", closePaymentWindow);
+    $("closePaymentBottom")?.addEventListener("click", closePaymentWindow);
 
     closePaymentWindow();
 }
-
 
 /* VERIFY PAYMENT AFTER RETURN */
 
@@ -1127,9 +1005,7 @@ async function verifyPaymentOnReturn() {
 
     if (params.get("payment") !== "return") return;
 
-    const reference =
-        params.get("reference") ||
-        params.get("trxref");
+    const reference = params.get("reference") || params.get("trxref");
 
     if (!reference) {
         showMessage("Payment reference is missing.");
@@ -1152,48 +1028,34 @@ async function verifyPaymentOnReturn() {
 
         if (data?.paid !== true) {
             showMessage(
-                data?.message ||
-                data?.error ||
-                "Payment has not been confirmed."
+                data?.message || data?.error || "Payment is not confirmed."
             );
             return;
         }
 
         cart = [];
         localStorage.removeItem(CART_STORAGE_KEY);
-
         updateCart();
 
-        showMessage(
-            "Payment verified successfully! Your order has been paid."
-        );
+        showMessage("Payment verified successfully!");
 
         window.history.replaceState(
             {},
             document.title,
             window.location.pathname
         );
-
     } catch (error) {
         console.error("Payment verification error:", error);
-
-        showMessage(
-            error.message || "Payment verification failed."
-        );
+        showMessage(error.message || "Payment verification failed.");
     }
 }
 
+/* 9. MY ORDERS */
 
-/* =========================================================
-   9. MY ORDERS
-========================================================= */
+function formatOrderDateTime(value) {
+    const date = new Date(value);
 
-function formatOrderDateTime(dateValue) {
-    if (!dateValue) return "Date unavailable";
-
-    const date = new Date(dateValue);
-
-    if (Number.isNaN(date.getTime())) {
+    if (!value || Number.isNaN(date.getTime())) {
         return "Date unavailable";
     }
 
@@ -1203,11 +1065,9 @@ function formatOrderDateTime(dateValue) {
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-        hour12: true,
         timeZone: "Africa/Accra"
     }).format(date);
 }
-
 
 async function loadMyOrders(targetOrderId = null) {
     const list = $("myOrdersList");
@@ -1218,15 +1078,8 @@ async function loadMyOrders(targetOrderId = null) {
 
     list.replaceChildren();
 
-    if (message) {
-        message.hidden = false;
-        message.textContent = "Loading your orders...";
-    }
-
-    if (refreshButton) {
-        refreshButton.disabled = true;
-        refreshButton.textContent = "Loading...";
-    }
+    if (message) message.textContent = "Loading your orders...";
+    if (refreshButton) refreshButton.disabled = true;
 
     try {
         const { data: userData, error: userError } =
@@ -1235,10 +1088,7 @@ async function loadMyOrders(targetOrderId = null) {
         if (userError) throw userError;
 
         if (!userData.user) {
-            if (message) {
-                message.textContent =
-                    "Please sign in to view your orders.";
-            }
+            if (message) message.textContent = "Please sign in to view your orders.";
             return;
         }
 
@@ -1253,7 +1103,6 @@ async function loadMyOrders(targetOrderId = null) {
                 payment_network,
                 payment_status,
                 order_status,
-                user_id,
                 created_at
             `)
             .eq("user_id", userData.user.id)
@@ -1261,24 +1110,19 @@ async function loadMyOrders(targetOrderId = null) {
 
         if (error) throw error;
 
-        if (!orders || orders.length === 0) {
-            if (message) {
-                message.textContent =
-                    "You have not placed any orders yet.";
-            }
+        if (!orders?.length) {
+            if (message) message.textContent = "You have not placed any orders yet.";
             return;
         }
 
-        if (message) {
-            message.textContent = orders.length + " order(s) found.";
-        }
+        if (message) message.textContent = orders.length + " order(s) found.";
 
         let targetFound = false;
 
         orders.forEach(order => {
             const card = document.createElement("article");
             card.className = "order-card";
-            card.id = "order-card-" + String(order.id);
+            card.id = "order-card-" + order.id;
 
             if (
                 targetOrderId !== null &&
@@ -1297,35 +1141,27 @@ async function loadMyOrders(targetOrderId = null) {
             label.textContent = "ORDER REFERENCE";
 
             const reference = document.createElement("h3");
-            reference.textContent =
-                order.order_reference || String(order.id);
+            reference.textContent = order.order_reference || String(order.id);
 
             referenceBlock.append(label, reference);
 
             const status = document.createElement("span");
             status.className = "order-status";
+            status.textContent = order.order_status || "Pending";
 
-            const statusText = safeText(order.order_status || "Pending");
-            status.textContent = statusText;
+            const statusKey = safeText(order.order_status).toLowerCase();
 
-            const statusKey = statusText.toLowerCase();
-
-            if (
+            status.classList.add(
                 ["completed", "delivered", "fulfilled"].includes(statusKey)
-            ) {
-                status.classList.add("status-success");
-            } else if (
-                ["cancelled", "canceled", "failed"].includes(statusKey)
-            ) {
-                status.classList.add("status-danger");
-            } else {
-                status.classList.add("status-pending");
-            }
+                    ? "status-success"
+                    : ["cancelled", "canceled", "failed"].includes(statusKey)
+                        ? "status-danger"
+                        : "status-pending"
+            );
 
             header.append(referenceBlock, status);
 
             const totalBlock = document.createElement("div");
-
             const totalLabel = document.createElement("p");
             totalLabel.textContent = "ORDER TOTAL";
 
@@ -1337,85 +1173,47 @@ async function loadMyOrders(targetOrderId = null) {
             const details = document.createElement("div");
             details.className = "order-details";
 
-            function addDetail(labelText, valueText) {
+            function addDetail(title, value) {
                 const row = document.createElement("div");
                 row.className = "order-detail-row";
 
-                const labelElement = document.createElement("span");
-                labelElement.className = "order-detail-label";
-                labelElement.textContent = labelText;
+                const left = document.createElement("span");
+                left.className = "order-detail-label";
+                left.textContent = title;
 
-                const valueElement = document.createElement("span");
-                valueElement.className = "order-detail-value";
-                valueElement.textContent = valueText;
+                const right = document.createElement("span");
+                right.className = "order-detail-value";
+                right.textContent = value;
 
-                row.append(labelElement, valueElement);
+                row.append(left, right);
                 details.appendChild(row);
             }
 
-            addDetail(
-                "Order date & time",
-                formatOrderDateTime(order.created_at)
-            );
-
-            addDetail(
-                "Payment status",
-                order.payment_status || "Unknown"
-            );
-
-            addDetail(
-                "Payment network",
-                order.payment_network || "Not specified"
-            );
-
-            addDetail(
-                "Subtotal",
-                formatStoreMoney(order.subtotal)
-            );
-
-            addDetail(
-                "Service charge",
-                formatStoreMoney(order.service_charge)
-            );
+            addDetail("Order date", formatOrderDateTime(order.created_at));
+            addDetail("Payment status", order.payment_status || "Unknown");
+            addDetail("Payment network", order.payment_network || "Not specified");
+            addDetail("Subtotal", formatStoreMoney(order.subtotal));
+            addDetail("Service charge", formatStoreMoney(order.service_charge));
 
             card.append(header, totalBlock, details);
             list.appendChild(card);
         });
 
-        if (targetOrderId !== null) {
-            if (targetFound) {
-                $("order-card-" + String(targetOrderId))
-                    ?.scrollIntoView({
-                        behavior: "smooth",
-                        block: "center"
-                    });
-            } else if (message) {
-                message.textContent =
-                    "The order linked to this notification was not found.";
-            }
+        if (targetOrderId !== null && targetFound) {
+            $("order-card-" + targetOrderId)?.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
         }
-
     } catch (error) {
         console.error("My Orders error:", error);
-
-        if (message) {
-            message.textContent =
-                "Unable to load your orders. Please try again.";
-        }
-
+        if (message) message.textContent = "Unable to load orders. Please try again.";
     } finally {
-        if (refreshButton) {
-            refreshButton.disabled = false;
-            refreshButton.textContent = "↻ Refresh Orders";
-        }
+        if (refreshButton) refreshButton.disabled = false;
     }
 }
 
-
-$("refreshOrdersBtn")?.addEventListener("click", () => {
-    loadMyOrders();
-});
-
+$("refreshOrdersBtn")?.addEventListener("click", () => loadMyOrders());
 
 $("myOrdersLink")?.addEventListener("click", async event => {
     event.preventDefault();
@@ -1428,78 +1226,63 @@ $("myOrdersLink")?.addEventListener("click", async event => {
     }
 
     const section = $("myOrders");
-
     if (!section) return;
 
     section.hidden = false;
     section.style.display = "block";
 
-    $("profileMenu") && ($("profileMenu").hidden = true);
+    if ($("profileMenu")) $("profileMenu").hidden = true;
 
     $("profileButton")?.setAttribute("aria-expanded", "false");
 
-    section.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-    });
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
 
     await loadMyOrders();
 });
 
-
-/* =========================================================
-   10. DARK AND LIGHT MODE
-========================================================= */
+/* 10. DARK AND LIGHT MODE */
 
 const themeToggle = $("themeToggle");
 const themeIcon = $("themeIcon");
 
-
 function setTheme(theme) {
-    const isDark = theme === "dark";
+    const dark = theme === "dark";
 
-    document.body.classList.toggle("dark-mode", isDark);
+    document.body.classList.toggle("dark-mode", dark);
 
     if (themeIcon) {
-        themeIcon.textContent = isDark ? "light_mode" : "dark_mode";
+        themeIcon.textContent = dark ? "light_mode" : "dark_mode";
     }
 
-    if (themeToggle) {
-        themeToggle.setAttribute(
-            "aria-label",
-            isDark ? "Switch to light mode" : "Switch to dark mode"
-        );
-    }
+    themeToggle?.setAttribute(
+        "aria-label",
+        dark ? "Switch to light mode" : "Switch to dark mode"
+    );
 
     try {
         localStorage.setItem("sweetKitchenTheme", theme);
-    } catch (error) {
-        console.warn("Theme preference could not be saved.");
-    }
+    } catch (_) {}
 }
-
 
 if (themeToggle) {
     let savedTheme = "light";
 
     try {
-        savedTheme =
-            localStorage.getItem("sweetKitchenTheme") || "light";
+        savedTheme = localStorage.getItem("sweetKitchenTheme") || "light";
     } catch (_) {}
 
     setTheme(savedTheme);
 
     themeToggle.addEventListener("click", () => {
-        const isDark = document.body.classList.contains("dark-mode");
-
-        setTheme(isDark ? "light" : "dark");
+        setTheme(
+            document.body.classList.contains("dark-mode")
+                ? "light"
+                : "dark"
+        );
     });
 }
 
-
-/* =========================================================
-   11. NOTIFICATIONS
-========================================================= */
+/* 11. NOTIFICATIONS */
 
 const notificationButton = $("notificationButton");
 const notificationCount = $("notificationCount");
@@ -1510,22 +1293,16 @@ const markAllNotificationsRead = $("markAllNotificationsRead");
 let notificationUserId = null;
 let notificationChannel = null;
 
-
 notificationButton?.addEventListener("click", event => {
     event.stopPropagation();
 
     if (!notificationMenu) return;
 
-    const shouldOpen = notificationMenu.hidden;
+    const open = notificationMenu.hidden;
+    notificationMenu.hidden = !open;
 
-    notificationMenu.hidden = !shouldOpen;
-
-    notificationButton.setAttribute(
-        "aria-expanded",
-        String(shouldOpen)
-    );
+    notificationButton.setAttribute("aria-expanded", String(open));
 });
-
 
 document.addEventListener("click", event => {
     if (
@@ -1535,30 +1312,20 @@ document.addEventListener("click", event => {
         !notificationButton.contains(event.target)
     ) {
         notificationMenu.hidden = true;
-
         notificationButton.setAttribute("aria-expanded", "false");
     }
 });
 
-
 function updateNotificationBadge(notifications) {
-    const unreadCount = notifications.filter(
-        item => !item.is_read
-    ).length;
+    const unread = notifications.filter(item => !item.is_read).length;
 
     if (notificationCount) {
-        notificationCount.textContent =
-            unreadCount > 99 ? "99+" : String(unreadCount);
-
-        notificationCount.hidden = unreadCount === 0;
+        notificationCount.textContent = unread > 99 ? "99+" : String(unread);
+        notificationCount.hidden = unread === 0;
     }
 
-    notificationButton?.classList.toggle(
-        "has-unread",
-        unreadCount > 0
-    );
+    notificationButton?.classList.toggle("has-unread", unread > 0);
 }
-
 
 function displayNotifications(notifications) {
     if (!notificationList) return;
@@ -1569,46 +1336,31 @@ function displayNotifications(notifications) {
         const empty = document.createElement("p");
         empty.className = "notification-empty";
         empty.textContent = "You have no notifications.";
-
         notificationList.appendChild(empty);
         return;
     }
 
     notifications.forEach(notification => {
         const item = document.createElement("button");
-
         item.type = "button";
         item.className = notification.is_read
             ? "notification-item"
             : "notification-item unread";
 
-        item.style.width = "100%";
-        item.style.textAlign = "left";
-        item.style.cursor = "pointer";
-        item.style.border = "0";
-        item.style.font = "inherit";
-
         const title = document.createElement("strong");
         title.textContent = notification.title || "Order update";
 
         const message = document.createElement("p");
-        message.textContent =
-            notification.message || "Your order has been updated.";
-
-        const reference = document.createElement("small");
-        reference.textContent = notification.order_id
-            ? "Click to view related order"
-            : "No linked order";
+        message.textContent = notification.message || "Your order has been updated.";
 
         const date = document.createElement("small");
         date.textContent = notification.created_at
-            ? new Date(notification.created_at).toLocaleString(
-                "en-GH",
-                { timeZone: "Africa/Accra" }
-            )
+            ? new Date(notification.created_at).toLocaleString("en-GH", {
+                timeZone: "Africa/Accra"
+            })
             : "";
 
-        item.append(title, message, reference, date);
+        item.append(title, message, date);
 
         item.addEventListener("click", async () => {
             if (!notificationUserId) return;
@@ -1626,60 +1378,28 @@ function displayNotifications(notifications) {
                     if (error) throw error;
                 }
 
-                if (notificationMenu) {
-                    notificationMenu.hidden = true;
+                notificationMenu.hidden = true;
+                notificationButton?.setAttribute("aria-expanded", "false");
+
+                if (notification.order_id) {
+                    const section = $("myOrders");
+
+                    if (section) {
+                        section.hidden = false;
+                        section.style.display = "block";
+                        section.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start"
+                        });
+
+                        await loadMyOrders(notification.order_id);
+                    }
                 }
 
-                notificationButton?.setAttribute(
-                    "aria-expanded",
-                    "false"
-                );
-
-                if (!notification.order_id) {
-                    showMessage(
-                        "This notification has no linked order."
-                    );
-
-                    await loadNotifications();
-                    return;
-                }
-
-                const { data, error } =
-                    await supabaseClient.auth.getUser();
-
-                if (error || !data.user) {
-                    window.location.href = "./login.html";
-                    return;
-                }
-
-                const section = $("myOrders");
-
-                if (!section) {
-                    throw new Error("My Orders section was not found.");
-                }
-
-                section.hidden = false;
-                section.style.display = "block";
-
-                $("profileMenu") && ($("profileMenu").hidden = true);
-
-                $("profileButton")?.setAttribute(
-                    "aria-expanded",
-                    "false"
-                );
-
-                section.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-
-                await loadMyOrders(notification.order_id);
                 await loadNotifications();
-
             } catch (error) {
                 console.error("Notification error:", error);
-                showMessage("Unable to open this order.");
-
+                showMessage("Unable to open notification.");
             } finally {
                 item.disabled = false;
             }
@@ -1688,7 +1408,6 @@ function displayNotifications(notifications) {
         notificationList.appendChild(item);
     });
 }
-
 
 async function loadNotifications() {
     if (!notificationUserId) return;
@@ -1711,7 +1430,6 @@ async function loadNotifications() {
     displayNotifications(notifications);
 }
 
-
 markAllNotificationsRead?.addEventListener("click", async () => {
     if (!notificationUserId) return;
 
@@ -1727,40 +1445,31 @@ markAllNotificationsRead?.addEventListener("click", async () => {
         if (error) throw error;
 
         await loadNotifications();
-
     } catch (error) {
         console.error("Mark notifications read error:", error);
         showMessage("Unable to update notifications.");
-
     } finally {
         markAllNotificationsRead.disabled = false;
     }
 });
-
 
 async function startNotificationRealtime() {
     if (!notificationUserId) return;
 
     if (notificationChannel) {
         await supabaseClient.removeChannel(notificationChannel);
-        notificationChannel = null;
     }
 
     notificationChannel = supabaseClient
         .channel("customer-notifications-" + notificationUserId)
-        .on(
-            "postgres_changes",
-            {
-                event: "*",
-                schema: "public",
-                table: "notifications",
-                filter: "user_id=eq." + notificationUserId
-            },
-            () => loadNotifications()
-        )
+        .on("postgres_changes", {
+            event: "*",
+            schema: "public",
+            table: "notifications",
+            filter: "user_id=eq." + notificationUserId
+        }, loadNotifications)
         .subscribe();
 }
-
 
 async function initializeNotifications() {
     try {
@@ -1776,7 +1485,6 @@ async function initializeNotifications() {
 
             updateNotificationBadge([]);
             displayNotifications([]);
-
             return;
         }
 
@@ -1784,19 +1492,19 @@ async function initializeNotifications() {
 
         await loadNotifications();
         await startNotificationRealtime();
-
     } catch (error) {
         console.error("Notification initialization error:", error);
     }
 }
 
-
-/* =========================================================
-   12. INITIALIZE WEBSITE
-========================================================= */
+/* 12. INITIALIZE WEBSITE */
 
 async function initializeSweetKitchen() {
     console.log("Starting SWEET'S KITCHEN & COLLECTIONS...");
+
+    // Display existing HTML products immediately.
+    filterProducts();
+    updateCart();
 
     await Promise.allSettled([
         loadLiveStoreProducts(),
@@ -1812,20 +1520,14 @@ async function initializeSweetKitchen() {
     await verifyPaymentOnReturn();
     await initializeNotifications();
 
-    console.log(
-        "SWEET'S KITCHEN & COLLECTIONS is ready."
-    );
+    console.log("SWEET'S KITCHEN & COLLECTIONS is ready.");
 }
 
+/* UPDATE FLASH SALES PERIODICALLY */
 
-/* REFRESH FLASH SALE DISPLAY PERIODICALLY */
+setInterval(refreshFlashSaleDisplays, 15000);
 
-setInterval(() => {
-    refreshFlashSaleDisplays();
-}, 15000);
-
-
-/* START WHEN HTML IS READY */
+/* START WEBSITE */
 
 if (document.readyState === "loading") {
     document.addEventListener(
