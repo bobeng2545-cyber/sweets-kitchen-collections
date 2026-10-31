@@ -1,4 +1,6 @@
 
+(() => {
+
 /* =========================================================
    SWEET's KITCHEN & COLLECTIONS
    COMPLETE ADMIN DASHBOARD
@@ -773,8 +775,6 @@ function renderProducts() {
     filteredProducts.forEach(product => {
         const row = document.createElement("tr");
 
-        /* Product image and name */
-
         const productCell = document.createElement("td");
 
         const productContainer = document.createElement("div");
@@ -804,7 +804,6 @@ function renderProducts() {
 
         productCell.appendChild(productContainer);
 
-
         row.appendChild(productCell);
 
         row.appendChild(createCell(product.category));
@@ -826,9 +825,6 @@ function renderProducts() {
         );
 
         row.appendChild(visibilityCell);
-
-
-        /* Product action buttons */
 
         const actionCell = document.createElement("td");
 
@@ -1246,9 +1242,6 @@ function renderOrders() {
 
         row.appendChild(paymentCell);
 
-
-        /* Order status selector */
-
         const statusCell = document.createElement("td");
 
         const statusSelect = document.createElement("select");
@@ -1282,9 +1275,6 @@ function renderOrders() {
 
         statusCell.appendChild(statusSelect);
         row.appendChild(statusCell);
-
-
-        /* Action */
 
         const actionCell = document.createElement("td");
 
@@ -1819,3 +1809,6 @@ refreshOrdersButton.addEventListener("click", async () => {
 ========================================================= */
 
 restoreAdminSession();
+
+
+})();
