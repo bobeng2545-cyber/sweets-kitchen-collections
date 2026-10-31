@@ -56,6 +56,65 @@
                   aria-live="polite">0</span>
         </button>
 
+        <!-- CUSTOMER NOTIFICATION BELL -->
+        <div class="notification-area" id="notificationArea">
+
+            <button type="button"
+                    class="notification-button"
+                    id="notificationButton"
+                    aria-label="Open notifications"
+                    aria-expanded="false"
+                    aria-controls="notificationMenu"
+                    title="Notifications">
+
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">notifications</span>
+
+                <span class="notification-count"
+                      id="notificationCount"
+                      aria-live="polite"
+                      hidden>0</span>
+            </button>
+
+            <!-- NOTIFICATION DROPDOWN -->
+            <div class="notification-menu"
+                 id="notificationMenu"
+                 hidden>
+
+                <div class="notification-header">
+
+                    <h3>Notifications</h3>
+
+                    <button type="button"
+                            id="markAllNotificationsRead">
+                        Mark all as read
+                    </button>
+
+                </div>
+
+                <div class="notification-list"
+                     id="notificationList"
+                     aria-live="polite">
+
+                    <p class="empty-notifications">
+                        No notifications yet.
+                    </p>
+
+                </div>
+
+                <div class="notification-footer">
+
+                    <button type="button"
+                            id="clearNotifications">
+                        Clear all notifications
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
         <!-- CUSTOMER PROFILE -->
         <div class="profile-area" id="profileArea">
 
@@ -98,7 +157,9 @@
                 aria-label="Toggle navigation menu"
                 aria-controls="nav"
                 aria-expanded="false">
+
             <span class="material-symbols-outlined">menu</span>
+
         </button>
 
     </div>
@@ -110,6 +171,7 @@
     <section class="hero" id="home">
 
         <div class="hero-content">
+
             <h2>Welcome to Sweet Kitchens &amp; Collections</h2>
 
             <h3>
@@ -121,6 +183,7 @@
                 Discover products from local sellers and find exactly
                 what you need at affordable prices.
             </p>
+
         </div>
 
         <div class="heroBtn">
@@ -132,6 +195,7 @@
 
     <!-- SEARCH -->
     <section class="search-section">
+
         <div class="search-box">
 
             <input type="search"
@@ -142,6 +206,7 @@
             <button type="button" id="searchButton">Search</button>
 
         </div>
+
     </section>
 
     <!-- CATEGORIES -->
@@ -175,6 +240,7 @@
                     data-category="beauty">BEAUTY</button>
 
         </div>
+
     </section>
 
     <!-- PRODUCTS -->
@@ -564,6 +630,7 @@
 
     <!-- SHOPPING CART -->
     <div class="cart-overlay" id="cartOverlay" hidden>
+
         <div class="cart"
              role="dialog"
              aria-modal="true"
@@ -571,6 +638,7 @@
 
             <div class="cart-header">
                 <h2 id="cartTitle">Your Cart</h2>
+
                 <button type="button" id="closeCart"
                         aria-label="Close cart">&times;</button>
             </div>
@@ -580,6 +648,7 @@
             </div>
 
             <div class="cart-footer">
+
                 <div class="cart-total">
                     <span>Total:</span>
                     <strong id="cartTotal">GH₵0</strong>
@@ -590,12 +659,14 @@
                         id="checkoutButton">
                     Checkout
                 </button>
+
             </div>
         </div>
     </div>
 
     <!-- PAYSTACK CHECKOUT -->
     <div class="payment-overlay" id="paymentOverlay" hidden>
+
         <div class="payment-box"
              role="dialog"
              aria-modal="true"
@@ -603,6 +674,7 @@
 
             <div class="payment-header">
                 <h2 id="paymentTitle">Secure Checkout with Paystack</h2>
+
                 <button type="button" id="closePayment"
                         aria-label="Close checkout">&times;</button>
             </div>
@@ -620,6 +692,7 @@
             </div>
 
             <label for="paymentNetwork">Select Mobile Money network</label>
+
             <select id="paymentNetwork" required>
                 <option value="">-- Choose network --</option>
                 <option value="mtn">MTN MoMo</option>
@@ -628,29 +701,35 @@
             </select>
 
             <div class="customer-details">
+
                 <h3>Customer Details</h3>
 
                 <label for="customerEmail">Email Address</label>
+
                 <input type="email" id="customerEmail"
                        placeholder="Enter your email address"
                        autocomplete="email" required>
 
                 <label for="customerName">Full Name</label>
+
                 <input type="text" id="customerName"
                        placeholder="Enter your full name"
                        autocomplete="name" required>
 
                 <label for="customerPhone">Phone Number</label>
+
                 <input type="tel" id="customerPhone"
                        placeholder="Enter your phone number"
                        autocomplete="tel" required>
 
                 <label for="deliveryAddress">Delivery Address</label>
+
                 <textarea id="deliveryAddress"
                           placeholder="Enter your delivery address"
                           rows="3"
                           autocomplete="street-address"
                           required></textarea>
+
             </div>
 
             <button type="button" id="confirmPaymentInstructions">
@@ -664,14 +743,17 @@
             <button type="button" id="closePaymentBottom">
                 Cancel
             </button>
+
         </div>
     </div>
 
     <!-- CUSTOMER ORDER HISTORY -->
     <section id="myOrders" style="display: none;">
+
         <div class="orders-container">
 
             <div class="orders-header">
+
                 <div>
                     <h2>My Orders</h2>
                     <p>Track your purchases and payment status.</p>
@@ -680,6 +762,7 @@
                 <button type="button" id="refreshOrdersBtn">
                     Refresh Orders
                 </button>
+
             </div>
 
             <p id="ordersMessage" role="status" aria-live="polite">
@@ -687,6 +770,7 @@
             </p>
 
             <div id="myOrdersList"></div>
+
         </div>
     </section>
 
@@ -694,6 +778,7 @@
 
 <!-- FOOTER -->
 <footer>
+
     <div class="footer-content">
 
         <div>
@@ -732,6 +817,7 @@
             All Rights Reserved.
         </p>
     </div>
+
 </footer>
 
 <!-- SUPABASE LIBRARY -->
