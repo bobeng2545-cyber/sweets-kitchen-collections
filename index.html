@@ -31,7 +31,7 @@
 
     <div class="header-actions">
 
-        <!-- DARK / LIGHT MODE -->
+        <!-- DARK / LIGHT MODE BUTTON -->
         <button type="button"
                 class="theme-toggle"
                 id="themeToggle"
@@ -41,7 +41,7 @@
                   id="themeIcon">dark_mode</span>
         </button>
 
-        <!-- SHOPPING CART -->
+        <!-- SHOPPING CART ICON WITH COUNT BADGE -->
         <button type="button"
                 class="cart-button"
                 id="cartButton"
@@ -56,7 +56,7 @@
                   aria-live="polite">0</span>
         </button>
 
-        <!-- NOTIFICATIONS -->
+        <!-- CUSTOMER NOTIFICATION BELL -->
         <div class="notification-area" id="notificationArea">
 
             <button type="button"
@@ -75,6 +75,7 @@
                       hidden>0</span>
             </button>
 
+            <!-- NOTIFICATION DROPDOWN -->
             <div class="notification-menu"
                  id="notificationMenu"
                  hidden>
@@ -122,9 +123,7 @@
 
                 <p class="profile-email" id="profileEmail"></p>
 
-                <a href="./account.html" id="accountLink">
-                    My Account
-                </a>
+                <a href="./account.html" id="accountLink">My Account</a>
 
                 <a href="#myOrders" id="myOrdersLink">
                     <span aria-hidden="true">📦</span> My Orders
@@ -144,7 +143,6 @@
                 aria-label="Toggle navigation menu"
                 aria-controls="nav"
                 aria-expanded="false">
-
             <span class="material-symbols-outlined">menu</span>
         </button>
 
@@ -153,11 +151,10 @@
 
 <main>
 
-    <!-- HERO SECTION -->
+    <!-- HERO -->
     <section class="hero" id="home">
 
         <div class="hero-content">
-
             <h2>Welcome to Sweet Kitchens &amp; Collections</h2>
 
             <h3>
@@ -169,7 +166,6 @@
                 Discover products from local sellers and find exactly
                 what you need at affordable prices.
             </p>
-
         </div>
 
         <div class="heroBtn">
@@ -179,9 +175,8 @@
 
     </section>
 
-    <!-- SEARCH SECTION -->
+    <!-- SEARCH -->
     <section class="search-section">
-
         <div class="search-box">
 
             <input type="search"
@@ -189,12 +184,9 @@
                    placeholder="Search for products"
                    aria-label="Search products">
 
-            <button type="button" id="searchButton">
-                Search
-            </button>
+            <button type="button" id="searchButton">Search</button>
 
         </div>
-
     </section>
 
     <!-- CATEGORIES -->
@@ -228,10 +220,9 @@
                     data-category="beauty">BEAUTY</button>
 
         </div>
-
     </section>
 
-    <!-- PRODUCTS CONTROLLED BY SUPABASE -->
+    <!-- PRODUCTS -->
     <section class="product-section" id="products">
 
         <div class="section-heading">
@@ -239,42 +230,176 @@
             <h2>Featured Products</h2>
         </div>
 
-        <!--
-            IMPORTANT:
-            Do not add hardcoded product cards here.
-            main.js will load active products from Supabase.
-        -->
+        <div class="products-grid" id="productsGrid">
 
-        <div class="products-grid"
-             id="productsGrid"
-             aria-live="polite">
+            <!-- PRODUCT 1 -->
+            <article class="product-card"
+                     data-category="electronics"
+                     data-name="Heater">
 
-            <p class="products-loading">
-                Loading products...
-            </p>
+                <div class="product-image">
+                    <img src="./images/Heater.jpeg" alt="Heater">
+
+                    <button type="button"
+                            class="favourite-button"
+                            aria-label="Favourite Heater">💖</button>
+                </div>
+
+                <div class="product-info">
+                    <p class="products-category">Electronics</p>
+                    <h3>Heater</h3>
+                    <p class="product-description">
+                        Start your morning right! Crispy outside, soft inside.
+                        With 6 browning levels and auto shut-off, you get
+                        perfect bread every time. Saves time and power.
+                    </p>
+                </div>
+
+                <div class="product-buttom">
+                    <strong>GH₵250</strong>
+                    <button type="button" class="add-to-cart"
+                            data-name="Heater" data-price="250">
+                        Add to cart
+                    </button>
+                </div>
+            </article>
+
+            <!-- PRODUCT 2 -->
+            <article class="product-card"
+                     data-category="electronics"
+                     data-name="Blender">
+
+                <div class="product-image">
+                    <img src="./images/Blender.jpeg" alt="Blender">
+
+                    <button type="button"
+                            class="favourite-button"
+                            aria-label="Favourite Blender">💖</button>
+                </div>
+
+                <div class="product-info">
+                    <p class="products-category">Electronics</p>
+                    <h3>Blender</h3>
+                    <p class="product-description">
+                        A useful kitchen appliance for blending ingredients
+                        and preparing drinks and smoothies.
+                    </p>
+                </div>
+
+                <div class="product-buttom">
+                    <strong>GH₵400</strong>
+                    <button type="button" class="add-to-cart"
+                            data-name="Blender" data-price="400">
+                        Add to cart
+                    </button>
+                </div>
+            </article>
+
+            <!-- PRODUCT 3 -->
+            <article class="product-card"
+                     data-category="electronics"
+                     data-name="Air Fryer">
+
+                <div class="product-image">
+                    <img src="./images/Airfryer.jpeg" alt="Air Fryer">
+
+                    <button type="button"
+                            class="favourite-button"
+                            aria-label="Air fryer">💖</button>
+                </div>
+
+                <div class="product-info">
+                    <p class="products-category">Air Fryer</p>
+                    <h3>Air Fryer</h3>
+                    <p class="product-description">
+                        Heat your food without stress. All you need is to give it time
+                    </p>
+                </div>
+
+                <div class="product-buttom">
+                    <strong>GH₵750</strong>
+                    <button type="button" class="add-to-cart"
+                            data-name="Air Fryer" data-price="750">
+                        Add to cart
+                    </button>
+                </div>
+            </article>
+
+            <!-- PRODUCT 4 -->
+            <article class="product-card"
+                     data-category="kitchen tools"
+                     data-name="Cutlery Set">
+
+                <div class="product-image">
+                    <img src="./Cutlery Set.jpeg" alt="Cutlery Set">
+
+                    <button type="button"
+                            class="favourite-button"
+                            aria-label="Favourite Cutlery Set">💖</button>
+                </div>
+
+                <div class="product-info">
+                    <p class="products-category">Kitchen Tools</p>
+                    <h3>Cutlery Set</h3>
+                    <p class="product-description">
+                        A useful cutlery set for serving and enjoying meals.
+                    </p>
+                </div>
+
+                <div class="product-buttom">
+                    <strong>GH₵300</strong>
+                    <button type="button" class="add-to-cart"
+                            data-name="Cutlery Set" data-price="300">
+                        Add to cart
+                    </button>
+                </div>
+            </article>
+
+            <!-- PRODUCT 5 -->
+            <article class="product-card"
+                     data-category="kitchen tools"
+                     data-name="Bowls">
+
+                <div class="product-image">
+                    <img src="./Bowls.jpeg" alt="Bowls">
+                         
+
+                    <button type="button"
+                            class="favourite-button"
+                            aria-label="Bowls">💖</button>
+                </div>
+
+                <div class="product-info">
+                    <p class="products-category">Kitchen Tools</p>
+                    <h3>Bowls</h3>
+                    <p class="product-description">
+                        Quality set of Bowls for your services.
+                    </p>
+                </div>
+
+                <div class="product-buttom">
+                    <strong>GH₵1200</strong>
+                    <button type="button" class="add-to-cart"
+                            data-name="Bowls" data-price="1200">
+                        Add to cart
+                    </button>
+                </div>
+            </article>
 
         </div>
-
     </section>
 
     <!-- SHOPPING CART -->
     <div class="cart-overlay" id="cartOverlay" hidden>
-
         <div class="cart"
              role="dialog"
              aria-modal="true"
              aria-labelledby="cartTitle">
 
             <div class="cart-header">
-
                 <h2 id="cartTitle">Your Cart</h2>
-
-                <button type="button"
-                        id="closeCart"
-                        aria-label="Close cart">
-                    &times;
-                </button>
-
+                <button type="button" id="closeCart"
+                        aria-label="Close cart">&times;</button>
             </div>
 
             <div class="cart-items" id="cartItem">
@@ -282,7 +407,6 @@
             </div>
 
             <div class="cart-footer">
-
                 <div class="cart-total">
                     <span>Total:</span>
                     <strong id="cartTotal">GH₵0</strong>
@@ -293,254 +417,202 @@
                         id="checkoutButton">
                     Checkout
                 </button>
-
             </div>
-
         </div>
-
     </div>
 
-    <!-- PAYSTACK CHECKOUT -->
-    <div class="payment-overlay" id="paymentOverlay" hidden>
+    
+<!-- PROFESSIONAL PAYSTACK CHECKOUT -->
+<div class="payment-overlay" id="paymentOverlay" hidden>
 
-        <div class="payment-box delivery-checkout-card"
-             role="dialog"
-             aria-modal="true"
-             aria-labelledby="paymentTitle">
+    <div class="payment-box delivery-checkout-card"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="paymentTitle">
 
-            <div class="payment-header">
+        <div class="payment-header">
+            <div>
+                <span class="checkout-eyebrow">SWEET'S KITCHEN & COLLECTIONS</span>
+                <h2 id="paymentTitle">Checkout</h2>
+                <p>Delivery information and secure payment</p>
+            </div>
 
+            <button type="button" id="closePayment"
+                    aria-label="Close checkout">&times;</button>
+        </div>
+
+        <!-- ORDER SUMMARY -->
+        <div class="payment-order">
+            <div class="delivery-section-heading">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <h3>Order Summary</h3>
+            </div>
+
+            <div class="order-total-row">
+                <span>Order total</span>
+                <strong id="paymentTotal">GH₵0.00</strong>
+            </div>
+
+            <p class="order-reference">
+                Order reference:
+                <span id="paymentReference">Generated during checkout</span>
+            </p>
+        </div>
+
+        <!-- DELIVERY DETAILS -->
+        <div class="delivery-details-section">
+
+            <div class="delivery-section-heading">
+                <span class="material-symbols-outlined">local_shipping</span>
                 <div>
-                    <span class="checkout-eyebrow">
-                        SWEET'S KITCHEN &amp; COLLECTIONS
-                    </span>
-
-                    <h2 id="paymentTitle">Checkout</h2>
-
-                    <p>Delivery information and secure payment</p>
+                    <h3>Delivery Details</h3>
+                    <p>Where should we deliver your order?</p>
                 </div>
-
-                <button type="button"
-                        id="closePayment"
-                        aria-label="Close checkout">
-                    &times;
-                </button>
-
             </div>
 
-            <!-- ORDER SUMMARY -->
-            <div class="payment-order">
+            <div class="delivery-form-grid">
 
-                <div class="delivery-section-heading">
-
-                    <span class="material-symbols-outlined">
-                        receipt_long
-                    </span>
-
-                    <h3>Order Summary</h3>
-
-                </div>
-
-                <div class="order-total-row">
-                    <span>Order total</span>
-                    <strong id="paymentTotal">GH₵0.00</strong>
-                </div>
-
-                <p class="order-reference">
-                    Order reference:
-                    <span id="paymentReference">
-                        Generated during checkout
-                    </span>
-                </p>
-
-            </div>
-
-            <!-- DELIVERY DETAILS -->
-            <div class="delivery-details-section">
-
-                <div class="delivery-section-heading">
-
-                    <span class="material-symbols-outlined">
-                        local_shipping
-                    </span>
-
-                    <div>
-                        <h3>Delivery Details</h3>
-                        <p>Where should we deliver your order?</p>
-                    </div>
-
-                </div>
-
-                <div class="delivery-form-grid">
-
-                    <div class="delivery-field full-width">
-                        <label for="customerName">Full Name *</label>
-
-                        <input type="text"
-                               id="customerName"
-                               placeholder="Enter your full name"
-                               autocomplete="name"
-                               required>
-                    </div>
-
-                    <div class="delivery-field">
-                        <label for="customerEmail">Email Address *</label>
-
-                        <input type="email"
-                               id="customerEmail"
-                               placeholder="example@email.com"
-                               autocomplete="email"
-                               required>
-                    </div>
-
-                    <div class="delivery-field">
-                        <label for="customerPhone">Phone Number *</label>
-
-                        <input type="tel"
-                               id="customerPhone"
-                               placeholder="024 XXX XXXX"
-                               autocomplete="tel"
-                               required>
-                    </div>
-
-                    <div class="delivery-field full-width">
-                        <label for="deliveryRegion">Region *</label>
-
-                        <select id="deliveryRegion" required>
-                            <option value="">Select your region</option>
-                            <option value="Ahafo">Ahafo</option>
-                            <option value="Ashanti">Ashanti</option>
-                            <option value="Bono">Bono</option>
-                            <option value="Bono East">Bono East</option>
-                            <option value="Central">Central</option>
-                            <option value="Eastern">Eastern</option>
-                            <option value="Greater Accra">Greater Accra</option>
-                            <option value="North East">North East</option>
-                            <option value="Northern">Northern</option>
-                            <option value="Oti">Oti</option>
-                            <option value="Savannah">Savannah</option>
-                            <option value="Upper East">Upper East</option>
-                            <option value="Upper West">Upper West</option>
-                            <option value="Volta">Volta</option>
-                            <option value="Western">Western</option>
-                            <option value="Western North">Western North</option>
-                        </select>
-                    </div>
-
-                    <div class="delivery-field full-width">
-                        <label for="deliveryTown">Town / City *</label>
-
-                        <input type="text"
-                               id="deliveryTown"
-                               placeholder="Enter your town or city"
-                               required>
-                    </div>
-
-                    <div class="delivery-field full-width">
-                        <label for="deliveryAddress">
-                            House Address / Landmark *
-                        </label>
-
-                        <textarea id="deliveryAddress"
-                                  placeholder="House number, street name, nearby landmark..."
-                                  rows="3"
-                                  autocomplete="street-address"
-                                  required></textarea>
-                    </div>
-
-                    <div class="delivery-field full-width">
-                        <label for="ghanaPostAddress">
-                            GhanaPost GPS Address
-                        </label>
-
-                        <input type="text"
-                               id="ghanaPostAddress"
-                               placeholder="e.g. GA-123-4567">
-                    </div>
-
-                    <div class="delivery-field full-width">
-                        <label for="deliveryInstructions">
-                            Additional Delivery Instructions
-                        </label>
-
-                        <textarea id="deliveryInstructions"
-                                  placeholder="Any directions that will help our rider find you?"
-                                  rows="2"></textarea>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- PAYMENT METHOD -->
-            <div class="delivery-details-section payment-method-section">
-
-                <div class="delivery-section-heading">
-
-                    <span class="material-symbols-outlined">
-                        payments
-                    </span>
-
-                    <div>
-                        <h3>Payment Method</h3>
-                        <p>Choose your Mobile Money network</p>
-                    </div>
-
+                <div class="delivery-field full-width">
+                    <label for="customerName">Full Name *</label>
+                    <input type="text"
+                           id="customerName"
+                           placeholder="Enter your full name"
+                           autocomplete="name"
+                           required>
                 </div>
 
                 <div class="delivery-field">
+                    <label for="customerEmail">Email Address *</label>
+                    <input type="email"
+                           id="customerEmail"
+                           placeholder="example@email.com"
+                           autocomplete="email"
+                           required>
+                </div>
 
-                    <label for="paymentNetwork">
-                        Mobile Money Network *
-                    </label>
+                <div class="delivery-field">
+                    <label for="customerPhone">Phone Number *</label>
+                    <input type="tel"
+                           id="customerPhone"
+                           placeholder="024 XXX XXXX"
+                           autocomplete="tel"
+                           required>
+                </div>
 
-                    <select id="paymentNetwork" required>
-                        <option value="">Choose your network</option>
-                        <option value="mtn">MTN MoMo</option>
-                        <option value="telecel">Telecel Cash</option>
-                        <option value="at">AT Money</option>
+                <div class="delivery-field full-width">
+                    <label for="deliveryRegion">Region *</label>
+                    <select id="deliveryRegion" required>
+                        <option value="">Select your region</option>
+                        <option value="Ahafo">Ahafo</option>
+                        <option value="Ashanti">Ashanti</option>
+                        <option value="Bono">Bono</option>
+                        <option value="Bono East">Bono East</option>
+                        <option value="Central">Central</option>
+                        <option value="Eastern">Eastern</option>
+                        <option value="Greater Accra">Greater Accra</option>
+                        <option value="North East">North East</option>
+                        <option value="Northern">Northern</option>
+                        <option value="Oti">Oti</option>
+                        <option value="Savannah">Savannah</option>
+                        <option value="Upper East">Upper East</option>
+                        <option value="Upper West">Upper West</option>
+                        <option value="Volta">Volta</option>
+                        <option value="Western">Western</option>
+                        <option value="Western North">Western North</option>
                     </select>
+                </div>
 
+                <div class="delivery-field full-width">
+                    <label for="deliveryTown">Town / City *</label>
+                    <input type="text"
+                           id="deliveryTown"
+                           placeholder="Enter your town or city"
+                           required>
+                </div>
+
+                <div class="delivery-field full-width">
+                    <label for="deliveryAddress">
+                        House Address / Landmark *
+                    </label>
+                    <textarea id="deliveryAddress"
+                              placeholder="House number, street name, nearby landmark..."
+                              rows="3"
+                              autocomplete="street-address"
+                              required></textarea>
+                </div>
+
+                <div class="delivery-field full-width">
+                    <label for="ghanaPostAddress">
+                        GhanaPost GPS Address
+                    </label>
+                    <input type="text"
+                           id="ghanaPostAddress"
+                           placeholder="e.g. GA-123-4567">
+                </div>
+
+                <div class="delivery-field full-width">
+                    <label for="deliveryInstructions">
+                        Additional Delivery Instructions
+                    </label>
+                    <textarea id="deliveryInstructions"
+                              placeholder="Any directions that will help our rider find you?"
+                              rows="2"></textarea>
                 </div>
 
             </div>
+        </div>
 
-            <!-- PAYMENT BUTTON -->
-            <button type="button"
-                    id="confirmPaymentInstructions"
-                    class="secure-payment-button">
+        <!-- PAYMENT METHOD -->
+        <div class="delivery-details-section payment-method-section">
 
-                <span class="material-symbols-outlined">lock</span>
-                Pay Securely with Paystack
+            <div class="delivery-section-heading">
+                <span class="material-symbols-outlined">payments</span>
+                <div>
+                    <h3>Payment Method</h3>
+                    <p>Choose your Mobile Money network</p>
+                </div>
+            </div>
 
-            </button>
-
-            <p class="payment-warning">
-
-                <span class="material-symbols-outlined">info</span>
-
-                Your order is confirmed only after your payment
-                has been verified.
-
-            </p>
-
-            <button type="button"
-                    id="closePaymentBottom"
-                    class="cancel-checkout-button">
-                Cancel Checkout
-            </button>
+            <div class="delivery-field">
+                <label for="paymentNetwork">Mobile Money Network *</label>
+                <select id="paymentNetwork" required>
+                    <option value="">Choose your network</option>
+                    <option value="mtn">MTN MoMo</option>
+                    <option value="telecel">Telecel Cash</option>
+                    <option value="at">AT Money</option>
+                </select>
+            </div>
 
         </div>
 
+        <!-- PAYMENT BUTTON -->
+        <button type="button"
+                id="confirmPaymentInstructions"
+                class="secure-payment-button">
+
+            <span class="material-symbols-outlined">lock</span>
+            Pay Securely with Paystack
+        </button>
+
+        <p class="payment-warning">
+            <span class="material-symbols-outlined">info</span>
+            Your order is confirmed only after your payment has been verified.
+        </p>
+
+        <button type="button"
+                id="closePaymentBottom"
+                class="cancel-checkout-button">
+            Cancel Checkout
+        </button>
+
     </div>
+</div>
 
     <!-- CUSTOMER ORDER HISTORY -->
     <section id="myOrders" style="display: none;">
-
         <div class="orders-container">
 
             <div class="orders-header">
-
                 <div>
                     <h2>My Orders</h2>
                     <p>Track your purchases and payment status.</p>
@@ -549,26 +621,20 @@
                 <button type="button" id="refreshOrdersBtn">
                     Refresh Orders
                 </button>
-
             </div>
 
-            <p id="ordersMessage"
-               role="status"
-               aria-live="polite">
+            <p id="ordersMessage" role="status" aria-live="polite">
                 Your orders will appear here.
             </p>
 
             <div id="myOrdersList"></div>
-
         </div>
-
     </section>
 
 </main>
 
 <!-- FOOTER -->
 <footer>
-
     <div class="footer-content">
 
         <div>
@@ -607,13 +673,12 @@
             All Rights Reserved.
         </p>
     </div>
-
 </footer>
 
-<!-- SUPABASE LIBRARY: LOAD BEFORE main.js -->
+<!-- SUPABASE LIBRARY -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- YOUR STOREFRONT JAVASCRIPT -->
+<!-- YOUR EXISTING JAVASCRIPT -->
 <script src="./main.js"></script>
 
 </body>
