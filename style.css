@@ -2284,3 +2284,279 @@ body.dark-mode .empty-notifications {
         max-width: calc(100vw - 10px);
     }
 }
+
+
+/* =====================================================
+   COMPLETE DARK MODE ENHANCEMENT
+   SWEET'S KITCHEN & COLLECTIONS
+===================================================== */
+
+body.dark-mode {
+    background: #111827 !important;
+    color: #f3f4f6 !important;
+}
+
+/* General sections */
+body.dark-mode .search-section,
+body.dark-mode .categories,
+body.dark-mode .product-section,
+body.dark-mode .my-orders-section,
+body.dark-mode #myOrders {
+    background: #111827 !important;
+    color: #f3f4f6 !important;
+}
+
+/* Header and mobile navigation */
+body.dark-mode .header {
+    background: #1f2937 !important;
+    color: #f3f4f6 !important;
+    border-bottom-color: #374151 !important;
+}
+
+body.dark-mode .nav {
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode .nav a {
+    color: #f3f4f6;
+}
+
+body.dark-mode .nav a:hover {
+    color: #60a5fa;
+}
+
+body.dark-mode .menu-button,
+body.dark-mode .theme-toggle,
+body.dark-mode .cart-button,
+body.dark-mode .notification-button {
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode .nav.show {
+    background: #1f2937 !important;
+    border-bottom-color: #374151 !important;
+}
+
+/* Search */
+body.dark-mode .search-box input {
+    background: #1f2937 !important;
+    color: #f3f4f6 !important;
+    border-color: #4b5563 !important;
+}
+
+body.dark-mode .search-box input::placeholder {
+    color: #9ca3af;
+}
+
+/* Headings and ordinary text */
+body.dark-mode .section-heading,
+body.dark-mode .section-heading h2,
+body.dark-mode .section-heading h3,
+body.dark-mode .product-section h2,
+body.dark-mode .product-section h3 {
+    color: #f3f4f6;
+}
+
+/* Product cards */
+body.dark-mode .products-grid .product-card {
+    background: #1f2937 !important;
+    color: #f3f4f6 !important;
+    border-color: #374151 !important;
+}
+
+body.dark-mode .products-grid .product-info h3,
+body.dark-mode .products-grid .product-buttom strong {
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode .products-grid .product-description {
+    color: #d1d5db !important;
+}
+
+body.dark-mode .products-grid .product-buttom {
+    background: #1f2937;
+    border-top-color: #374151 !important;
+}
+
+/* Cart */
+body.dark-mode .cart-overlay .cart {
+    background: #1f2937 !important;
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode .cart-header {
+    border-bottom-color: #374151 !important;
+}
+
+body.dark-mode .cart-header h2,
+body.dark-mode .cart-item-info h3,
+body.dark-mode .cart-total {
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode .cart-footer {
+    border-top-color: #374151 !important;
+}
+
+body.dark-mode .quantity-controls button {
+    background: #374151 !important;
+    color: #fff !important;
+    border-color: #4b5563 !important;
+}
+
+/* Profile */
+body.dark-mode .profile-button,
+body.dark-mode .profile-menu {
+    background: #1f2937 !important;
+    color: #f3f4f6 !important;
+    border-color: #374151 !important;
+}
+
+body.dark-mode .profile-menu-title {
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode .profile-email {
+    color: #d1d5db !important;
+}
+
+/* Orders */
+body.dark-mode .my-orders-heading h2,
+body.dark-mode #myOrders h2,
+body.dark-mode .order-card h3 {
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode .my-orders-heading > div > p:last-child,
+body.dark-mode .order-card p,
+body.dark-mode .order-card ul,
+body.dark-mode .order-reference-label,
+body.dark-mode .order-total-label,
+body.dark-mode .order-detail-label {
+    color: #d1d5db !important;
+}
+
+body.dark-mode .order-card {
+    background: #1f2937 !important;
+    color: #f3f4f6 !important;
+    border-color: #374151 !important;
+}
+
+body.dark-mode .order-reference,
+body.dark-mode .order-total,
+body.dark-mode .order-detail-value {
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode .orders-info {
+    background: #292b36 !important;
+    border-color: #4b5563 !important;
+}
+
+body.dark-mode .orders-info h3,
+body.dark-mode .orders-info p {
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode .orders-message,
+body.dark-mode #ordersMessage {
+    color: #d1d5db !important;
+}
+
+body.dark-mode .refresh-orders-btn {
+    background: #374151;
+    color: #f3f4f6;
+    border-color: #4b5563;
+}
+
+/* Payment modal */
+body.dark-mode .payment-overlay .payment-box {
+    background: #1f2937 !important;
+    color: #f3f4f6 !important;
+    border-color: #374151 !important;
+}
+
+body.dark-mode .payment-box > strong:first-of-type,
+body.dark-mode .payment-box h3 {
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode .payment-box select,
+body.dark-mode #paymentNetwork,
+body.dark-mode .customer-details input,
+body.dark-mode .customer-details textarea {
+    background: #111827 !important;
+    color: #f3f4f6 !important;
+    border-color: #4b5563 !important;
+}
+
+body.dark-mode .customer-details,
+body.dark-mode #paymentDetails {
+    background: #111827 !important;
+    border-color: #374151 !important;
+}
+
+body.dark-mode .customer-details h3,
+body.dark-mode .customer-details label,
+body.dark-mode #paymentDetails h3 {
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode #paymentInstructions {
+    color: #d1d5db !important;
+}
+
+/* Notifications */
+body.dark-mode .notification-panel {
+    background: #1f2937 !important;
+    color: #f3f4f6 !important;
+    border-color: #374151 !important;
+}
+
+body.dark-mode .notification-header {
+    border-bottom-color: #374151 !important;
+}
+
+body.dark-mode .notification-header h2,
+body.dark-mode .notification-item-content h3 {
+    color: #f3f4f6 !important;
+}
+
+body.dark-mode .notification-item {
+    border-bottom-color: #374151 !important;
+}
+
+body.dark-mode .notification-item-content p {
+    color: #d1d5db !important;
+}
+
+/* Theme button */
+body.dark-mode .theme-toggle {
+    background: #374151 !important;
+    border-color: #6b7280 !important;
+    color: #facc15 !important;
+}
+
+/* Footer keeps its original blue design */
+body.dark-mode footer {
+    background: #0f45b9;
+    color: #fff;
+}
+
+/* Smooth colour transition */
+body,
+.header,
+.search-section,
+.categories,
+.product-card,
+.cart,
+.profile-menu,
+.order-card,
+.my-orders-section,
+.notification-panel,
+.payment-box {
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
