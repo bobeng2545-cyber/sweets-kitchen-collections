@@ -1584,14 +1584,18 @@ async function checkOrderNotifications() {
 
                 if (error) {
 
-                    console.error(
-                        "Notification check failed:",
-                        order.reference,
-                        error
-                    );
+    console.error(
+        "NOTIFICATION FUNCTION ERROR:",
+        error
+    );
 
-                    continue;
-                }
+    continue;
+}
+
+console.log(
+    "NOTIFICATION SERVER RESPONSE:",
+    data
+);
 
                 if (!data || !data.success || !data.notification) {
                     continue;
