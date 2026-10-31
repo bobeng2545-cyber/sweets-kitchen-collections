@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>SWEET's KITCHEN &amp; COLLECTIONS</title>
 
     <link rel="stylesheet"
@@ -30,34 +31,36 @@
 
     <div class="header-actions">
 
-        <!-- THEME BUTTON -->
-        <button type="button"
-                class="theme-toggle"
-                id="themeToggle"
-                aria-label="Switch theme"
-                title="Switch theme">
-            <span class="material-symbols-outlined" id="themeIcon">
-                dark_mode
-            </span>
-        </button>
+        <!-- DARK / LIGHT MODE BUTTON -->
+        <button
+    type="button"
+    class="theme-toggle"
+    id="themeToggle"
+    aria-label="Switch theme"
+    title="Switch theme">
 
-        <!-- SHOPPING CART -->
+    <span class="material-symbols-outlined" id="themeIcon">
+        dark_mode
+    </span>
+
+</button>
+
+        <!-- SHOPPING CART ICON WITH COUNT BADGE -->
         <button type="button"
                 class="cart-button"
                 id="cartButton"
                 aria-label="Open shopping cart"
                 title="Shopping cart">
 
-            <span class="material-symbols-outlined cart-icon">
-                shopping_cart
-            </span>
+            <span class="material-symbols-outlined cart-icon"
+                  aria-hidden="true">shopping_cart</span>
 
             <span class="cart-count"
                   id="cartCount"
                   aria-live="polite">0</span>
         </button>
 
-        <!-- NOTIFICATIONS -->
+        <!-- CUSTOMER NOTIFICATION BELL -->
         <div class="notification-area" id="notificationArea">
 
             <button type="button"
@@ -65,11 +68,11 @@
                     id="notificationButton"
                     aria-label="Open notifications"
                     aria-expanded="false"
-                    aria-controls="notificationMenu">
+                    aria-controls="notificationMenu"
+                    title="Notifications">
 
-                <span class="material-symbols-outlined">
-                    notifications
-                </span>
+                <span class="material-symbols-outlined"
+                      aria-hidden="true">notifications</span>
 
                 <span class="notification-count"
                       id="notificationCount"
@@ -77,17 +80,20 @@
                       hidden>0</span>
             </button>
 
+            <!-- NOTIFICATION DROPDOWN -->
             <div class="notification-menu"
                  id="notificationMenu"
                  hidden>
 
                 <div class="notification-header">
+
                     <h3>Notifications</h3>
 
                     <button type="button"
                             id="markAllNotificationsRead">
                         Mark all as read
                     </button>
+
                 </div>
 
                 <div class="notification-list"
@@ -101,12 +107,16 @@
                 </div>
 
                 <div class="notification-footer">
-                    <button type="button" id="clearNotifications">
+
+                    <button type="button"
+                            id="clearNotifications">
                         Clear all notifications
                     </button>
+
                 </div>
 
             </div>
+
         </div>
 
         <!-- CUSTOMER PROFILE -->
@@ -131,12 +141,10 @@
 
                 <p class="profile-email" id="profileEmail"></p>
 
-                <a href="./account.html" id="accountLink">
-                    My Account
-                </a>
+                <a href="./account.html" id="accountLink">My Account</a>
 
                 <a href="#myOrders" id="myOrdersLink">
-                    📦 My Orders
+                    <span aria-hidden="true">📦</span> My Orders
                 </a>
 
                 <button type="button" id="logoutButton" hidden>
@@ -155,6 +163,7 @@
                 aria-expanded="false">
 
             <span class="material-symbols-outlined">menu</span>
+
         </button>
 
     </div>
@@ -183,9 +192,7 @@
 
         <div class="heroBtn">
             <a href="#products" class="primaryBtn">Products</a>
-            <a href="#products" class="secondaryBtn">
-                Explore Products
-            </a>
+            <a href="#products" class="secondaryBtn">Explore Products</a>
         </div>
 
     </section>
@@ -200,9 +207,7 @@
                    placeholder="Search for products"
                    aria-label="Search products">
 
-            <button type="button" id="searchButton">
-                Search
-            </button>
+            <button type="button" id="searchButton">Search</button>
 
         </div>
 
@@ -262,26 +267,23 @@
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Air Fryer">💖</button>
+                            aria-label="Air Fryer">💖</button>
                 </div>
 
                 <div class="product-info">
                     <p class="products-category">Electronics</p>
                     <h3>Air Fryer</h3>
-
                     <p class="product-description">
-                        Crispy outside, soft inside. Enjoy convenient
-                        cooking with this air fryer.
+                        Start your morning right! Crispy outside, soft inside.
+                        With 6 browning levels and auto shut-off, you get
+                        perfect bread every time. Saves time and power.
                     </p>
                 </div>
 
                 <div class="product-buttom">
                     <strong>GH₵750</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-name="Airfryer"
-                            data-price="750">
+                    <button type="button" class="add-to-cart"
+                            data-name="Airfryer" data-price="750">
                         Add to cart
                     </button>
                 </div>
@@ -303,20 +305,16 @@
                 <div class="product-info">
                     <p class="products-category">Electronics</p>
                     <h3>Blender</h3>
-
                     <p class="product-description">
-                        A useful kitchen appliance for blending
-                        ingredients, drinks and smoothies.
+                        A useful kitchen appliance for blending ingredients
+                        and preparing drinks and smoothies.
                     </p>
                 </div>
 
                 <div class="product-buttom">
                     <strong>GH₵400</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-name="Blender"
-                            data-price="400">
+                    <button type="button" class="add-to-cart"
+                            data-name="Blender" data-price="400">
                         Add to cart
                     </button>
                 </div>
@@ -332,26 +330,22 @@
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Kettle">💖</button>
+                            aria-label="Kettle">💖</button>
                 </div>
 
                 <div class="product-info">
                     <p class="products-category">Electronics</p>
                     <h3>Kettle</h3>
-
                     <p class="product-description">
-                        A practical electric kettle for heating water
-                        conveniently at home.
+                        A practical pan for preparing eggs, plantain, stew
+                        and other everyday meals.
                     </p>
                 </div>
 
                 <div class="product-buttom">
                     <strong>GH₵250</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-name="Kettle"
-                            data-price="250">
+                    <button type="button" class="add-to-cart"
+                            data-name="Kettle" data-price="250">
                         Add to cart
                     </button>
                 </div>
@@ -363,8 +357,7 @@
                      data-name="Cutlery Set">
 
                 <div class="product-image">
-                    <img src="./images/Cutlery Set.jpeg"
-                         alt="Cutlery Set">
+                    <img src="./Cutlery Set.jpeg" alt="Cutlery Set">
 
                     <button type="button"
                             class="favourite-button"
@@ -374,7 +367,6 @@
                 <div class="product-info">
                     <p class="products-category">Kitchen Tools</p>
                     <h3>Cutlery Set</h3>
-
                     <p class="product-description">
                         A useful cutlery set for serving and enjoying meals.
                     </p>
@@ -382,11 +374,8 @@
 
                 <div class="product-buttom">
                     <strong>GH₵300</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-name="Cutlery Set"
-                            data-price="300">
+                    <button type="button" class="add-to-cart"
+                            data-name="Cutlery Set" data-price="300">
                         Add to cart
                     </button>
                 </div>
@@ -398,29 +387,25 @@
                      data-name="Bowls">
 
                 <div class="product-image">
-                    <img src="./images/Bowls.jpeg" alt="Bowls">
+                    <img src="./Bowls.jpeg" alt="Bowls">
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Bowls">💖</button>
+                            aria-label="Bowls">💖</button>
                 </div>
 
                 <div class="product-info">
                     <p class="products-category">Kitchen Tools</p>
-                    <h3>Bowls</h3>
-
+                    <h3>Bowl</h3>
                     <p class="product-description">
-                        A set of bowls for your kitchen and dining table.
+                        A premium cutlery set for your kitchen and dining table.
                     </p>
                 </div>
 
                 <div class="product-buttom">
                     <strong>GH₵1200</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-name="Bowls"
-                            data-price="1200">
+                    <button type="button" class="add-to-cart"
+                            data-name="Bowls" data-price="1200">
                         Add to cart
                     </button>
                 </div>
@@ -432,30 +417,25 @@
                      data-name="Juicer Mixer">
 
                 <div class="product-image">
-                    <img src="./images/Juicer.jpeg" alt="Juicer Mixer">
+                    <img src="./Juicer.jpeg" alt="Juicer">
 
                     <button type="button"
                             class="favourite-button"
-                            aria-label="Favourite Juicer Mixer">💖</button>
+                            aria-label="Juicer">💖</button>
                 </div>
 
                 <div class="product-info">
                     <p class="products-category">Electronics</p>
                     <h3>Juicer Mixer</h3>
-
                     <p class="product-description">
-                        Prepare juice, smoothies and blended ingredients
-                        conveniently at home.
+                        Prepare juice, smoothies and blended ingredients at home.
                     </p>
                 </div>
 
                 <div class="product-buttom">
                     <strong>GH₵400</strong>
-
-                    <button type="button"
-                            class="add-to-cart"
-                            data-name="Juicer Mixer"
-                            data-price="400">
+                    <button type="button" class="add-to-cart"
+                            data-name="Juicer Mixer" data-price="400">
                         Add to cart
                     </button>
                 </div>
@@ -475,8 +455,7 @@
             <div class="cart-header">
                 <h2 id="cartTitle">Your Cart</h2>
 
-                <button type="button"
-                        id="closeCart"
+                <button type="button" id="closeCart"
                         aria-label="Close cart">&times;</button>
             </div>
 
@@ -512,8 +491,7 @@
             <div class="payment-header">
                 <h2 id="paymentTitle">Secure Checkout with Paystack</h2>
 
-                <button type="button"
-                        id="closePayment"
+                <button type="button" id="closePayment"
                         aria-label="Close checkout">&times;</button>
             </div>
 
@@ -525,15 +503,11 @@
 
                 <p>
                     Order reference:
-                    <span id="paymentReference">
-                        Generated during checkout
-                    </span>
+                    <span id="paymentReference">Generated during checkout</span>
                 </p>
             </div>
 
-            <label for="paymentNetwork">
-                Select Mobile Money network
-            </label>
+            <label for="paymentNetwork">Select Mobile Money network</label>
 
             <select id="paymentNetwork" required>
                 <option value="">-- Choose network --</option>
@@ -547,27 +521,25 @@
                 <h3>Customer Details</h3>
 
                 <label for="customerEmail">Email Address</label>
-                <input type="email"
-                       id="customerEmail"
+
+                <input type="email" id="customerEmail"
                        placeholder="Enter your email address"
-                       autocomplete="email"
-                       required>
+                       autocomplete="email" required>
 
                 <label for="customerName">Full Name</label>
-                <input type="text"
-                       id="customerName"
+
+                <input type="text" id="customerName"
                        placeholder="Enter your full name"
-                       autocomplete="name"
-                       required>
+                       autocomplete="name" required>
 
                 <label for="customerPhone">Phone Number</label>
-                <input type="tel"
-                       id="customerPhone"
+
+                <input type="tel" id="customerPhone"
                        placeholder="Enter your phone number"
-                       autocomplete="tel"
-                       required>
+                       autocomplete="tel" required>
 
                 <label for="deliveryAddress">Delivery Address</label>
+
                 <textarea id="deliveryAddress"
                           placeholder="Enter your delivery address"
                           rows="3"
@@ -591,7 +563,7 @@
         </div>
     </div>
 
-    <!-- MY ORDERS -->
+    <!-- CUSTOMER ORDER HISTORY -->
     <section id="myOrders" style="display: none;">
 
         <div class="orders-container">
@@ -609,63 +581,14 @@
 
             </div>
 
-            <p id="ordersMessage"
-               role="status"
-               aria-live="polite">
+            <p id="ordersMessage" role="status" aria-live="polite">
                 Your orders will appear here.
             </p>
 
-            <!-- JAVASCRIPT WILL DISPLAY THE CUSTOMER'S ORDERS HERE -->
             <div id="myOrdersList"></div>
 
         </div>
     </section>
-
-    <!-- ORDER DETAILS POPUP -->
-    <div class="order-details-overlay"
-         id="orderDetailsOverlay"
-         hidden>
-
-        <div class="order-details-modal"
-             role="dialog"
-             aria-modal="true"
-             aria-labelledby="orderDetailsTitle">
-
-            <div class="order-details-header">
-
-                <div>
-                    <h2 id="orderDetailsTitle">Order Details</h2>
-                    <p>Full information about your purchase.</p>
-                </div>
-
-                <button type="button"
-                        id="closeOrderDetails"
-                        aria-label="Close order details">
-                    &times;
-                </button>
-
-            </div>
-
-            <!-- JAVASCRIPT WILL INSERT THE SELECTED ORDER DETAILS HERE -->
-            <div class="order-details-content"
-                 id="orderDetailsContent"
-                 aria-live="polite">
-
-                <p>Select an order to view its details.</p>
-
-            </div>
-
-            <div class="order-details-footer">
-
-                <button type="button"
-                        id="closeOrderDetailsBottom">
-                    Close
-                </button>
-
-            </div>
-
-        </div>
-    </div>
 
 </main>
 
