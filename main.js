@@ -241,42 +241,46 @@ function updateCart() {
 }
 
 
-/* ADD TO CART — EVENT DELEGATION */
+/* ADD TO CART — IMPROVED EVENT DELEGATION */
 
-if (productsGrid) {
-    productsGrid.addEventListener("click", function (event) {
-        const button = event.target.closest(".add-to-cart");
+document.addEventListener("click", function (event) {
+    const button = event.target.closest(".add-to-cart");
 
-        if (!button || !productsGrid.contains(button)) return;
+    if (!button) return;
 
-        const name = button.dataset.name;
-        const price = Number(button.dataset.price);
+    event.preventDefault();
 
-        if (!name || !Number.isFinite(price) || price < 0) {
-            showMessage("This product has invalid information.");
-            return;
-        }
+    const name = button.dataset.name;
+    const price = Number(button.dataset.price);
 
-        const existingProduct = cart.find(
-            item => getProductKey(item.name) === getProductKey(name)
-        );
+    if (
+        !name ||
+        !Number.isFinite(price) ||
+        price < 0
+    ) {
+        showMessage("This product has invalid information.");
+        return;
+    }
 
-        if (existingProduct) {
-            showMessage(
-                "This product is already in your cart. Use + or − to change the quantity."
-            );
-            return;
-        }
-
-        cart.push({
-            name: name,
-            price: price,
-            quantity: 1
-        });
-
-        updateCart();
+    const existingProduct = cart.find(function (item) {
+        return getProductKey(item.name) === getProductKey(name);
     });
-}
+
+    if (existingProduct) {
+        showMessage("This product is already in your cart.");
+        return;
+    }
+
+    cart.push({
+        name: name,
+        price: price,
+        quantity: 1
+    });
+
+    updateCart();
+
+    showMessage(name + " has been added to your cart.");
+});
 
 
 /* CART QUANTITY AND REMOVE BUTTONS */
