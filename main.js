@@ -1,4 +1,9 @@
 
+/* ==========================================
+   SWEET'S KITCHEN & COLLECTIONS
+   MAIN JAVASCRIPT
+========================================== */
+
 const SUPABASE_URL = "https://vbrlprrbtumonmroybdv.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_QN5w738LNyUrYy2X93M1OQ_md6F2xTN";
 
@@ -10,7 +15,76 @@ const supabaseClient = window.supabase.createClient(
 window.sweetSupabase = supabaseClient;
 
 
-// Menu Icon
+/* ==========================================
+   DARK AND LIGHT MODE
+========================================== */
+
+(function setupTheme() {
+    const themeToggle = document.getElementById("themeToggle");
+    const themeIcon = document.getElementById("themeIcon");
+
+    const THEME_KEY = "sweetKitchenTheme";
+
+    function applyTheme(theme) {
+        const isDark = theme === "dark";
+
+        document.body.classList.toggle("dark-mode", isDark);
+
+        if (themeIcon) {
+            themeIcon.textContent = isDark ? "light_mode" : "dark_mode";
+        }
+
+        if (themeToggle) {
+            themeToggle.setAttribute(
+                "aria-label",
+                isDark ? "Switch to light mode" : "Switch to dark mode"
+            );
+
+            themeToggle.setAttribute(
+                "title",
+                isDark ? "Switch to light mode" : "Switch to dark mode"
+            );
+
+            themeToggle.setAttribute("aria-pressed", String(isDark));
+        }
+    }
+
+    // Restore the customer's previously selected theme.
+    let savedTheme = "light";
+
+    try {
+        savedTheme = localStorage.getItem(THEME_KEY) || "light";
+    } catch (error) {
+        console.warn("Could not access saved theme:", error);
+    }
+
+    applyTheme(savedTheme);
+
+    // Switch between dark and light mode.
+    if (themeToggle) {
+        themeToggle.addEventListener("click", function () {
+            const isCurrentlyDark =
+                document.body.classList.contains("dark-mode");
+
+            const newTheme = isCurrentlyDark ? "light" : "dark";
+
+            applyTheme(newTheme);
+
+            try {
+                localStorage.setItem(THEME_KEY, newTheme);
+            } catch (error) {
+                console.warn("Could not save theme:", error);
+            }
+        });
+    } else {
+        console.warn("Theme button #themeToggle was not found.");
+    }
+})();
+
+
+/* ==========================================
+   MOBILE MENU
+========================================== */
 
 const menuButton = document.getElementById("menuButton");
 const navMenu = document.getElementById("nav");
@@ -24,6 +98,11 @@ if (menuButton && navMenu) {
     });
 }
 
+
+/* ==========================================
+   SHOPPING CART
+========================================== */
+
 let cart = [];
 
 const cartOverlay = document.getElementById("cartOverlay");
@@ -34,56 +113,70 @@ const cartTotal = document.getElementById("cartTotal");
 const cartCount = document.getElementById("cartCount");
 const cartButton = document.getElementById("cartButton");
 
+if (cartButton && cartOverlay) {
+    cartButton.addEventListener("click", function () {
+        cartOverlay.classList.add("show");
+    });
+}
+
+if (closeCart && cartOverlay) {
+    closeCart.addEventListener("click", function () {
+        cartOverlay.classList.remove("show");
+    });
+}
 
 
-cartButton.addEventListener("click", function(){
-    cartOverlay.classList.add("show");
-});
-
-closeCart.addEventListener("click", function(){
-    cartOverlay.classList.remove("show")
-});
-
-
-// Add to Cart Button 
-
+/* ==========================================
+   ADD TO CART
+========================================== */
 
 const addCartButtons = document.querySelectorAll(".add-to-cart");
 
-addCartButtons.forEach(function(button) {
-    button.addEventListener("click", function() {
+addCartButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
         const name = button.dataset.name;
         const price = Number(button.dataset.price);
 
-        // Check whether this product is already in the cart
-        const existingProduct = cart.find(function(item) {
+        if (!name || !Number.isFinite(price)) {
+            alert("This product has invalid information.");
+            return;
+        }
+
+        const existingProduct = cart.find(function (item) {
             return item.name === name;
         });
 
         if (existingProduct) {
-            alert("This product is already in your cart. Use + or − in the cart to change the quantity.");
+            alert(
+                "This product is already in your cart. Use + or − in the cart to change the quantity."
+            );
             return;
         }
 
-        // Add the product only if it is not already in the cart
         cart.push({
             name: name,
             price: price,
             quantity: 1
         });
 
-        // Update cart count and total without opening the cart
         updateCart();
 
-        // Change the button to show that the product is already added
         button.textContent = "Added to Cart";
         button.disabled = true;
     });
 });
 
 
+/* ==========================================
+   UPDATE CART
+========================================== */
 
 function updateCart() {
+    if (!cartItem || !cartCount || !cartTotal) {
+        console.error("Cart HTML elements are missing.");
+        return;
+    }
+
     cartItem.innerHTML = "";
 
     if (cart.length === 0) {
@@ -99,7 +192,7 @@ function updateCart() {
     let total = 0;
     let numberOfItems = 0;
 
-    cart.forEach(function(item, index) {
+    cart.forEach(function (item, index) {
         total += item.price * item.quantity;
         numberOfItems += item.quantity;
 
@@ -145,69 +238,72 @@ function updateCart() {
 }
 
 
-// Handle +, − and Remove clicks from the cart
-// One listener is enough, even when the cart is re-rendered.
-cartItem.addEventListener("click", function(event) {
-    const button = event.target.closest(
-        ".increase, .decrease, .remove-item"
-    );
+/* ==========================================
+   CART QUANTITY AND REMOVE BUTTONS
+========================================== */
 
-    if (!button || !cartItem.contains(button)) {
-        return;
-    }
+if (cartItem) {
+    cartItem.addEventListener("click", function (event) {
+        const button = event.target.closest(
+            ".increase, .decrease, .remove-item"
+        );
 
-    const index = Number(button.dataset.index);
-
-    if (!Number.isInteger(index) || !cart[index]) {
-        return;
-    }
-
-    if (button.classList.contains("increase")) {
-        cart[index].quantity++;
-    }
-
-    
-else if (button.classList.contains("decrease")) {
-    cart[index].quantity--;
-
-    // Remove the item when its quantity reaches zero
-    if (cart[index].quantity <= 0) {
-        const removedProductName = cart[index].name;
-
-        cart.splice(index, 1);
-
-        // Re-enable the product's Add to Cart button
-        document.querySelectorAll(".add-to-cart").forEach(function(addButton) {
-            if (addButton.dataset.name === removedProductName) {
-                addButton.disabled = false;
-                addButton.textContent = "Add to Cart";
-            }
-        });
-    }
-}
-
-
-    
-else if (button.classList.contains("remove-item")) {
-    const removedProductName = cart[index].name;
-
-    cart.splice(index, 1);
-
-    // Re-enable the product's Add to Cart button
-    document.querySelectorAll(".add-to-cart").forEach(function(addButton) {
-        if (addButton.dataset.name === removedProductName) {
-            addButton.disabled = false;
-            addButton.textContent = "Add to Cart";
+        if (!button || !cartItem.contains(button)) {
+            return;
         }
+
+        const index = Number(button.dataset.index);
+
+        if (!Number.isInteger(index) || !cart[index]) {
+            return;
+        }
+
+        if (button.classList.contains("increase")) {
+            cart[index].quantity++;
+        }
+
+        else if (button.classList.contains("decrease")) {
+            cart[index].quantity--;
+
+            if (cart[index].quantity <= 0) {
+                const removedProductName = cart[index].name;
+
+                cart.splice(index, 1);
+
+                document.querySelectorAll(".add-to-cart").forEach(
+                    function (addButton) {
+                        if (addButton.dataset.name === removedProductName) {
+                            addButton.disabled = false;
+                            addButton.textContent = "Add to Cart";
+                        }
+                    }
+                );
+            }
+        }
+
+        else if (button.classList.contains("remove-item")) {
+            const removedProductName = cart[index].name;
+
+            cart.splice(index, 1);
+
+            document.querySelectorAll(".add-to-cart").forEach(
+                function (addButton) {
+                    if (addButton.dataset.name === removedProductName) {
+                        addButton.disabled = false;
+                        addButton.textContent = "Add to Cart";
+                    }
+                }
+            );
+        }
+
+        updateCart();
     });
 }
 
 
-    updateCart();
-});
-
-
- // SEARCH AND CATEGORY FILTERING
+/* ==========================================
+   SEARCH AND CATEGORY FILTERING
+========================================== */
 
 const searchInput = document.getElementById("searchInput");
 const searchButton = document.getElementById("searchButton");
@@ -216,25 +312,29 @@ const productCards = document.querySelectorAll(".product-card");
 const productSection = document.getElementById("products");
 const productsGrid = document.getElementById("productsGrid");
 
-// The currently selected category
 let selectedCategory = "all";
 
-// Message displayed when no products match
-const searchMessage = document.createElement("p");
-searchMessage.id = "searchMessage";
-searchMessage.textContent = "No matching products found.";
-searchMessage.style.textAlign = "center";
-searchMessage.style.padding = "20px";
-searchMessage.style.display = "none";
+let searchMessage = null;
 
-productsGrid.insertAdjacentElement("afterend", searchMessage);
+if (productsGrid) {
+    searchMessage = document.createElement("p");
+    searchMessage.id = "searchMessage";
+    searchMessage.textContent = "No matching products found.";
+    searchMessage.style.textAlign = "center";
+    searchMessage.style.padding = "20px";
+    searchMessage.style.display = "none";
 
-// Search products and apply the selected category together
+    productsGrid.insertAdjacentElement("afterend", searchMessage);
+}
+
 function filterProducts() {
-    const searchTerm = searchInput.value.trim().toLowerCase();
+    const searchTerm = searchInput
+        ? searchInput.value.trim().toLowerCase()
+        : "";
+
     let matchingProducts = 0;
 
-    productCards.forEach(function(card) {
+    productCards.forEach(function (card) {
         const productName = (
             card.dataset.name ||
             card.querySelector("h3")?.textContent ||
@@ -253,19 +353,16 @@ function filterProducts() {
             card.querySelector(".products-category")?.textContent || ""
         ).trim().toLowerCase();
 
-        // Search product names and categories
         const matchesSearch =
             productName.includes(searchTerm) ||
             headingName.includes(searchTerm) ||
             productCategory.includes(searchTerm) ||
             displayedCategory.includes(searchTerm);
 
-        // Check the selected category
         const matchesCategory =
             selectedCategory === "all" ||
             productCategory === selectedCategory;
 
-        // Show only products matching BOTH conditions
         if (matchesSearch && matchesCategory) {
             card.style.display = "";
             matchingProducts++;
@@ -274,63 +371,70 @@ function filterProducts() {
         }
     });
 
-    // Show a message if no products match
-    searchMessage.style.display =
-        matchingProducts === 0 ? "block" : "none";
+    if (searchMessage) {
+        searchMessage.style.display =
+            matchingProducts === 0 ? "block" : "none";
+    }
 }
 
-// Search button
-searchButton.addEventListener("click", function() {
-    filterProducts();
-
-    productSection.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-    });
-});
-
-// Search immediately while typing
-searchInput.addEventListener("input", filterProducts);
-
-// Allow customers to press Enter to search
-searchInput.addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {
-        event.preventDefault();
+if (searchButton) {
+    searchButton.addEventListener("click", function () {
         filterProducts();
 
-        productSection.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
-    }
-});
+        if (productSection) {
+            productSection.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+    });
+}
 
-// Category buttons
-categoryButtons.forEach(function(button) {
-    button.addEventListener("click", function() {
+if (searchInput) {
+    searchInput.addEventListener("input", filterProducts);
+
+    searchInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            filterProducts();
+
+            if (productSection) {
+                productSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            }
+        }
+    });
+}
+
+categoryButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
         selectedCategory = (
             button.dataset.category || "all"
         ).toLowerCase();
 
-        // Update the active category button
-        categoryButtons.forEach(function(categoryButton) {
+        categoryButtons.forEach(function (categoryButton) {
             categoryButton.classList.remove("active");
         });
 
         button.classList.add("active");
 
-        // Keep the search term when changing categories
         filterProducts();
 
-        productSection.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
+        if (productSection) {
+            productSection.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
     });
 });
 
 
-/* CUSTOMER PROFILE — SINGLE EVENT SYSTEM */
+/* ==========================================
+   CUSTOMER PROFILE
+========================================== */
 
 (async function setupCustomerProfile() {
     const authClient = window.sweetSupabase;
@@ -349,32 +453,41 @@ categoryButtons.forEach(function(button) {
         return;
     }
 
-    // Display the signed-out state
     function showSignedOut() {
         if (profileName) profileName.textContent = "Sign in";
-        if (profileNameDisplay) profileNameDisplay.textContent = "My Account";
+
+        if (profileNameDisplay) {
+            profileNameDisplay.textContent = "My Account";
+        }
+
         if (profileEmail) profileEmail.textContent = "";
 
         if (accountLink) {
-    accountLink.hidden = false;
-    accountLink.textContent = "My Account";
-    accountLink.href = "./account.html";
-}
+            accountLink.hidden = false;
+            accountLink.textContent = "My Account";
+            accountLink.href = "./account.html";
+        }
 
         if (logoutButton) logoutButton.hidden = true;
     }
 
-    // Display the signed-in customer's details
     function showSignedIn(user) {
         const fullName = user.user_metadata?.full_name || "";
+
         const firstName =
             fullName.trim().split(/\s+/)[0] ||
             user.email?.split("@")[0] ||
             "Customer";
 
         if (profileName) profileName.textContent = firstName;
-        if (profileNameDisplay) profileNameDisplay.textContent = firstName;
-        if (profileEmail) profileEmail.textContent = user.email || "";
+
+        if (profileNameDisplay) {
+            profileNameDisplay.textContent = firstName;
+        }
+
+        if (profileEmail) {
+            profileEmail.textContent = user.email || "";
+        }
 
         if (accountLink) accountLink.hidden = true;
         if (logoutButton) logoutButton.hidden = false;
@@ -395,39 +508,35 @@ categoryButtons.forEach(function(button) {
         }
     }
 
-    // One click handler for the profile button
-    profileButton.addEventListener("click", async (event) => {
+    profileButton.addEventListener("click", async function (event) {
         event.preventDefault();
         event.stopPropagation();
 
         const { data, error } = await authClient.auth.getUser();
 
-        // Ask signed-out customers to sign in
         if (error || !data.user) {
             window.location.href = "./login.html";
             return;
         }
 
-        // Toggle the menu only once
         const shouldOpen = profileMenu.hidden;
 
         profileMenu.hidden = !shouldOpen;
+
         profileButton.setAttribute(
             "aria-expanded",
             String(shouldOpen)
         );
     });
 
-    // Close the menu only when clicking outside the profile area
-    document.addEventListener("click", (event) => {
+    document.addEventListener("click", function (event) {
         if (!profileArea.contains(event.target)) {
             closeProfileMenu();
         }
     });
 
-    // Log out the customer
     if (logoutButton) {
-        logoutButton.addEventListener("click", async (event) => {
+        logoutButton.addEventListener("click", async function (event) {
             event.preventDefault();
             event.stopPropagation();
 
@@ -440,18 +549,20 @@ categoryButtons.forEach(function(button) {
 
                 closeProfileMenu();
                 showSignedOut();
+
                 window.location.href = "./login.html";
+
             } catch (error) {
                 console.error("Logout failed:", error);
                 alert("Unable to log out. Please try again.");
+
             } finally {
                 logoutButton.disabled = false;
             }
         });
     }
 
-    // Update the profile when the authentication state changes
-    authClient.auth.onAuthStateChange((_event, session) => {
+    authClient.auth.onAuthStateChange(function (_event, session) {
         if (session?.user) {
             showSignedIn(session.user);
         } else {
@@ -464,11 +575,9 @@ categoryButtons.forEach(function(button) {
 })();
 
 
-
-/* ==================================
+/* ==========================================
    PAYSTACK CHECKOUT
-   SWEET's KITCHEN & COLLECTIONS
-================================== */
+========================================== */
 
 document.addEventListener("DOMContentLoaded", function () {
     const checkoutButton = document.getElementById("checkoutButton");
@@ -491,7 +600,9 @@ document.addEventListener("DOMContentLoaded", function () {
         !customerName || !customerPhone || !deliveryAddress ||
         !confirmButton
     ) {
-        console.error("Checkout error: Required checkout HTML elements are missing.");
+        console.error(
+            "Checkout error: Required checkout HTML elements are missing."
+        );
         return;
     }
 
@@ -508,14 +619,15 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const subtotal = cart.reduce((sum, item) => {
+        const subtotal = cart.reduce(function (sum, item) {
             return sum + Number(item.price) * Number(item.quantity);
         }, 0);
 
         const total = subtotal + subtotal * 0.01;
 
         paymentTotal.textContent = "GH₵" + total.toFixed(2);
-        paymentReference.textContent = "Generated securely when checkout starts.";
+        paymentReference.textContent =
+            "Generated securely when checkout starts.";
 
         paymentNetwork.value = "";
         paymentOverlay.hidden = false;
@@ -525,11 +637,13 @@ document.addEventListener("DOMContentLoaded", function () {
     confirmButton.addEventListener("click", async function (event) {
         event.preventDefault();
 
-        if (!customerEmail.value.trim() ||
+        if (
+            !customerEmail.value.trim() ||
             !customerEmail.checkValidity() ||
             !customerName.value.trim() ||
             !customerPhone.value.trim() ||
-            !deliveryAddress.value.trim()) {
+            !deliveryAddress.value.trim()
+        ) {
             alert("Please complete all customer details with a valid email.");
             return;
         }
@@ -547,65 +661,76 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const originalButtonText = confirmButton.textContent;
+
         confirmButton.disabled = true;
         confirmButton.textContent = "Connecting to Paystack...";
 
         try {
-            const items = cart.map(item => ({
-                name: String(item.name),
-                quantity: Number(item.quantity)
-            }));
+            const items = cart.map(function (item) {
+                return {
+                    name: String(item.name),
+                    quantity: Number(item.quantity)
+                };
+            });
 
-            const { data, error } = await window.sweetSupabase.functions.invoke(
-                "initialize-paystack",
-                {
-                    body: {
-                        action: "initialize",
-                        email: customerEmail.value.trim(),
-                        customerName: customerName.value.trim(),
-                        customerPhone: customerPhone.value.trim(),
-                        deliveryAddress: deliveryAddress.value.trim(),
-                        network,
-                        items
+            const { data, error } =
+                await window.sweetSupabase.functions.invoke(
+                    "initialize-paystack",
+                    {
+                        body: {
+                            action: "initialize",
+                            email: customerEmail.value.trim(),
+                            customerName: customerName.value.trim(),
+                            customerPhone: customerPhone.value.trim(),
+                            deliveryAddress: deliveryAddress.value.trim(),
+                            network: network,
+                            items: items
+                        }
+                    }
+                );
+
+            if (error) {
+                console.error("Checkout function error:", error);
+                console.error("Error message:", error.message);
+                console.error("Error details:", error.details);
+                console.error("Error hint:", error.hint);
+                console.error("Error code:", error.code);
+
+                if (error.context) {
+                    try {
+                        console.error(
+                            "Server response:",
+                            await error.context.clone().text()
+                        );
+                    } catch (readError) {
+                        console.error(
+                            "Could not read server response:",
+                            readError
+                        );
                     }
                 }
-            );
 
-            
-if (error) {
-    console.error("Checkout function error:", error);
-    console.error("Error message:", error.message);
-    console.error("Error details:", error.details);
-    console.error("Error hint:", error.hint);
-    console.error("Error code:", error.code);
-
-    if (error.context) {
-        try {
-            console.error(
-                "Server response:",
-                await error.context.clone().text()
-            );
-        } catch (readError) {
-            console.error("Could not read server response:", readError);
-        }
-    }
-
-    throw new Error(
-        "Payment connection failed. Open F12 > Console to see the exact error."
-    );
-}
-
-
-            if (!data || !data.authorization_url) {
-                throw new Error(data?.error || "Paystack did not return a payment link.");
+                throw new Error(
+                    "Payment connection failed. Open F12 > Console to see the exact error."
+                );
             }
 
-            // Redirect the customer to Paystack's secure payment page.
+            if (!data || !data.authorization_url) {
+                throw new Error(
+                    data?.error || "Paystack did not return a payment link."
+                );
+            }
+
             window.location.href = data.authorization_url;
 
         } catch (error) {
             console.error("Paystack checkout error:", error);
-            alert(error.message || "Payment could not start. Please try again.");
+
+            alert(
+                error.message ||
+                "Payment could not start. Please try again."
+            );
+
             confirmButton.disabled = false;
             confirmButton.textContent = originalButtonText;
         }
@@ -625,6 +750,10 @@ if (error) {
 });
 
 
+/* ==========================================
+   MY ORDERS MENU LINK
+========================================== */
+
 const myOrdersMenuLink = document.getElementById("myOrdersLink");
 const myOrdersSectionElement = document.getElementById("myOrders");
 
@@ -641,3 +770,12 @@ if (myOrdersMenuLink && myOrdersSectionElement) {
         });
     });
 }
+
+
+/* ==========================================
+   INITIALIZE CART
+========================================== */
+
+updateCart();
+
+console.log("SWEET'S KITCHEN & COLLECTIONS is ready.");
