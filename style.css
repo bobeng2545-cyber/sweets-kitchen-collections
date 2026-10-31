@@ -2946,36 +2946,46 @@ body.dark-mode .checkout-button {
     font-size: 13px;
 }
 
-/* Footer */
+/* Professional notification footer */
 #notificationMenu .notification-footer {
-    padding: 13px 16px;
-    text-align: center;
-    border-top: 1px solid #eeeeee;
-    background: #fafafa;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f8fafc;
+    border-top: 1px solid #e5e7eb;
 }
 
 #notificationMenu .notification-footer button {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #fee2e2;
+    border-radius: 8px;
+    background: #fff5f5;
     color: #dc2626;
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+#notificationMenu .notification-footer button:hover {
+    background: #fee2e2;
+    border-color: #fecaca;
+    text-decoration: none;
 }
 
 /* Dark mode */
-body.dark-mode #notificationMenu {
-    background: #1f2937;
-    color: #f9fafb;
-    border-color: #374151;
-}
-
-body.dark-mode #notificationMenu .notification-header,
-body.dark-mode #notificationMenu .notification-item {
-    border-color: #374151;
-}
-
-body.dark-mode #notificationMenu .notification-item-content small {
-    color: #a1a1aa;
-}
-
 body.dark-mode #notificationMenu .notification-footer {
     background: #111827;
     border-color: #374151;
+}
+
+body.dark-mode #notificationMenu .notification-footer button {
+    background: #3b1d24;
+    border-color: #7f1d1d;
+    color: #fca5a5;
+}
+
+body.dark-mode #notificationMenu .notification-footer button:hover {
+    background: #51212b;
 }
