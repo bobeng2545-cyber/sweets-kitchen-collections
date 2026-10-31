@@ -29,7 +29,7 @@ if (!window.supabase) {
 function initializeSweetWebsite() {
 
     const supabaseClient = window.sweetSupabase;
-
+   
     /* =================================================
        3. MOBILE MENU
     ================================================= */
