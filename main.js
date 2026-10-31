@@ -1377,33 +1377,296 @@ function initializeSweetWebsite() {
     })();
 
 
-    /* =================================================
-       14. MY ORDERS NAVIGATION
-    ================================================= */
+    
+/* =================================================
+   14. MY ORDERS + AUTOMATIC ORDER NOTIFICATIONS
+================================================= */
 
-    const myOrdersMenuLink =
-        document.getElementById("myOrdersLink");
+const myOrdersMenuLink =
+    document.getElementById("myOrdersLink");
 
-    const myOrdersSectionElement =
-        document.getElementById("myOrders");
+const myOrdersSectionElement =
+    document.getElementById("myOrders");
 
-    if (myOrdersMenuLink && myOrdersSectionElement) {
+let orderNotificationContainer = null;
+let notificationCheckInProgress = false;
 
-        myOrdersMenuLink.addEventListener("click", function (event) {
+function getSavedOrderNotifications() {
 
-            event.preventDefault();
+    const savedOrders = [];
 
-            myOrdersSectionElement.hidden = false;
-            myOrdersSectionElement.style.display = "block";
+    try {
 
-            myOrdersSectionElement.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
+        for (let i = 0; i < localStorage.length; i++) {
 
-        });
+            const key = localStorage.key(i);
+
+            if (!key || !key.startsWith("sweet_order_notification_")) {
+                continue;
+            }
+
+            const savedData = JSON.parse(
+                localStorage.getItem(key)
+            );
+
+            if (
+                savedData &&
+                savedData.reference &&
+                savedData.token
+            ) {
+                savedOrders.push(savedData);
+            }
+
+        }
+
+    } catch (error) {
+
+        console.error("Could not read saved order notifications:", error);
 
     }
+
+    return savedOrders;
+}
+
+
+function createOrderNotificationContainer() {
+
+    if (!myOrdersSectionElement) {
+        return null;
+    }
+
+    let container = document.getElementById(
+        "orderNotificationContainer"
+    );
+
+    if (!container) {
+
+        container = document.createElement("div");
+
+        container.id = "orderNotificationContainer";
+        container.className = "order-notification-container";
+
+        const heading = document.createElement("h3");
+
+        heading.textContent = "My Order Updates";
+
+        const description = document.createElement("p");
+
+        description.textContent =
+            "Your payment and delivery updates will appear here.";
+
+        const list = document.createElement("div");
+
+        list.id = "orderNotificationList";
+
+        container.appendChild(heading);
+        container.appendChild(description);
+        container.appendChild(list);
+
+        myOrdersSectionElement.appendChild(container);
+
+    }
+
+    return container;
+}
+
+
+function displayOrderNotification(order, notification) {
+
+    const list = document.getElementById(
+        "orderNotificationList"
+    );
+
+    if (!list) return;
+
+    let card = document.getElementById(
+        "notification-" + order.reference
+    );
+
+    if (!card) {
+
+        card = document.createElement("div");
+
+        card.id = "notification-" + order.reference;
+        card.className = "order-notification-card";
+
+        const reference = document.createElement("p");
+        reference.className = "notification-reference";
+
+        const payment = document.createElement("p");
+        payment.className = "notification-payment";
+
+        const status = document.createElement("p");
+        status.className = "notification-status";
+
+        const updated = document.createElement("small");
+        updated.className = "notification-updated";
+
+        card.appendChild(reference);
+        card.appendChild(payment);
+        card.appendChild(status);
+        card.appendChild(updated);
+
+        list.appendChild(card);
+
+    }
+
+    const referenceElement =
+        card.querySelector(".notification-reference");
+
+    const paymentElement =
+        card.querySelector(".notification-payment");
+
+    const statusElement =
+        card.querySelector(".notification-status");
+
+    const updatedElement =
+        card.querySelector(".notification-updated");
+
+    referenceElement.textContent =
+        "Order reference: " + notification.reference;
+
+    paymentElement.textContent =
+        "Payment: " + notification.payment_status;
+
+    statusElement.textContent =
+        "Delivery status: " + notification.order_status;
+
+    updatedElement.textContent =
+        "Last updated: " +
+        new Date(notification.updated_at).toLocaleString();
+
+}
+
+
+async function checkOrderNotifications() {
+
+    if (!supabaseClient || notificationCheckInProgress) {
+        return;
+    }
+
+    const savedOrders = getSavedOrderNotifications();
+
+    if (savedOrders.length === 0) {
+
+        const list = document.getElementById(
+            "orderNotificationList"
+        );
+
+        if (list) {
+
+            list.textContent =
+                "No saved orders yet. Your orders will appear here after checkout.";
+
+        }
+
+        return;
+    }
+
+    notificationCheckInProgress = true;
+
+    try {
+
+        for (const order of savedOrders) {
+
+            try {
+
+                const { data, error } =
+                    await supabaseClient.functions.invoke(
+                        "get-order-notifications",
+                        {
+                            body: {
+                                reference: order.reference,
+                                notification_token: order.token
+                            }
+                        }
+                    );
+
+                if (error) {
+
+                    console.error(
+                        "Notification check failed:",
+                        order.reference,
+                        error
+                    );
+
+                    continue;
+                }
+
+                if (!data || !data.success || !data.notification) {
+                    continue;
+                }
+
+                displayOrderNotification(
+                    order,
+                    data.notification
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Could not retrieve order update:",
+                    order.reference,
+                    error
+                );
+
+            }
+
+        }
+
+    } finally {
+
+        notificationCheckInProgress = false;
+
+    }
+
+}
+
+
+// Create the notification display.
+if (myOrdersSectionElement) {
+
+    orderNotificationContainer =
+        createOrderNotificationContainer();
+
+}
+
+
+// Open My Orders.
+if (myOrdersMenuLink && myOrdersSectionElement) {
+
+    myOrdersMenuLink.addEventListener("click", function (event) {
+
+        event.preventDefault();
+
+        myOrdersSectionElement.hidden = false;
+        myOrdersSectionElement.style.display = "block";
+
+        myOrdersSectionElement.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+        checkOrderNotifications();
+
+    });
+
+}
+
+
+// Check saved orders when the website loads.
+checkOrderNotifications();
+
+
+// Automatically refresh order updates every 15 seconds.
+window.setInterval(function () {
+
+    if (!document.hidden) {
+        checkOrderNotifications();
+    }
+
+}, 15000);
+
 
 
     /* =================================================
