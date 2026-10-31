@@ -108,22 +108,25 @@ const cartButton = document.getElementById("cartButton");
 const productsGrid = document.getElementById("productsGrid");
 
 
+
 /* OPEN CART */
 
 if (cartButton && cartOverlay) {
     cartButton.addEventListener("click", function () {
+        cartOverlay.hidden = false;
         cartOverlay.classList.add("show");
     });
 }
-
 
 /* CLOSE CART */
 
 if (closeCart && cartOverlay) {
     closeCart.addEventListener("click", function () {
         cartOverlay.classList.remove("show");
+        cartOverlay.hidden = true;
     });
 }
+
 
 
 /* UPDATE PRODUCT BUTTON STATES */
