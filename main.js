@@ -226,10 +226,10 @@ addCartButtons.forEach(function (button) {
 
         updateCart();
 
-        button.textContent = "Added to Cart";
-        button.disabled = true;
-    });
-});
+button.textContent = "Added to Cart";
+button.disabled = true;
+
+openCart();
 
 
 /* RESTORE PRODUCT BUTTON STATES */
