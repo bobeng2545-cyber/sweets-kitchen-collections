@@ -1378,8 +1378,9 @@ function initializeSweetWebsite() {
 
 
     
+
 /* =================================================
-   14. MY ORDERS + AUTOMATIC ORDER NOTIFICATIONS
+   14. MY ORDERS + NOTIFICATION BELL INTEGRATION
 ================================================= */
 
 const myOrdersMenuLink =
@@ -1388,52 +1389,317 @@ const myOrdersMenuLink =
 const myOrdersSectionElement =
     document.getElementById("myOrders");
 
-let orderNotificationContainer = null;
+// Notification bell HTML elements
+const notificationButton =
+    document.getElementById("notificationButton");
+
+const notificationMenu =
+    document.getElementById("notificationMenu");
+
+const notificationList =
+    document.getElementById("notificationList");
+
+const notificationCount =
+    document.getElementById("notificationCount");
+
+const markAllNotificationsRead =
+    document.getElementById("markAllNotificationsRead");
+
+const clearNotifications =
+    document.getElementById("clearNotifications");
+
 let notificationCheckInProgress = false;
 
-function getSavedOrderNotifications() {
+// Browser storage keys
+const SWEET_NOTIFICATIONS_KEY =
+    "sweet_customer_notifications";
 
-    const savedOrders = [];
+const SWEET_ORDER_STATUS_KEY =
+    "sweet_order_status_snapshots";
 
-    try {
+let customerNotifications = [];
+let orderStatusSnapshots = {};
 
-        for (let i = 0; i < localStorage.length; i++) {
+try {
+    customerNotifications = JSON.parse(
+        localStorage.getItem(SWEET_NOTIFICATIONS_KEY) || "[]"
+    );
 
-            const key = localStorage.key(i);
+    orderStatusSnapshots = JSON.parse(
+        localStorage.getItem(SWEET_ORDER_STATUS_KEY) || "{}"
+    );
 
-            if (!key || !key.startsWith("sweet_order_notification_")) {
-                continue;
-            }
-
-            const savedData = JSON.parse(
-                localStorage.getItem(key)
-            );
-
-            if (
-                savedData &&
-                savedData.reference &&
-                savedData.token
-            ) {
-                savedOrders.push(savedData);
-            }
-
-        }
-
-    } catch (error) {
-
-        console.error("Could not read saved order notifications:", error);
-
+    if (!Array.isArray(customerNotifications)) {
+        customerNotifications = [];
     }
 
-    return savedOrders;
+    if (
+        !orderStatusSnapshots ||
+        typeof orderStatusSnapshots !== "object" ||
+        Array.isArray(orderStatusSnapshots)
+    ) {
+        orderStatusSnapshots = {};
+    }
+
+} catch (error) {
+    console.error("Could not load notification storage:", error);
+
+    customerNotifications = [];
+    orderStatusSnapshots = {};
 }
 
 
+// Save notification information
+function saveCustomerNotifications() {
+
+    try {
+        localStorage.setItem(
+            SWEET_NOTIFICATIONS_KEY,
+            JSON.stringify(customerNotifications)
+        );
+    } catch (error) {
+        console.error("Could not save notifications:", error);
+    }
+
+}
+
+
+// Save previous order statuses
+function saveOrderStatusSnapshots() {
+
+    try {
+        localStorage.setItem(
+            SWEET_ORDER_STATUS_KEY,
+            JSON.stringify(orderStatusSnapshots)
+        );
+    } catch (error) {
+        console.error("Could not save order status snapshots:", error);
+    }
+
+}
+
+
+// Update bell counter
+function updateNotificationCount() {
+
+    if (!notificationCount) return;
+
+    const unreadCount = customerNotifications.filter(
+        item => !item.read
+    ).length;
+
+    notificationCount.textContent = unreadCount;
+
+    notificationCount.hidden = unreadCount === 0;
+
+    if (notificationButton) {
+        notificationButton.setAttribute(
+            "aria-label",
+            unreadCount > 0
+                ? `${unreadCount} unread notifications`
+                : "Notifications"
+        );
+    }
+
+}
+
+
+// Display notifications inside the bell
+function renderCustomerNotifications() {
+
+    if (!notificationList) return;
+
+    notificationList.innerHTML = "";
+
+    if (customerNotifications.length === 0) {
+
+        const emptyMessage = document.createElement("p");
+
+        emptyMessage.className = "empty-notifications";
+        emptyMessage.textContent = "No notifications yet.";
+
+        notificationList.appendChild(emptyMessage);
+
+        updateNotificationCount();
+        return;
+    }
+
+    customerNotifications.forEach(function (item) {
+
+        const notificationItem =
+            document.createElement("div");
+
+        notificationItem.className = "notification-item";
+
+        if (!item.read) {
+            notificationItem.classList.add("unread");
+        }
+
+        const icon = document.createElement("span");
+
+        icon.className = "notification-item-icon";
+        icon.textContent = "📦";
+
+        const content = document.createElement("div");
+
+        content.className = "notification-item-content";
+
+        const title = document.createElement("strong");
+
+        title.textContent = item.title;
+
+        const message = document.createElement("p");
+
+        message.textContent = item.message;
+
+        const date = document.createElement("small");
+
+        date.textContent = new Date(
+            item.createdAt
+        ).toLocaleString();
+
+        content.appendChild(title);
+        content.appendChild(message);
+        content.appendChild(date);
+
+        notificationItem.appendChild(icon);
+        notificationItem.appendChild(content);
+
+        if (!item.read) {
+
+            const unreadDot = document.createElement("span");
+
+            unreadDot.className = "notification-unread-dot";
+
+            notificationItem.appendChild(unreadDot);
+
+        }
+
+        notificationList.appendChild(notificationItem);
+
+    });
+
+    updateNotificationCount();
+
+}
+
+
+// Add a new notification
+function addCustomerNotification(title, message, reference) {
+
+    const notification = {
+        id: `${reference}-${Date.now()}`,
+        title: title,
+        message: message,
+        reference: reference,
+        createdAt: new Date().toISOString(),
+        read: false
+    };
+
+    customerNotifications.unshift(notification);
+
+    // Keep the latest 100 notifications
+    customerNotifications =
+        customerNotifications.slice(0, 100);
+
+    saveCustomerNotifications();
+    renderCustomerNotifications();
+
+}
+
+
+// Notification bell open and close
+if (
+    notificationButton &&
+    notificationMenu &&
+    notificationList
+) {
+
+    notificationButton.addEventListener("click", function (event) {
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const shouldOpen = notificationMenu.hidden;
+
+        notificationMenu.hidden = !shouldOpen;
+
+        notificationButton.setAttribute(
+            "aria-expanded",
+            String(shouldOpen)
+        );
+
+        if (shouldOpen) {
+            renderCustomerNotifications();
+        }
+
+    });
+
+    document.addEventListener("click", function (event) {
+
+        if (
+            !notificationMenu.contains(event.target) &&
+            !notificationButton.contains(event.target)
+        ) {
+
+            notificationMenu.hidden = true;
+
+            notificationButton.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+
+        }
+
+    });
+
+}
+
+
+// Mark all notifications as read
+if (markAllNotificationsRead) {
+
+    markAllNotificationsRead.addEventListener("click", function () {
+
+        customerNotifications.forEach(function (item) {
+            item.read = true;
+        });
+
+        saveCustomerNotifications();
+        renderCustomerNotifications();
+
+    });
+
+}
+
+
+// Clear all notifications
+if (clearNotifications) {
+
+    clearNotifications.addEventListener("click", function () {
+
+        if (customerNotifications.length === 0) return;
+
+        const confirmed = confirm(
+            "Are you sure you want to clear all notifications?"
+        );
+
+        if (!confirmed) return;
+
+        customerNotifications = [];
+
+        saveCustomerNotifications();
+        renderCustomerNotifications();
+
+    });
+
+}
+
+
+// Create My Orders notification display
 function createOrderNotificationContainer() {
 
-    if (!myOrdersSectionElement) {
-        return null;
-    }
+    if (!myOrdersSectionElement) return null;
 
     let container = document.getElementById(
         "orderNotificationContainer"
@@ -1468,9 +1734,11 @@ function createOrderNotificationContainer() {
     }
 
     return container;
+
 }
 
 
+// Display latest order status under My Orders
 function displayOrderNotification(order, notification) {
 
     const list = document.getElementById(
@@ -1511,34 +1779,23 @@ function displayOrderNotification(order, notification) {
 
     }
 
-    const referenceElement =
-        card.querySelector(".notification-reference");
-
-    const paymentElement =
-        card.querySelector(".notification-payment");
-
-    const statusElement =
-        card.querySelector(".notification-status");
-
-    const updatedElement =
-        card.querySelector(".notification-updated");
-
-    referenceElement.textContent =
+    card.querySelector(".notification-reference").textContent =
         "Order reference: " + notification.reference;
 
-    paymentElement.textContent =
+    card.querySelector(".notification-payment").textContent =
         "Payment: " + notification.payment_status;
 
-    statusElement.textContent =
+    card.querySelector(".notification-status").textContent =
         "Delivery status: " + notification.order_status;
 
-    updatedElement.textContent =
+    card.querySelector(".notification-updated").textContent =
         "Last updated: " +
         new Date(notification.updated_at).toLocaleString();
 
 }
 
 
+// Check orders and detect status changes
 async function checkOrderNotifications() {
 
     if (!supabaseClient || notificationCheckInProgress) {
@@ -1554,10 +1811,8 @@ async function checkOrderNotifications() {
         );
 
         if (list) {
-
             list.textContent =
                 "No saved orders yet. Your orders will appear here after checkout.";
-
         }
 
         return;
@@ -1584,33 +1839,96 @@ async function checkOrderNotifications() {
 
                 if (error) {
 
-    console.error(
-        "NOTIFICATION FUNCTION ERROR:",
-        error
-    );
+                    console.error(
+                        "NOTIFICATION FUNCTION ERROR:",
+                        error
+                    );
 
-    continue;
-}
+                    continue;
+                }
 
-console.log(
-    "NOTIFICATION SERVER RESPONSE:",
-    data
-);
+                if (!data || !data.success || !data.notification) {
 
-               if (!data || !data.success || !data.notification) {
+                    console.warn(
+                        "ORDER NOTIFICATION WAS NOT RETURNED:",
+                        data
+                    );
 
-    console.warn(
-        "ORDER NOTIFICATION WAS NOT RETURNED:",
-        data
-    );
+                    continue;
+                }
 
-    continue;
-}
+                const notification = data.notification;
 
-                displayOrderNotification(
-                    order,
-                    data.notification
-                );
+                // Always display the latest order status.
+                displayOrderNotification(order, notification);
+
+                // Compare the new status with the previous status.
+                const previousStatus =
+                    orderStatusSnapshots[order.reference];
+
+                const currentStatus = {
+                    payment_status: notification.payment_status,
+                    order_status: notification.order_status
+                };
+
+                if (!previousStatus) {
+
+                    // First successful check: save baseline only.
+                    orderStatusSnapshots[order.reference] =
+                        currentStatus;
+
+                    saveOrderStatusSnapshots();
+
+                    continue;
+                }
+
+                const paymentChanged =
+                    previousStatus.payment_status !==
+                    currentStatus.payment_status;
+
+                const orderChanged =
+                    previousStatus.order_status !==
+                    currentStatus.order_status;
+
+                if (paymentChanged || orderChanged) {
+
+                    const changes = [];
+
+                    if (paymentChanged) {
+                        changes.push(
+                            "Payment status: " +
+                            currentStatus.payment_status
+                        );
+                    }
+
+                    if (orderChanged) {
+                        changes.push(
+                            "Delivery status: " +
+                            currentStatus.order_status
+                        );
+                    }
+
+                    addCustomerNotification(
+                        "Your order has been updated",
+                        changes.join(" | ") +
+                        ". Order reference: " +
+                        order.reference,
+                        order.reference
+                    );
+
+                    console.log(
+                        "New customer notification created:",
+                        order.reference,
+                        changes
+                    );
+
+                }
+
+                // Update the saved snapshot.
+                orderStatusSnapshots[order.reference] =
+                    currentStatus;
+
+                saveOrderStatusSnapshots();
 
             } catch (error) {
 
@@ -1633,16 +1951,17 @@ console.log(
 }
 
 
-// Create the notification display.
+// Initialize notifications
+renderCustomerNotifications();
+
+
+// Create My Orders notification display
 if (myOrdersSectionElement) {
-
-    orderNotificationContainer =
-        createOrderNotificationContainer();
-
+    createOrderNotificationContainer();
 }
 
 
-// Open My Orders.
+// Open My Orders
 if (myOrdersMenuLink && myOrdersSectionElement) {
 
     myOrdersMenuLink.addEventListener("click", function (event) {
@@ -1664,11 +1983,11 @@ if (myOrdersMenuLink && myOrdersSectionElement) {
 }
 
 
-// Check saved orders when the website loads.
+// Check saved orders when website loads
 checkOrderNotifications();
 
 
-// Automatically refresh order updates every 15 seconds.
+// Automatically refresh every 15 seconds
 window.setInterval(function () {
 
     if (!document.hidden) {
@@ -1676,6 +1995,7 @@ window.setInterval(function () {
     }
 
 }, 15000);
+
 
 
 
