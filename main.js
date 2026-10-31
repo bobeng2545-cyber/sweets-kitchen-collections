@@ -1164,13 +1164,11 @@ connectStoreProductIds();
             try {
 
                 const items = cart.map(function (item) {
-
-                    return {
-                        productId: item.productId,
-                        quantity: Number(item.quantity)
-                    };
-
-                });
+    return {
+        productId: item.productId,
+        quantity: Math.max(1, Number(item.quantity) || 1)
+    };
+});
 
 
                 const { data, error } =
