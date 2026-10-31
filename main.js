@@ -1,4 +1,3 @@
-
 /* =====================================================
    SWEET's KITCHEN & COLLECTIONS
    COMPLETE MAIN WEBSITE JAVASCRIPT
@@ -15,6 +14,7 @@
    9. Paystack checkout
    10. Secure notification token storage
    11. My Orders navigation
+   12. Separate Flash Sale section
 ===================================================== */
 
 
@@ -26,10 +26,12 @@ const SUPABASE_URL =
     "https://vbrlprrbtumonmroybdv.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY =
-    "sb_publishable_QN5w738LNyUrYy2X93M1OQ_md6F2xTN";
+    "sb_publishable_QN5w738LnyUrYy2X93M1OQ_md6F2xTN";
 
 if (!window.supabase) {
-    console.error("Supabase library is missing. Check the Supabase CDN script.");
+    console.error(
+        "Supabase library is missing. Check the Supabase CDN script."
+    );
 } else {
     window.sweetSupabase = window.supabase.createClient(
         SUPABASE_URL,
@@ -45,13 +47,34 @@ if (!window.supabase) {
 function initializeSweetWebsite() {
 
     if (window.sweetWebsiteInitialized) return;
+
     window.sweetWebsiteInitialized = true;
 
     const supabaseClient = window.sweetSupabase;
 
 
     /* =================================================
-       3. CONNECT SUPABASE PRODUCT IDS
+       3. CURRENCY FORMATTER
+    ================================================= */
+
+    function formatMoney(amount) {
+
+        const value = Number(amount);
+
+        if (!Number.isFinite(value)) {
+            return "GH₵0.00";
+        }
+
+        return "GH₵" + value.toLocaleString("en-GH", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+    }
+
+
+    /* =================================================
+       4. CONNECT SUPABASE PRODUCT IDS
     ================================================= */
 
     async function connectStoreProductIds() {
@@ -64,12 +87,18 @@ function initializeSweetWebsite() {
             .eq("is_active", true);
 
         if (error) {
-            console.error("Could not load product IDs:", error);
+
+            console.error(
+                "Could not load product IDs:",
+                error
+            );
+
             return;
+
         }
 
         const productCards =
-            document.querySelectorAll(".product-card");
+            document.querySelectorAll(".product-card:not(.flash-sale-card)");
 
         productCards.forEach(card => {
 
@@ -92,25 +121,30 @@ function initializeSweetWebsite() {
             );
 
             if (product) {
+
                 button.dataset.productId = product.id;
+
             } else {
+
                 console.warn(
                     "No matching database product:",
                     name,
                     price
                 );
+
             }
 
         });
 
         console.log("Store product IDs connected successfully.");
+
     }
 
     connectStoreProductIds();
 
 
     /* =================================================
-       4. DARK AND LIGHT MODE
+       5. DARK AND LIGHT MODE
     ================================================= */
 
     const themeToggle =
@@ -126,9 +160,11 @@ function initializeSweetWebsite() {
         document.body.classList.toggle("dark-mode", isDark);
 
         if (themeIcon) {
+
             themeIcon.textContent = isDark
                 ? "light_mode"
                 : "dark_mode";
+
         }
 
         if (themeToggle) {
@@ -144,15 +180,20 @@ function initializeSweetWebsite() {
             );
 
         }
+
     }
 
     let savedTheme = "light";
 
     try {
+
         savedTheme =
             localStorage.getItem("sweetTheme") || "light";
+
     } catch (error) {
+
         console.warn("Could not load saved theme:", error);
+
     }
 
     applyTheme(savedTheme);
@@ -169,9 +210,13 @@ function initializeSweetWebsite() {
             applyTheme(newTheme);
 
             try {
+
                 localStorage.setItem("sweetTheme", newTheme);
+
             } catch (error) {
+
                 console.warn("Could not save theme:", error);
+
             }
 
         });
@@ -180,7 +225,7 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
-       5. MOBILE NAVIGATION
+       6. MOBILE NAVIGATION
     ================================================= */
 
     const menuButton =
@@ -225,7 +270,7 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
-       6. SHOPPING CART
+       7. SHOPPING CART
     ================================================= */
 
     let cart = [];
@@ -260,6 +305,7 @@ function initializeSweetWebsite() {
 
     }
 
+
     function closeCartWindow() {
 
         if (cartOverlay) {
@@ -267,6 +313,7 @@ function initializeSweetWebsite() {
         }
 
     }
+
 
     if (cartButton) {
         cartButton.addEventListener("click", openCart);
@@ -298,20 +345,6 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
-       7. CURRENCY FORMATTER
-    ================================================= */
-
-    function formatMoney(amount) {
-
-        return "GH₵" + Number(amount).toLocaleString("en-GH", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-
-    }
-
-
-    /* =================================================
        8. UPDATE CART DISPLAY
     ================================================= */
 
@@ -335,11 +368,13 @@ function initializeSweetWebsite() {
                 document.createElement("p");
 
             emptyMessage.className = "empty-cart";
+
             emptyMessage.textContent = "Your cart is empty.";
 
             cartItem.appendChild(emptyMessage);
 
             cartCount.textContent = "0";
+
             cartTotal.textContent = formatMoney(0);
 
             if (checkoutButton) {
@@ -356,6 +391,7 @@ function initializeSweetWebsite() {
         cart.forEach(function (item, index) {
 
             total += item.price * item.quantity;
+
             numberOfItems += item.quantity;
 
             const cartItemElement =
@@ -363,15 +399,18 @@ function initializeSweetWebsite() {
 
             cartItemElement.className = "cart-item";
 
+
             const itemInfo =
                 document.createElement("div");
 
             itemInfo.className = "cart-item-info";
 
+
             const itemName =
                 document.createElement("h3");
 
             itemName.textContent = item.name;
+
 
             const itemPrice =
                 document.createElement("p");
@@ -379,6 +418,7 @@ function initializeSweetWebsite() {
             itemPrice.textContent = formatMoney(item.price);
 
             itemInfo.appendChild(itemName);
+
             itemInfo.appendChild(itemPrice);
 
 
@@ -389,12 +429,16 @@ function initializeSweetWebsite() {
 
             quantityControls.className = "quantity-controls";
 
+
             const decreaseButton =
                 document.createElement("button");
 
             decreaseButton.type = "button";
+
             decreaseButton.className = "decrease";
+
             decreaseButton.dataset.index = index;
+
             decreaseButton.textContent = "−";
 
             decreaseButton.setAttribute(
@@ -402,17 +446,22 @@ function initializeSweetWebsite() {
                 "Decrease quantity"
             );
 
+
             const quantityNumber =
                 document.createElement("span");
 
             quantityNumber.textContent = item.quantity;
 
+
             const increaseButton =
                 document.createElement("button");
 
             increaseButton.type = "button";
+
             increaseButton.className = "increase";
+
             increaseButton.dataset.index = index;
+
             increaseButton.textContent = "+";
 
             increaseButton.setAttribute(
@@ -420,8 +469,11 @@ function initializeSweetWebsite() {
                 "Increase quantity"
             );
 
+
             quantityControls.appendChild(decreaseButton);
+
             quantityControls.appendChild(quantityNumber);
+
             quantityControls.appendChild(increaseButton);
 
 
@@ -431,20 +483,27 @@ function initializeSweetWebsite() {
                 document.createElement("button");
 
             removeButton.type = "button";
+
             removeButton.className = "remove-item";
+
             removeButton.dataset.index = index;
+
             removeButton.textContent = "Remove";
 
 
             cartItemElement.appendChild(itemInfo);
+
             cartItemElement.appendChild(quantityControls);
+
             cartItemElement.appendChild(removeButton);
 
             cartItem.appendChild(cartItemElement);
 
         });
 
+
         cartCount.textContent = numberOfItems;
+
         cartTotal.textContent = formatMoney(total);
 
         if (checkoutButton) {
@@ -478,48 +537,74 @@ function initializeSweetWebsite() {
         ) {
 
             alert("This product has invalid information.");
+
             return;
 
         }
 
+
         const existingProduct = cart.find(function (item) {
 
             if (productId && item.productId) {
+
                 return item.productId === productId;
+
             }
 
             return (
                 !productId &&
                 !item.productId &&
-                item.name === name &&
-                item.price === price
+                item.name === name
             );
 
         });
 
+
         if (existingProduct) {
 
+            // Update the price in case the product is now on sale.
+            existingProduct.price = price;
+
             existingProduct.quantity++;
+
+            // Keep the latest sale information.
+            existingProduct.flashSaleId =
+                button.dataset.flashSaleId || null;
+
+            existingProduct.originalPrice =
+                Number(button.dataset.originalPrice) || price;
 
         } else {
 
             cart.push({
 
                 productId: productId,
+
                 name: name,
+
                 price: price,
-                quantity: 1
+
+                quantity: 1,
+
+                flashSaleId:
+                    button.dataset.flashSaleId || null,
+
+                originalPrice:
+                    Number(button.dataset.originalPrice) || price
 
             });
 
         }
 
+
         updateCart();
+
 
         const originalText =
             button.dataset.originalText || "Add to Cart";
 
         button.dataset.originalText = originalText;
+
         button.textContent = "Added to Cart";
 
         window.setTimeout(function () {
@@ -533,7 +618,11 @@ function initializeSweetWebsite() {
 
     document.addEventListener("click", function (event) {
 
-        const button = event.target.closest(".add-to-cart");
+        const target = event.target;
+
+        if (!target.closest) return;
+
+        const button = target.closest(".add-to-cart");
 
         if (!button) return;
 
@@ -550,7 +639,11 @@ function initializeSweetWebsite() {
 
         cartItem.addEventListener("click", function (event) {
 
-            const button = event.target.closest(
+            const target = event.target;
+
+            if (!target.closest) return;
+
+            const button = target.closest(
                 ".increase, .decrease, .remove-item"
             );
 
@@ -566,6 +659,7 @@ function initializeSweetWebsite() {
             ) {
                 return;
             }
+
 
             if (button.classList.contains("increase")) {
 
@@ -618,14 +712,20 @@ function initializeSweetWebsite() {
     let searchMessage =
         document.getElementById("searchMessage");
 
+
     if (!searchMessage && productsGrid) {
 
         searchMessage = document.createElement("p");
 
         searchMessage.id = "searchMessage";
-        searchMessage.textContent = "No matching products found.";
+
+        searchMessage.textContent =
+            "No matching products found.";
+
         searchMessage.style.textAlign = "center";
+
         searchMessage.style.padding = "20px";
+
         searchMessage.style.display = "none";
 
         productsGrid.insertAdjacentElement(
@@ -647,6 +747,7 @@ function initializeSweetWebsite() {
 
         let matchingProducts = 0;
 
+
         productCards.forEach(function (card) {
 
             const productName = (
@@ -664,19 +765,23 @@ function initializeSweetWebsite() {
                 ""
             ).trim().toLowerCase();
 
+
             const matchesSearch =
                 productName.includes(searchTerm) ||
                 productCategory.includes(searchTerm) ||
                 displayedCategory.includes(searchTerm);
+
 
             const matchesCategory =
                 selectedCategory === "all" ||
                 productCategory === selectedCategory ||
                 displayedCategory === selectedCategory;
 
+
             if (matchesSearch && matchesCategory) {
 
                 card.style.display = "";
+
                 matchingProducts++;
 
             } else {
@@ -686,6 +791,7 @@ function initializeSweetWebsite() {
             }
 
         });
+
 
         if (searchMessage) {
 
@@ -704,27 +810,41 @@ function initializeSweetWebsite() {
         if (productSection) {
 
             productSection.scrollIntoView({
+
                 behavior: "smooth",
+
                 block: "start"
+
             });
 
         }
 
     }
 
+
     if (searchButton) {
-        searchButton.addEventListener("click", searchAndScroll);
+
+        searchButton.addEventListener(
+            "click",
+            searchAndScroll
+        );
+
     }
+
 
     if (searchInput) {
 
-        searchInput.addEventListener("input", filterProducts);
+        searchInput.addEventListener(
+            "input",
+            filterProducts
+        );
 
         searchInput.addEventListener("keydown", function (event) {
 
             if (event.key === "Enter") {
 
                 event.preventDefault();
+
                 searchAndScroll();
 
             }
@@ -732,6 +852,7 @@ function initializeSweetWebsite() {
         });
 
     }
+
 
     categoryButtons.forEach(function (button) {
 
@@ -741,21 +862,27 @@ function initializeSweetWebsite() {
                 button.dataset.category || "all"
             ).trim().toLowerCase();
 
+
             categoryButtons.forEach(function (categoryButton) {
 
                 categoryButton.classList.remove("active");
 
             });
 
+
             button.classList.add("active");
 
             filterProducts();
 
+
             if (productSection) {
 
                 productSection.scrollIntoView({
+
                     behavior: "smooth",
+
                     block: "start"
+
                 });
 
             }
@@ -766,7 +893,362 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
-       12. CUSTOMER PROFILE
+       12. FLASH SALE PRODUCTS
+       Separate section above Featured Products
+    ================================================= */
+
+    const flashSaleSection =
+        document.getElementById("flashSaleSection");
+
+    const flashSaleGrid =
+        document.getElementById("flashSaleGrid");
+
+    const flashSaleMessage =
+        document.getElementById("flashSaleMessage");
+
+
+    async function loadStoreFlashSales() {
+
+        if (
+            !supabaseClient ||
+            !flashSaleSection ||
+            !flashSaleGrid
+        ) {
+
+            console.warn(
+                "Flash Sale HTML or Supabase connection is missing."
+            );
+
+            return;
+
+        }
+
+
+        try {
+
+            const { data, error } = await supabaseClient
+                .from("store_flash_sales")
+                .select(`
+                    id,
+                    product_id,
+                    discount_percentage,
+                    starts_at,
+                    ends_at,
+                    is_active,
+                    product:store_products (
+                        id,
+                        name,
+                        description,
+                        price,
+                        category,
+                        image_url,
+                        stock,
+                        is_active
+                    )
+                `)
+                .eq("is_active", true);
+
+
+            if (error) throw error;
+
+
+            const now = Date.now();
+
+
+            // Only show active sales within their date and time.
+            const activeSales = (data || []).filter(sale => {
+
+                const start =
+                    new Date(sale.starts_at).getTime();
+
+                const end =
+                    new Date(sale.ends_at).getTime();
+
+                const product = sale.product;
+
+                return (
+
+                    sale.is_active === true &&
+
+                    Number.isFinite(start) &&
+
+                    Number.isFinite(end) &&
+
+                    now >= start &&
+
+                    now < end &&
+
+                    product &&
+
+                    product.is_active === true &&
+
+                    Number(product.price) > 0 &&
+
+                    Number(sale.discount_percentage) > 0 &&
+
+                    Number(sale.discount_percentage) < 100
+
+                );
+
+            });
+
+
+            renderStoreFlashSales(activeSales);
+
+
+        } catch (error) {
+
+            console.error(
+                "Flash Sale loading failed:",
+                error
+            );
+
+            flashSaleGrid.replaceChildren();
+
+            flashSaleSection.hidden = false;
+
+            if (flashSaleMessage) {
+
+                flashSaleMessage.hidden = false;
+
+                flashSaleMessage.textContent =
+                    "Flash Sale offers could not be loaded. Please try again later.";
+
+            }
+
+        }
+
+    }
+
+
+    function renderStoreFlashSales(sales) {
+
+        flashSaleGrid.replaceChildren();
+
+
+        if (!sales.length) {
+
+            flashSaleSection.hidden = true;
+
+            if (flashSaleMessage) {
+                flashSaleMessage.hidden = true;
+            }
+
+            return;
+
+        }
+
+
+        flashSaleSection.hidden = false;
+
+        if (flashSaleMessage) {
+            flashSaleMessage.hidden = true;
+        }
+
+
+        sales.forEach(function (sale) {
+
+            const product = sale.product;
+
+            const originalPrice =
+                Number(product.price);
+
+            const discount =
+                Number(sale.discount_percentage);
+
+            const discountedPrice = Number(
+                (
+                    originalPrice *
+                    (1 - discount / 100)
+                ).toFixed(2)
+            );
+
+
+            const card =
+                document.createElement("article");
+
+            card.className =
+                "flash-sale-card product-card";
+
+            card.dataset.name =
+                product.name || "";
+
+            card.dataset.category =
+                product.category || "";
+
+
+            // Discount badge.
+
+            const badge =
+                document.createElement("span");
+
+            badge.className = "flash-sale-badge";
+
+            badge.textContent = `${discount}% OFF`;
+
+
+            // Product image.
+
+            const image =
+                document.createElement("img");
+
+            image.src = product.image_url || "";
+
+            image.alt =
+                product.name || "Flash sale product";
+
+            image.loading = "lazy";
+
+            image.onerror = function () {
+
+                image.style.display = "none";
+
+            };
+
+
+            // Product details.
+
+            const details =
+                document.createElement("div");
+
+            details.className = "flash-sale-details";
+
+
+            const name =
+                document.createElement("h3");
+
+            name.textContent =
+                product.name || "Product";
+
+
+            const description =
+                document.createElement("p");
+
+            description.textContent =
+                product.description || "";
+
+
+            // Prices.
+
+            const prices =
+                document.createElement("div");
+
+            prices.className = "flash-sale-prices";
+
+
+            const salePrice =
+                document.createElement("span");
+
+            salePrice.className = "flash-sale-price";
+
+            salePrice.textContent =
+                formatMoney(discountedPrice);
+
+
+            const oldPrice =
+                document.createElement("span");
+
+            oldPrice.className = "flash-sale-original";
+
+            oldPrice.textContent =
+                formatMoney(originalPrice);
+
+
+            prices.appendChild(salePrice);
+
+            prices.appendChild(oldPrice);
+
+
+            // Add to Cart button.
+
+            const button =
+                document.createElement("button");
+
+            button.type = "button";
+
+            button.className =
+                "add-to-cart flash-sale-add";
+
+            button.textContent = "Add to Cart";
+
+
+            // Connect to the existing cart system.
+
+            button.dataset.name =
+                product.name || "";
+
+            button.dataset.price =
+                String(discountedPrice);
+
+            button.dataset.productId =
+                product.id;
+
+            button.dataset.flashSaleId =
+                sale.id;
+
+            button.dataset.originalPrice =
+                String(originalPrice);
+
+
+            if (Number(product.stock) <= 0) {
+
+                button.disabled = true;
+
+                button.textContent = "Out of Stock";
+
+            }
+
+
+            details.appendChild(name);
+
+            details.appendChild(description);
+
+            details.appendChild(prices);
+
+            details.appendChild(button);
+
+
+            card.appendChild(badge);
+
+            card.appendChild(image);
+
+            card.appendChild(details);
+
+
+            flashSaleGrid.appendChild(card);
+
+        });
+
+
+        // Apply current search and category filters.
+        filterProducts();
+
+
+        console.log(
+            `${sales.length} active flash sale product(s) loaded.`
+        );
+
+    }
+
+
+    // Load flash sales when the website starts.
+    loadStoreFlashSales();
+
+
+    // Refresh flash sales every minute.
+    window.setInterval(function () {
+
+        if (!document.hidden) {
+
+            loadStoreFlashSales();
+
+        }
+
+    }, 60000);
+
+
+    /* =================================================
+       13. CUSTOMER PROFILE
     ================================================= */
 
     (function setupCustomerProfile() {
@@ -797,13 +1279,24 @@ function initializeSweetWebsite() {
 
 
         if (!supabaseClient) {
-            console.warn("Supabase is unavailable. Customer profile is disabled.");
+
+            console.warn(
+                "Supabase is unavailable. Customer profile is disabled."
+            );
+
             return;
+
         }
 
+
         if (!profileButton || !profileArea || !profileMenu) {
-            console.warn("Customer profile HTML elements were not found.");
+
+            console.warn(
+                "Customer profile HTML elements were not found."
+            );
+
             return;
+
         }
 
 
@@ -824,7 +1317,9 @@ function initializeSweetWebsite() {
             if (accountLink) {
 
                 accountLink.hidden = false;
+
                 accountLink.textContent = "My Account";
+
                 accountLink.href = "./account.html";
 
             }
@@ -845,6 +1340,7 @@ function initializeSweetWebsite() {
                 fullName.trim().split(/\s+/)[0] ||
                 user.email?.split("@")[0] ||
                 "Customer";
+
 
             if (profileName) {
                 profileName.textContent = firstName;
@@ -900,7 +1396,11 @@ function initializeSweetWebsite() {
 
             } catch (error) {
 
-                console.error("Profile loading failed:", error);
+                console.error(
+                    "Profile loading failed:",
+                    error
+                );
+
                 showSignedOut();
 
             }
@@ -908,49 +1408,67 @@ function initializeSweetWebsite() {
         }
 
 
-        profileButton.setAttribute("aria-expanded", "false");
+        profileButton.setAttribute(
+            "aria-expanded",
+            "false"
+        );
 
-        profileButton.addEventListener("click", async function (event) {
 
-            event.preventDefault();
-            event.stopPropagation();
+        profileButton.addEventListener(
+            "click",
+            async function (event) {
 
-            try {
+                event.preventDefault();
 
-                const { data, error } =
-                    await supabaseClient.auth.getUser();
+                event.stopPropagation();
 
-                if (error || !data.user) {
+                try {
 
-                    window.location.href = "./login.html";
-                    return;
+                    const { data, error } =
+                        await supabaseClient.auth.getUser();
+
+                    if (error || !data.user) {
+
+                        window.location.href = "./login.html";
+
+                        return;
+
+                    }
+
+
+                    const shouldOpen = profileMenu.hidden;
+
+                    profileMenu.hidden = !shouldOpen;
+
+                    profileButton.setAttribute(
+                        "aria-expanded",
+                        String(shouldOpen)
+                    );
+
+
+                } catch (error) {
+
+                    console.error(
+                        "Could not check customer login:",
+                        error
+                    );
+
+                    alert(
+                        "Unable to check your account. Please try again."
+                    );
 
                 }
 
-                const shouldOpen = profileMenu.hidden;
-
-                profileMenu.hidden = !shouldOpen;
-
-                profileButton.setAttribute(
-                    "aria-expanded",
-                    String(shouldOpen)
-                );
-
-            } catch (error) {
-
-                console.error("Could not check customer login:", error);
-
-                alert("Unable to check your account. Please try again.");
-
             }
-
-        });
+        );
 
 
         document.addEventListener("click", function (event) {
 
             if (!profileArea.contains(event.target)) {
+
                 closeProfileMenu();
+
             }
 
         });
@@ -958,56 +1476,73 @@ function initializeSweetWebsite() {
 
         if (logoutButton) {
 
-            logoutButton.addEventListener("click", async function (event) {
+            logoutButton.addEventListener(
+                "click",
+                async function (event) {
 
-                event.preventDefault();
-                event.stopPropagation();
+                    event.preventDefault();
 
-                logoutButton.disabled = true;
+                    event.stopPropagation();
 
-                try {
+                    logoutButton.disabled = true;
 
-                    const { error } =
-                        await supabaseClient.auth.signOut();
 
-                    if (error) throw error;
+                    try {
 
-                    closeProfileMenu();
-                    showSignedOut();
+                        const { error } =
+                            await supabaseClient.auth.signOut();
 
-                    window.location.href = "./login.html";
+                        if (error) throw error;
 
-                } catch (error) {
 
-                    console.error("Logout failed:", error);
+                        closeProfileMenu();
 
-                    alert("Unable to log out. Please try again.");
+                        showSignedOut();
 
-                } finally {
+                        window.location.href = "./login.html";
 
-                    logoutButton.disabled = false;
+
+                    } catch (error) {
+
+                        console.error(
+                            "Logout failed:",
+                            error
+                        );
+
+                        alert(
+                            "Unable to log out. Please try again."
+                        );
+
+                    } finally {
+
+                        logoutButton.disabled = false;
+
+                    }
 
                 }
-
-            });
+            );
 
         }
 
 
-        supabaseClient.auth.onAuthStateChange(function (_event, session) {
+        supabaseClient.auth.onAuthStateChange(
+            function (_event, session) {
 
-            if (session?.user) {
+                if (session?.user) {
 
-                showSignedIn(session.user);
+                    showSignedIn(session.user);
 
-            } else {
+                } else {
 
-                showSignedOut();
-                closeProfileMenu();
+                    showSignedOut();
+
+                    closeProfileMenu();
+
+                }
 
             }
+        );
 
-        });
 
         refreshProfile();
 
@@ -1015,7 +1550,7 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
-       13. PAYSTACK CHECKOUT + NOTIFICATION TOKEN
+       14. PAYSTACK CHECKOUT + NOTIFICATION TOKEN
     ================================================= */
 
     (function setupPaystackCheckout() {
@@ -1079,6 +1614,7 @@ function initializeSweetWebsite() {
         function closePaymentWindow() {
 
             paymentOverlay.style.display = "none";
+
             paymentOverlay.hidden = true;
 
         }
@@ -1088,10 +1624,14 @@ function initializeSweetWebsite() {
 
             if (cart.length === 0) {
 
-                alert("Your cart is empty. Add products before checkout.");
+                alert(
+                    "Your cart is empty. Add products before checkout."
+                );
+
                 return;
 
             }
+
 
             const subtotal = cart.reduce(function (sum, item) {
 
@@ -1099,9 +1639,11 @@ function initializeSweetWebsite() {
 
             }, 0);
 
+
             const estimatedTotal = subtotal * 1.01;
 
-            paymentTotal.textContent = formatMoney(estimatedTotal);
+            paymentTotal.textContent =
+                formatMoney(estimatedTotal);
 
             paymentReference.textContent =
                 "Generated securely when checkout starts.";
@@ -1109,239 +1651,290 @@ function initializeSweetWebsite() {
             paymentNetwork.value = "";
 
             paymentOverlay.hidden = false;
+
             paymentOverlay.style.display = "flex";
 
         }
 
 
-        checkoutButton.addEventListener("click", function (event) {
+        checkoutButton.addEventListener(
+            "click",
+            function (event) {
 
-            event.preventDefault();
-            openPaymentWindow();
+                event.preventDefault();
 
-        });
-
-
-        confirmButton.addEventListener("click", async function (event) {
-
-            event.preventDefault();
-
-            if (!supabaseClient) {
-
-                alert("Payment service is unavailable. Please refresh the page.");
-                return;
+                openPaymentWindow();
 
             }
+        );
 
 
-            if (
-                !customerEmail.value.trim() ||
-                !customerEmail.checkValidity() ||
-                !customerName.value.trim() ||
-                !customerPhone.value.trim() ||
-                !deliveryAddress.value.trim()
-            ) {
+        confirmButton.addEventListener(
+            "click",
+            async function (event) {
 
-                alert("Please complete all customer details with a valid email.");
-                return;
-
-            }
+                event.preventDefault();
 
 
-            const network = paymentNetwork.value;
+                if (!supabaseClient) {
 
-            if (!["mtn", "telecel", "at"].includes(network)) {
-
-                alert("Please select your Mobile Money network.");
-                return;
-
-            }
-
-
-            if (cart.length === 0) {
-
-                alert("Your cart is empty.");
-                return;
-
-            }
-
-
-            const missingProductId = cart.some(function (item) {
-
-                return !item.productId;
-
-            });
-
-            if (missingProductId) {
-
-                alert(
-                    "Checkout is not ready yet. Some products are not connected to the Supabase product database. Please contact the store administrator."
-                );
-
-                console.error(
-                    "Checkout blocked: one or more cart products have no Supabase product ID."
-                );
-
-                return;
-
-            }
-
-
-            const originalButtonText = confirmButton.textContent;
-
-            confirmButton.disabled = true;
-            confirmButton.textContent = "Connecting to Paystack...";
-
-
-            try {
-
-                // Prepare verified product IDs and quantities.
-                const items = cart.map(function (item) {
-
-                    return {
-                        productId: item.productId,
-                        quantity: Number(item.quantity)
-                    };
-
-                });
-
-
-                // Request payment initialization.
-                const { data, error } =
-                    await supabaseClient.functions.invoke(
-                        "initialize-paystack",
-                        {
-                            body: {
-                                action: "initialize",
-                                email: customerEmail.value.trim(),
-                                customerName: customerName.value.trim(),
-                                customerPhone: customerPhone.value.trim(),
-                                deliveryAddress: deliveryAddress.value.trim(),
-                                network: network,
-                                items: items
-                            }
-                        }
+                    alert(
+                        "Payment service is unavailable. Please refresh the page."
                     );
 
-
-                if (error) {
-
-                    console.error("Checkout function error:", error);
-
-                    if (error.context) {
-
-                        try {
-
-                            console.error(
-                                "Server response:",
-                                await error.context.clone().text()
-                            );
-
-                        } catch (readError) {
-
-                            console.error(
-                                "Could not read server response:",
-                                readError
-                            );
-
-                        }
-
-                    }
-
-                    throw new Error(
-                        data?.error ||
-                        "Payment could not be initialized. Please check the payment server logs."
-                    );
+                    return;
 
                 }
 
 
-                if (!data || !data.authorization_url) {
-
-                    throw new Error(
-                        data?.error ||
-                        "Paystack did not return a payment link."
-                    );
-
-                }
-
-
-                // Make sure the server returned both notification credentials.
                 if (
-                    !data.reference ||
-                    !data.notification_token
+                    !customerEmail.value.trim() ||
+                    !customerEmail.checkValidity() ||
+                    !customerName.value.trim() ||
+                    !customerPhone.value.trim() ||
+                    !deliveryAddress.value.trim()
                 ) {
 
-                    throw new Error(
-                        "Payment started without notification access details. Please contact the store."
+                    alert(
+                        "Please complete all customer details with a valid email."
                     );
+
+                    return;
 
                 }
 
 
-                // Save the private notification token before redirecting.
-                // It is stored separately for each order.
-                const notificationStorageKey =
-                    "sweet_order_notification_" + data.reference;
+                const network = paymentNetwork.value;
+
+                if (!["mtn", "telecel", "at"].includes(network)) {
+
+                    alert(
+                        "Please select your Mobile Money network."
+                    );
+
+                    return;
+
+                }
+
+
+                if (cart.length === 0) {
+
+                    alert("Your cart is empty.");
+
+                    return;
+
+                }
+
+
+                const missingProductId = cart.some(
+                    function (item) {
+
+                        return !item.productId;
+
+                    }
+                );
+
+
+                if (missingProductId) {
+
+                    alert(
+                        "Checkout is not ready yet. Some products are not connected to the Supabase product database. Please contact the store administrator."
+                    );
+
+                    console.error(
+                        "Checkout blocked: one or more cart products have no Supabase product ID."
+                    );
+
+                    return;
+
+                }
+
+
+                const originalButtonText =
+                    confirmButton.textContent;
+
+                confirmButton.disabled = true;
+
+                confirmButton.textContent =
+                    "Connecting to Paystack...";
+
 
                 try {
 
-                    localStorage.setItem(
-                        notificationStorageKey,
-                        JSON.stringify({
-                            reference: data.reference,
-                            token: data.notification_token,
-                            savedAt: new Date().toISOString()
-                        })
+                    // Send only product IDs and quantities.
+                    // The server must calculate the correct prices.
+
+                    const items = cart.map(function (item) {
+
+                        return {
+
+                            productId: item.productId,
+
+                            quantity: Number(item.quantity)
+
+                        };
+
+                    });
+
+
+                    const { data, error } =
+                        await supabaseClient.functions.invoke(
+                            "initialize-paystack",
+                            {
+                                body: {
+
+                                    action: "initialize",
+
+                                    email: customerEmail.value.trim(),
+
+                                    customerName: customerName.value.trim(),
+
+                                    customerPhone: customerPhone.value.trim(),
+
+                                    deliveryAddress: deliveryAddress.value.trim(),
+
+                                    network: network,
+
+                                    items: items
+
+                                }
+                            }
+                        );
+
+
+                    if (error) {
+
+                        console.error(
+                            "Checkout function error:",
+                            error
+                        );
+
+
+                        if (error.context) {
+
+                            try {
+
+                                console.error(
+                                    "Server response:",
+                                    await error.context.clone().text()
+                                );
+
+                            } catch (readError) {
+
+                                console.error(
+                                    "Could not read server response:",
+                                    readError
+                                );
+
+                            }
+
+                        }
+
+
+                        throw new Error(
+                            data?.error ||
+                            "Payment could not be initialized. Please check the payment server logs."
+                        );
+
+                    }
+
+
+                    if (!data || !data.authorization_url) {
+
+                        throw new Error(
+                            data?.error ||
+                            "Paystack did not return a payment link."
+                        );
+
+                    }
+
+
+                    if (
+                        !data.reference ||
+                        !data.notification_token
+                    ) {
+
+                        throw new Error(
+                            "Payment started without notification access details. Please contact the store."
+                        );
+
+                    }
+
+
+                    // Save the private notification token.
+
+                    const notificationStorageKey =
+                        "sweet_order_notification_" + data.reference;
+
+
+                    try {
+
+                        localStorage.setItem(
+                            notificationStorageKey,
+                            JSON.stringify({
+
+                                reference: data.reference,
+
+                                token: data.notification_token,
+
+                                savedAt: new Date().toISOString()
+
+                            })
+                        );
+
+                    } catch (storageError) {
+
+                        console.error(
+                            "Notification token could not be saved:",
+                            storageError
+                        );
+
+                        throw new Error(
+                            "Your order notification access could not be saved. Please enable browser storage and try again."
+                        );
+
+                    }
+
+
+                    paymentReference.textContent =
+                        data.reference;
+
+
+                    console.log(
+                        "Payment initialized successfully.",
+                        data.reference
                     );
 
-                } catch (storageError) {
+                    console.log(
+                        "Private order notification access saved."
+                    );
+
+
+                    window.location.href =
+                        data.authorization_url;
+
+
+                } catch (error) {
 
                     console.error(
-                        "Notification token could not be saved:",
-                        storageError
+                        "Paystack checkout error:",
+                        error
                     );
 
-                    throw new Error(
-                        "Your order notification access could not be saved. Please enable browser storage and try again."
+                    alert(
+                        error.message ||
+                        "Payment could not start. Please try again."
                     );
+
+                    confirmButton.disabled = false;
+
+                    confirmButton.textContent =
+                        originalButtonText;
 
                 }
 
-
-                // Display the order reference before redirecting.
-                paymentReference.textContent = data.reference;
-
-
-                console.log(
-                    "Payment initialized successfully.",
-                    data.reference
-                );
-
-                console.log(
-                    "Private order notification access saved."
-                );
-
-
-                // Redirect to Paystack.
-                window.location.href = data.authorization_url;
-
-
-            } catch (error) {
-
-                console.error("Paystack checkout error:", error);
-
-                alert(
-                    error.message ||
-                    "Payment could not start. Please try again."
-                );
-
-                confirmButton.disabled = false;
-                confirmButton.textContent = originalButtonText;
-
             }
-
-        });
+        );
 
 
         if (closePayment) {
@@ -1353,6 +1946,7 @@ function initializeSweetWebsite() {
 
         }
 
+
         if (closePaymentBottom) {
 
             closePaymentBottom.addEventListener(
@@ -1362,13 +1956,20 @@ function initializeSweetWebsite() {
 
         }
 
-        paymentOverlay.addEventListener("click", function (event) {
 
-            if (event.target === paymentOverlay) {
-                closePaymentWindow();
+        paymentOverlay.addEventListener(
+            "click",
+            function (event) {
+
+                if (event.target === paymentOverlay) {
+
+                    closePaymentWindow();
+
+                }
+
             }
+        );
 
-        });
 
         closePaymentWindow();
 
@@ -1377,850 +1978,1040 @@ function initializeSweetWebsite() {
     })();
 
 
-    
+    /* =================================================
+       15. MY ORDERS + COMPLETE NOTIFICATION SYSTEM
+    ================================================= */
+
+    const myOrdersMenuLink =
+        document.getElementById("myOrdersLink");
+
+    const myOrdersSectionElement =
+        document.getElementById("myOrders");
 
 
-/* =================================================
-   14. MY ORDERS + COMPLETE NOTIFICATION SYSTEM
-================================================= */
+    // Notification bell elements.
 
-const myOrdersMenuLink =
-    document.getElementById("myOrdersLink");
+    const notificationButton =
+        document.getElementById("notificationButton");
 
-const myOrdersSectionElement =
-    document.getElementById("myOrders");
+    const notificationMenu =
+        document.getElementById("notificationMenu");
 
-// Notification bell elements
-const notificationButton =
-    document.getElementById("notificationButton");
+    const notificationList =
+        document.getElementById("notificationList");
 
-const notificationMenu =
-    document.getElementById("notificationMenu");
+    const notificationCount =
+        document.getElementById("notificationCount");
 
-const notificationList =
-    document.getElementById("notificationList");
+    const markAllNotificationsRead =
+        document.getElementById("markAllNotificationsRead");
 
-const notificationCount =
-    document.getElementById("notificationCount");
-
-const markAllNotificationsRead =
-    document.getElementById("markAllNotificationsRead");
-
-const clearNotifications =
-    document.getElementById("clearNotifications");
-
-// Browser storage keys
-const SWEET_NOTIFICATIONS_KEY =
-    "sweet_customer_notifications";
-
-const SWEET_ORDER_STATUS_KEY =
-    "sweet_order_status_snapshots";
-
-let customerNotifications = [];
-let orderStatusSnapshots = {};
-
-let notificationCheckInProgress = false;
+    const clearNotifications =
+        document.getElementById("clearNotifications");
 
 
-// ================================================
-// LOAD SAVED NOTIFICATIONS
-// ================================================
+    // Browser storage keys.
 
-try {
+    const SWEET_NOTIFICATIONS_KEY =
+        "sweet_customer_notifications";
 
-    customerNotifications = JSON.parse(
-        localStorage.getItem(SWEET_NOTIFICATIONS_KEY) || "[]"
-    );
-
-    orderStatusSnapshots = JSON.parse(
-        localStorage.getItem(SWEET_ORDER_STATUS_KEY) || "{}"
-    );
-
-    if (!Array.isArray(customerNotifications)) {
-        customerNotifications = [];
-    }
-
-    if (
-        !orderStatusSnapshots ||
-        typeof orderStatusSnapshots !== "object" ||
-        Array.isArray(orderStatusSnapshots)
-    ) {
-        orderStatusSnapshots = {};
-    }
-
-} catch (error) {
-
-    console.error("Notification storage error:", error);
-
-    customerNotifications = [];
-    orderStatusSnapshots = {};
-
-}
+    const SWEET_ORDER_STATUS_KEY =
+        "sweet_order_status_snapshots";
 
 
-// ================================================
-// SAVE NOTIFICATIONS
-// ================================================
+    let customerNotifications = [];
 
-function saveCustomerNotifications() {
+    let orderStatusSnapshots = {};
+
+    let notificationCheckInProgress = false;
+
+
+    /* =================================================
+       15A. LOAD SAVED NOTIFICATIONS
+    ================================================= */
 
     try {
 
-        localStorage.setItem(
-            SWEET_NOTIFICATIONS_KEY,
-            JSON.stringify(customerNotifications)
+        customerNotifications = JSON.parse(
+            localStorage.getItem(SWEET_NOTIFICATIONS_KEY) || "[]"
         );
 
-    } catch (error) {
-
-        console.error("Could not save notifications:", error);
-
-    }
-
-}
-
-
-function saveOrderStatusSnapshots() {
-
-    try {
-
-        localStorage.setItem(
-            SWEET_ORDER_STATUS_KEY,
-            JSON.stringify(orderStatusSnapshots)
+        orderStatusSnapshots = JSON.parse(
+            localStorage.getItem(SWEET_ORDER_STATUS_KEY) || "{}"
         );
 
-    } catch (error) {
 
-        console.error("Could not save order status:", error);
+        if (!Array.isArray(customerNotifications)) {
 
-    }
+            customerNotifications = [];
 
-}
+        }
 
 
-// ================================================
-// GET SAVED ORDER REFERENCES AND TOKENS
-// ================================================
+        if (
+            !orderStatusSnapshots ||
+            typeof orderStatusSnapshots !== "object" ||
+            Array.isArray(orderStatusSnapshots)
+        ) {
 
-function getSavedOrderNotifications() {
-
-    const savedOrders = [];
-
-    try {
-
-        for (let i = 0; i < localStorage.length; i++) {
-
-            const key = localStorage.key(i);
-
-            if (
-                !key ||
-                !key.startsWith("sweet_order_notification_")
-            ) {
-                continue;
-            }
-
-            const savedData = JSON.parse(
-                localStorage.getItem(key)
-            );
-
-            if (
-                savedData &&
-                savedData.reference &&
-                savedData.token
-            ) {
-
-                savedOrders.push(savedData);
-
-            }
+            orderStatusSnapshots = {};
 
         }
 
     } catch (error) {
 
         console.error(
-            "Could not read saved order notifications:",
+            "Notification storage error:",
             error
         );
 
-    }
+        customerNotifications = [];
 
-    return savedOrders;
-
-}
-
-
-// ================================================
-// UPDATE NOTIFICATION COUNTER
-// ================================================
-
-function updateNotificationCount() {
-
-    if (!notificationCount) return;
-
-    const unreadCount = customerNotifications.filter(
-        item => !item.read
-    ).length;
-
-    notificationCount.textContent = unreadCount;
-
-    notificationCount.hidden = unreadCount === 0;
-
-    if (notificationButton) {
-
-        notificationButton.setAttribute(
-            "aria-label",
-            unreadCount > 0
-                ? `${unreadCount} unread notifications`
-                : "Notifications"
-        );
+        orderStatusSnapshots = {};
 
     }
 
-}
 
+    /* =================================================
+       15B. SAVE NOTIFICATIONS
+    ================================================= */
 
-// ================================================
-// DISPLAY NOTIFICATIONS IN THE BELL
-// ================================================
+    function saveCustomerNotifications() {
 
-function renderCustomerNotifications() {
+        try {
 
-    if (!notificationList) return;
+            localStorage.setItem(
+                SWEET_NOTIFICATIONS_KEY,
+                JSON.stringify(customerNotifications)
+            );
 
-    notificationList.innerHTML = "";
+        } catch (error) {
 
-    if (customerNotifications.length === 0) {
-
-        const emptyMessage =
-            document.createElement("p");
-
-        emptyMessage.className = "empty-notifications";
-
-        emptyMessage.textContent = "No notifications yet.";
-
-        notificationList.appendChild(emptyMessage);
-
-        updateNotificationCount();
-
-        return;
-
-    }
-
-    customerNotifications.forEach(function (item) {
-
-        const notificationItem =
-            document.createElement("div");
-
-        notificationItem.className = "notification-item";
-
-        if (!item.read) {
-            notificationItem.classList.add("unread");
-        }
-
-        const icon =
-            document.createElement("span");
-
-        icon.className = "notification-item-icon";
-        icon.textContent = "📦";
-
-        const content =
-            document.createElement("div");
-
-        content.className = "notification-item-content";
-
-        const title =
-            document.createElement("strong");
-
-        title.textContent = item.title;
-
-        const message =
-            document.createElement("p");
-
-        message.textContent = item.message;
-
-        const date =
-            document.createElement("small");
-
-        date.textContent = new Date(
-            item.createdAt
-        ).toLocaleString();
-
-        content.appendChild(title);
-        content.appendChild(message);
-        content.appendChild(date);
-
-        notificationItem.appendChild(icon);
-        notificationItem.appendChild(content);
-
-        if (!item.read) {
-
-            const unreadDot =
-                document.createElement("span");
-
-            unreadDot.className = "notification-unread-dot";
-
-            notificationItem.appendChild(unreadDot);
-
-        }
-
-        notificationList.appendChild(notificationItem);
-
-    });
-
-    updateNotificationCount();
-
-}
-
-
-// ================================================
-// CREATE A NEW NOTIFICATION
-// ================================================
-
-function addCustomerNotification(title, message, reference) {
-
-    const notification = {
-
-        id: `${reference}-${Date.now()}`,
-
-        title: title,
-
-        message: message,
-
-        reference: reference,
-
-        createdAt: new Date().toISOString(),
-
-        read: false
-
-    };
-
-    customerNotifications.unshift(notification);
-
-    customerNotifications =
-        customerNotifications.slice(0, 100);
-
-    saveCustomerNotifications();
-
-    renderCustomerNotifications();
-
-    console.log("Customer notification created:", notification);
-
-}
-
-
-// ================================================
-// NOTIFICATION BELL OPEN AND CLOSE
-// ================================================
-
-if (
-    notificationButton &&
-    notificationMenu &&
-    notificationList
-) {
-
-    notificationButton.setAttribute(
-        "aria-expanded",
-        "false"
-    );
-
-    notificationButton.addEventListener("click", function (event) {
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        const shouldOpen = notificationMenu.hidden;
-
-        notificationMenu.hidden = !shouldOpen;
-
-        notificationButton.setAttribute(
-            "aria-expanded",
-            String(shouldOpen)
-        );
-
-        if (shouldOpen) {
-            renderCustomerNotifications();
-        }
-
-    });
-
-    document.addEventListener("click", function (event) {
-
-        if (
-            !notificationMenu.contains(event.target) &&
-            !notificationButton.contains(event.target)
-        ) {
-
-            notificationMenu.hidden = true;
-
-            notificationButton.setAttribute(
-                "aria-expanded",
-                "false"
+            console.error(
+                "Could not save notifications:",
+                error
             );
 
         }
 
-    });
-
-} else {
-
-    console.warn(
-        "Notification bell HTML is incomplete. Check notificationButton, notificationMenu and notificationList."
-    );
-
-}
+    }
 
 
-// ================================================
-// MARK ALL NOTIFICATIONS AS READ
-// ================================================
+    function saveOrderStatusSnapshots() {
 
-if (markAllNotificationsRead) {
+        try {
 
-    markAllNotificationsRead.addEventListener("click", function (event) {
+            localStorage.setItem(
+                SWEET_ORDER_STATUS_KEY,
+                JSON.stringify(orderStatusSnapshots)
+            );
 
-        event.preventDefault();
+        } catch (error) {
+
+            console.error(
+                "Could not save order status:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /* =================================================
+       15C. GET SAVED ORDER REFERENCES AND TOKENS
+    ================================================= */
+
+    function getSavedOrderNotifications() {
+
+        const savedOrders = [];
+
+        try {
+
+            for (
+                let i = 0;
+                i < localStorage.length;
+                i++
+            ) {
+
+                const key = localStorage.key(i);
+
+                if (
+                    !key ||
+                    !key.startsWith("sweet_order_notification_")
+                ) {
+
+                    continue;
+
+                }
+
+
+                const savedData = JSON.parse(
+                    localStorage.getItem(key)
+                );
+
+
+                if (
+                    savedData &&
+                    savedData.reference &&
+                    savedData.token
+                ) {
+
+                    savedOrders.push(savedData);
+
+                }
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Could not read saved order notifications:",
+                error
+            );
+
+        }
+
+        return savedOrders;
+
+    }
+
+
+    /* =================================================
+       15D. UPDATE NOTIFICATION COUNTER
+    ================================================= */
+
+    function updateNotificationCount() {
+
+        if (!notificationCount) return;
+
+
+        const unreadCount =
+            customerNotifications.filter(
+                item => !item.read
+            ).length;
+
+
+        notificationCount.textContent = unreadCount;
+
+        notificationCount.hidden =
+            unreadCount === 0;
+
+
+        if (notificationButton) {
+
+            notificationButton.setAttribute(
+                "aria-label",
+                unreadCount > 0
+                    ? `${unreadCount} unread notifications`
+                    : "Notifications"
+            );
+
+        }
+
+    }
+
+
+    /* =================================================
+       15E. DISPLAY NOTIFICATIONS IN THE BELL
+    ================================================= */
+
+    function renderCustomerNotifications() {
+
+        if (!notificationList) return;
+
+        notificationList.innerHTML = "";
+
+
+        if (customerNotifications.length === 0) {
+
+            const emptyMessage =
+                document.createElement("p");
+
+            emptyMessage.className =
+                "empty-notifications";
+
+            emptyMessage.textContent =
+                "No notifications yet.";
+
+            notificationList.appendChild(emptyMessage);
+
+            updateNotificationCount();
+
+            return;
+
+        }
+
 
         customerNotifications.forEach(function (item) {
 
-            item.read = true;
+            const notificationItem =
+                document.createElement("div");
+
+            notificationItem.className =
+                "notification-item";
+
+
+            if (!item.read) {
+
+                notificationItem.classList.add("unread");
+
+            }
+
+
+            const icon =
+                document.createElement("span");
+
+            icon.className =
+                "notification-item-icon";
+
+            icon.textContent = "📦";
+
+
+            const content =
+                document.createElement("div");
+
+            content.className =
+                "notification-item-content";
+
+
+            const title =
+                document.createElement("strong");
+
+            title.textContent =
+                item.title || "Order update";
+
+
+            const message =
+                document.createElement("p");
+
+            message.textContent =
+                item.message || "";
+
+
+            const date =
+                document.createElement("small");
+
+            date.textContent = new Date(
+                item.createdAt
+            ).toLocaleString();
+
+
+            content.appendChild(title);
+
+            content.appendChild(message);
+
+            content.appendChild(date);
+
+
+            notificationItem.appendChild(icon);
+
+            notificationItem.appendChild(content);
+
+
+            if (!item.read) {
+
+                const unreadDot =
+                    document.createElement("span");
+
+                unreadDot.className =
+                    "notification-unread-dot";
+
+                notificationItem.appendChild(unreadDot);
+
+            }
+
+
+            notificationList.appendChild(notificationItem);
 
         });
 
+
+        updateNotificationCount();
+
+    }
+
+
+    /* =================================================
+       15F. CREATE A NEW NOTIFICATION
+    ================================================= */
+
+    function addCustomerNotification(
+        title,
+        message,
+        reference
+    ) {
+
+        const notification = {
+
+            id: `${reference}-${Date.now()}`,
+
+            title: title,
+
+            message: message,
+
+            reference: reference,
+
+            createdAt: new Date().toISOString(),
+
+            read: false
+
+        };
+
+
+        customerNotifications.unshift(notification);
+
+        customerNotifications =
+            customerNotifications.slice(0, 100);
+
+
         saveCustomerNotifications();
 
         renderCustomerNotifications();
 
-    });
 
-}
-
-
-// ================================================
-// CLEAR ALL NOTIFICATIONS
-// ================================================
-
-if (clearNotifications) {
-
-    clearNotifications.addEventListener("click", function (event) {
-
-        event.preventDefault();
-
-        if (customerNotifications.length === 0) {
-            return;
-        }
-
-        const confirmed = confirm(
-            "Are you sure you want to clear all notifications?"
+        console.log(
+            "Customer notification created:",
+            notification
         );
 
-        if (!confirmed) return;
-
-        customerNotifications = [];
-
-        saveCustomerNotifications();
-
-        renderCustomerNotifications();
-
-    });
-
-}
+    }
 
 
-// ================================================
-// CREATE MY ORDERS DISPLAY
-// ================================================
+    /* =================================================
+       15G. NOTIFICATION BELL OPEN AND CLOSE
+    ================================================= */
 
-function createOrderNotificationContainer() {
+    if (
+        notificationButton &&
+        notificationMenu &&
+        notificationList
+    ) {
 
-    if (!myOrdersSectionElement) return null;
+        notificationButton.setAttribute(
+            "aria-expanded",
+            "false"
+        );
 
-    let container = document.getElementById(
-        "orderNotificationContainer"
-    );
 
-    if (!container) {
+        notificationButton.addEventListener(
+            "click",
+            function (event) {
 
-        container = document.createElement("div");
+                event.preventDefault();
 
-        container.id = "orderNotificationContainer";
+                event.stopPropagation();
 
-        container.className = "order-notification-container";
 
-        const heading =
-            document.createElement("h3");
+                const shouldOpen =
+                    notificationMenu.hidden;
 
-        heading.textContent = "My Order Updates";
+                notificationMenu.hidden =
+                    !shouldOpen;
 
-        const description =
-            document.createElement("p");
 
-        description.textContent =
-            "Your payment and delivery updates will appear here.";
+                notificationButton.setAttribute(
+                    "aria-expanded",
+                    String(shouldOpen)
+                );
 
-        const list =
-            document.createElement("div");
 
-        list.id = "orderNotificationList";
+                if (shouldOpen) {
 
-        container.appendChild(heading);
-        container.appendChild(description);
-        container.appendChild(list);
+                    renderCustomerNotifications();
 
-        myOrdersSectionElement.appendChild(container);
+                }
+
+            }
+        );
+
+
+        document.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    !notificationMenu.contains(event.target) &&
+                    !notificationButton.contains(event.target)
+                ) {
+
+                    notificationMenu.hidden = true;
+
+                    notificationButton.setAttribute(
+                        "aria-expanded",
+                        "false"
+                    );
+
+                }
+
+            }
+        );
+
+
+    } else {
+
+        console.warn(
+            "Notification bell HTML is incomplete. Check notificationButton, notificationMenu and notificationList."
+        );
 
     }
 
-    return container;
 
-}
+    /* =================================================
+       15H. MARK ALL NOTIFICATIONS AS READ
+    ================================================= */
+
+    if (markAllNotificationsRead) {
+
+        markAllNotificationsRead.addEventListener(
+            "click",
+            function (event) {
+
+                event.preventDefault();
 
 
-// ================================================
-// DISPLAY ORDER STATUS UNDER MY ORDERS
-// ================================================
+                customerNotifications.forEach(function (item) {
 
-function displayOrderNotification(order, notification) {
+                    item.read = true;
 
-    const list = document.getElementById(
-        "orderNotificationList"
-    );
+                });
 
-    if (!list) return;
 
-    const safeReference = String(order.reference);
+                saveCustomerNotifications();
 
-    let card = document.getElementById(
-        "notification-" + safeReference
-    );
+                renderCustomerNotifications();
 
-    if (!card) {
-
-        card = document.createElement("div");
-
-        card.id = "notification-" + safeReference;
-
-        card.className = "order-notification-card";
-
-        const reference =
-            document.createElement("p");
-
-        reference.className = "notification-reference";
-
-        const payment =
-            document.createElement("p");
-
-        payment.className = "notification-payment";
-
-        const status =
-            document.createElement("p");
-
-        status.className = "notification-status";
-
-        const updated =
-            document.createElement("small");
-
-        updated.className = "notification-updated";
-
-        card.appendChild(reference);
-        card.appendChild(payment);
-        card.appendChild(status);
-        card.appendChild(updated);
-
-        list.appendChild(card);
+            }
+        );
 
     }
 
-    card.querySelector(".notification-reference").textContent =
-        "Order reference: " + notification.reference;
 
-    card.querySelector(".notification-payment").textContent =
-        "Payment: " + notification.payment_status;
+    /* =================================================
+       15I. CLEAR ALL NOTIFICATIONS
+    ================================================= */
 
-    card.querySelector(".notification-status").textContent =
-        "Delivery status: " + notification.order_status;
+    if (clearNotifications) {
 
-    card.querySelector(".notification-updated").textContent =
-        "Last updated: " +
-        new Date(notification.updated_at).toLocaleString();
+        clearNotifications.addEventListener(
+            "click",
+            function (event) {
 
-}
+                event.preventDefault();
 
 
-// ================================================
-// CHECK ORDER STATUS FROM SUPABASE
-// ================================================
+                if (customerNotifications.length === 0) {
+                    return;
+                }
 
-async function checkOrderNotifications() {
 
-    if (!supabaseClient || notificationCheckInProgress) {
-        return;
+                const confirmed = confirm(
+                    "Are you sure you want to clear all notifications?"
+                );
+
+
+                if (!confirmed) return;
+
+
+                customerNotifications = [];
+
+                saveCustomerNotifications();
+
+                renderCustomerNotifications();
+
+            }
+        );
+
     }
 
-    const savedOrders = getSavedOrderNotifications();
 
-    if (savedOrders.length === 0) {
+    /* =================================================
+       15J. CREATE MY ORDERS DISPLAY
+    ================================================= */
+
+    function createOrderNotificationContainer() {
+
+        if (!myOrdersSectionElement) return null;
+
+
+        let container = document.getElementById(
+            "orderNotificationContainer"
+        );
+
+
+        if (!container) {
+
+            container = document.createElement("div");
+
+            container.id =
+                "orderNotificationContainer";
+
+            container.className =
+                "order-notification-container";
+
+
+            const heading =
+                document.createElement("h3");
+
+            heading.textContent =
+                "My Order Updates";
+
+
+            const description =
+                document.createElement("p");
+
+            description.textContent =
+                "Your payment and delivery updates will appear here.";
+
+
+            const list =
+                document.createElement("div");
+
+            list.id = "orderNotificationList";
+
+
+            container.appendChild(heading);
+
+            container.appendChild(description);
+
+            container.appendChild(list);
+
+
+            myOrdersSectionElement.appendChild(container);
+
+        }
+
+
+        return container;
+
+    }
+
+
+    /* =================================================
+       15K. DISPLAY ORDER STATUS UNDER MY ORDERS
+    ================================================= */
+
+    function displayOrderNotification(order, notification) {
 
         const list = document.getElementById(
             "orderNotificationList"
         );
 
-        if (list) {
+        if (!list) return;
 
-            list.textContent =
-                "No saved orders yet. Your orders will appear here after checkout.";
+
+        const safeReference =
+            String(order.reference);
+
+
+        let card = document.getElementById(
+            "notification-" + safeReference
+        );
+
+
+        if (!card) {
+
+            card = document.createElement("div");
+
+            card.id =
+                "notification-" + safeReference;
+
+            card.className =
+                "order-notification-card";
+
+
+            const reference =
+                document.createElement("p");
+
+            reference.className =
+                "notification-reference";
+
+
+            const payment =
+                document.createElement("p");
+
+            payment.className =
+                "notification-payment";
+
+
+            const status =
+                document.createElement("p");
+
+            status.className =
+                "notification-status";
+
+
+            const updated =
+                document.createElement("small");
+
+            updated.className =
+                "notification-updated";
+
+
+            card.appendChild(reference);
+
+            card.appendChild(payment);
+
+            card.appendChild(status);
+
+            card.appendChild(updated);
+
+
+            list.appendChild(card);
 
         }
 
-        return;
+
+        card.querySelector(
+            ".notification-reference"
+        ).textContent =
+            "Order reference: " + notification.reference;
+
+
+        card.querySelector(
+            ".notification-payment"
+        ).textContent =
+            "Payment: " + notification.payment_status;
+
+
+        card.querySelector(
+            ".notification-status"
+        ).textContent =
+            "Delivery status: " + notification.order_status;
+
+
+        card.querySelector(
+            ".notification-updated"
+        ).textContent =
+            "Last updated: " +
+            new Date(notification.updated_at).toLocaleString();
 
     }
 
-    notificationCheckInProgress = true;
 
-    try {
+    /* =================================================
+       15L. CHECK ORDER STATUS FROM SUPABASE
+    ================================================= */
 
-        for (const order of savedOrders) {
+    async function checkOrderNotifications() {
 
-            try {
+        if (
+            !supabaseClient ||
+            notificationCheckInProgress
+        ) {
 
-                console.log(
-                    "Checking order notification:",
-                    order.reference
-                );
+            return;
 
-                const { data, error } =
-                    await supabaseClient.functions.invoke(
-                        "get-order-notifications",
-                        {
-                            body: {
-                                reference: order.reference,
-                                notification_token: order.token
+        }
+
+
+        const savedOrders =
+            getSavedOrderNotifications();
+
+
+        if (savedOrders.length === 0) {
+
+            const list = document.getElementById(
+                "orderNotificationList"
+            );
+
+
+            if (list) {
+
+                list.textContent =
+                    "No saved orders yet. Your orders will appear here after checkout.";
+
+            }
+
+            return;
+
+        }
+
+
+        notificationCheckInProgress = true;
+
+
+        try {
+
+            for (const order of savedOrders) {
+
+                try {
+
+                    console.log(
+                        "Checking order notification:",
+                        order.reference
+                    );
+
+
+                    const { data, error } =
+                        await supabaseClient.functions.invoke(
+                            "get-order-notifications",
+                            {
+                                body: {
+
+                                    reference: order.reference,
+
+                                    notification_token: order.token
+
+                                }
                             }
-                        }
-                    );
+                        );
 
-                if (error) {
 
-                    console.error(
-                        "NOTIFICATION FUNCTION ERROR:",
-                        error
-                    );
+                    if (error) {
 
-                    continue;
+                        console.error(
+                            "NOTIFICATION FUNCTION ERROR:",
+                            error
+                        );
 
-                }
+                        continue;
 
-                console.log(
-                    "NOTIFICATION SERVER RESPONSE:",
-                    data
-                );
+                    }
 
-                if (
-                    !data ||
-                    !data.success ||
-                    !data.notification
-                ) {
 
-                    console.warn(
-                        "ORDER NOTIFICATION WAS NOT RETURNED:",
+                    console.log(
+                        "NOTIFICATION SERVER RESPONSE:",
                         data
                     );
 
-                    continue;
 
-                }
+                    if (
+                        !data ||
+                        !data.success ||
+                        !data.notification
+                    ) {
 
-                const notification = data.notification;
+                        console.warn(
+                            "ORDER NOTIFICATION WAS NOT RETURNED:",
+                            data
+                        );
 
-                // Display latest status under My Orders.
-                displayOrderNotification(order, notification);
+                        continue;
 
-                // Check that the server returned both status fields.
-                if (
-                    notification.payment_status == null ||
-                    notification.order_status == null
-                ) {
+                    }
 
-                    console.warn(
-                        "The server response is missing payment_status or order_status:",
+
+                    const notification =
+                        data.notification;
+
+
+                    // Display latest status under My Orders.
+
+                    displayOrderNotification(
+                        order,
                         notification
                     );
 
-                    continue;
 
-                }
+                    if (
+                        notification.payment_status == null ||
+                        notification.order_status == null
+                    ) {
 
-                const currentStatus = {
+                        console.warn(
+                            "The server response is missing payment_status or order_status:",
+                            notification
+                        );
 
-                    payment_status: notification.payment_status,
+                        continue;
 
-                    order_status: notification.order_status
+                    }
 
-                };
 
-                const previousStatus =
-                    orderStatusSnapshots[order.reference];
+                    const currentStatus = {
 
-                // First successful check establishes a baseline.
-                if (!previousStatus) {
+                        payment_status:
+                            notification.payment_status,
+
+                        order_status:
+                            notification.order_status
+
+                    };
+
+
+                    const previousStatus =
+                        orderStatusSnapshots[order.reference];
+
+
+                    // First successful check establishes a baseline.
+
+                    if (!previousStatus) {
+
+                        orderStatusSnapshots[order.reference] =
+                            currentStatus;
+
+                        saveOrderStatusSnapshots();
+
+
+                        console.log(
+                            "Initial order status saved:",
+                            order.reference,
+                            currentStatus
+                        );
+
+                        continue;
+
+                    }
+
+
+                    // Detect payment status changes.
+
+                    const paymentChanged =
+                        previousStatus.payment_status !==
+                        currentStatus.payment_status;
+
+
+                    // Detect delivery status changes.
+
+                    const orderChanged =
+                        previousStatus.order_status !==
+                        currentStatus.order_status;
+
+
+                    if (paymentChanged || orderChanged) {
+
+                        const changes = [];
+
+
+                        if (paymentChanged) {
+
+                            changes.push(
+                                "Payment status: " +
+                                currentStatus.payment_status
+                            );
+
+                        }
+
+
+                        if (orderChanged) {
+
+                            changes.push(
+                                "Delivery status: " +
+                                currentStatus.order_status
+                            );
+
+                        }
+
+
+                        addCustomerNotification(
+                            "Your order has been updated",
+
+                            changes.join(" | ") +
+                            ". Order reference: " +
+                            order.reference,
+
+                            order.reference
+                        );
+
+                    }
+
+
+                    // Save the latest status for next comparison.
 
                     orderStatusSnapshots[order.reference] =
                         currentStatus;
 
                     saveOrderStatusSnapshots();
 
-                    console.log(
-                        "Initial order status saved:",
+
+                } catch (error) {
+
+                    console.error(
+                        "Could not retrieve order update:",
                         order.reference,
-                        currentStatus
-                    );
-
-                    continue;
-
-                }
-
-                // Detect payment status changes.
-                const paymentChanged =
-                    previousStatus.payment_status !==
-                    currentStatus.payment_status;
-
-                // Detect delivery status changes.
-                const orderChanged =
-                    previousStatus.order_status !==
-                    currentStatus.order_status;
-
-                if (paymentChanged || orderChanged) {
-
-                    const changes = [];
-
-                    if (paymentChanged) {
-
-                        changes.push(
-                            "Payment status: " +
-                            currentStatus.payment_status
-                        );
-
-                    }
-
-                    if (orderChanged) {
-
-                        changes.push(
-                            "Delivery status: " +
-                            currentStatus.order_status
-                        );
-
-                    }
-
-                    addCustomerNotification(
-                        "Your order has been updated",
-                        changes.join(" | ") +
-                        ". Order reference: " +
-                        order.reference,
-                        order.reference
+                        error
                     );
 
                 }
-
-                // Save the latest status for the next comparison.
-                orderStatusSnapshots[order.reference] =
-                    currentStatus;
-
-                saveOrderStatusSnapshots();
-
-            } catch (error) {
-
-                console.error(
-                    "Could not retrieve order update:",
-                    order.reference,
-                    error
-                );
 
             }
 
+        } finally {
+
+            notificationCheckInProgress = false;
+
         }
 
-    } finally {
-
-        notificationCheckInProgress = false;
-
     }
-
-}
-
-
-// ================================================
-// INITIALIZE NOTIFICATIONS
-// ================================================
-
-renderCustomerNotifications();
-
-if (myOrdersSectionElement) {
-
-    createOrderNotificationContainer();
-
-}
-
-
-// ================================================
-// OPEN MY ORDERS
-// ================================================
-
-if (
-    myOrdersMenuLink &&
-    myOrdersSectionElement
-) {
-
-    myOrdersMenuLink.addEventListener("click", function (event) {
-
-        event.preventDefault();
-
-        myOrdersSectionElement.hidden = false;
-
-        myOrdersSectionElement.style.display = "block";
-
-        myOrdersSectionElement.scrollIntoView({
-
-            behavior: "smooth",
-
-            block: "start"
-
-        });
-
-        checkOrderNotifications();
-
-    });
-
-}
-
-
-// ================================================
-// INITIAL CHECK WHEN WEBSITE LOADS
-// ================================================
-
-checkOrderNotifications();
-
-
-// ================================================
-// AUTOMATIC CHECK EVERY 15 SECONDS
-// ================================================
-
-window.setInterval(function () {
-
-    if (!document.hidden) {
-
-        checkOrderNotifications();
-
-    }
-
-}, 15000);
-
-
-
-
 
 
     /* =================================================
-       15. INITIALIZATION COMPLETE
+       15M. INITIALIZE NOTIFICATIONS
+    ================================================= */
+
+    renderCustomerNotifications();
+
+
+    if (myOrdersSectionElement) {
+
+        createOrderNotificationContainer();
+
+    }
+
+
+    /* =================================================
+       15N. OPEN MY ORDERS
+    ================================================= */
+
+    if (
+        myOrdersMenuLink &&
+        myOrdersSectionElement
+    ) {
+
+        myOrdersMenuLink.addEventListener(
+            "click",
+            function (event) {
+
+                event.preventDefault();
+
+                myOrdersSectionElement.hidden = false;
+
+                myOrdersSectionElement.style.display =
+                    "block";
+
+
+                myOrdersSectionElement.scrollIntoView({
+
+                    behavior: "smooth",
+
+                    block: "start"
+
+                });
+
+
+                checkOrderNotifications();
+
+            }
+        );
+
+    }
+
+
+    /* =================================================
+       15O. INITIAL CHECK WHEN WEBSITE LOADS
+    ================================================= */
+
+    checkOrderNotifications();
+
+
+    /* =================================================
+       15P. AUTOMATIC CHECK EVERY 15 SECONDS
+    ================================================= */
+
+    window.setInterval(function () {
+
+        if (!document.hidden) {
+
+            checkOrderNotifications();
+
+        }
+
+    }, 15000);
+
+
+    /* =================================================
+       16. INITIALIZATION COMPLETE
     ================================================= */
 
     console.log(
@@ -2231,7 +3022,7 @@ window.setInterval(function () {
 
 
 /* =====================================================
-   16. START WEBSITE AFTER HTML IS READY
+   17. START WEBSITE AFTER HTML IS READY
 ===================================================== */
 
 if (document.readyState === "loading") {
