@@ -2847,136 +2847,65 @@ body.dark-mode .checkout-button {
     font-size: 14px;
 }
 
-/* ==========================================
-   FINAL NOTIFICATION DROPDOWN DESIGN
-   SWEET'S KITCHEN & COLLECTIONS
-========================================== */
+/* =====================================
+   NOTIFICATION DROPDOWN - CLEAN LAYOUT
+===================================== */
 
-.notification-area {
-    position: relative;
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-/* Bell button */
-.notification-button {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 42px;
-    height: 42px;
-    border: none;
-    border-radius: 50%;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-}
-
-.notification-button:hover {
-    background: rgba(128, 128, 128, 0.15);
-}
-
-.notification-button .material-symbols-outlined {
-    font-size: 27px;
-}
-
-/* Notification count */
-.notification-count {
-    position: absolute;
-    top: 0;
-    right: 0;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #fff;
-    border-radius: 50px;
-    background: #e53935;
-    color: #fff !important;
-    font-size: 10px;
-    font-weight: 700;
-}
-
-.notification-count[hidden] {
-    display: none !important;
-}
-
-/* Dropdown panel */
 #notificationMenu {
     position: absolute;
     top: calc(100% + 12px);
     right: 0;
-    z-index: 9999;
-
-    display: flex;
-    flex-direction: column;
-
-    width: 370px;
+    width: 360px;
     max-width: calc(100vw - 24px);
-    max-height: min(480px, 75vh);
-
-    overflow: hidden;
-
     background: #ffffff;
-    color: #111827;
+    color: #222;
     border: 1px solid #e5e7eb;
     border-radius: 14px;
-
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    z-index: 9999;
 }
 
+/* Hide when closed */
 #notificationMenu[hidden] {
     display: none !important;
 }
 
-/* Dropdown heading */
+/* Header */
 #notificationMenu .notification-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-
-    flex-shrink: 0;
     padding: 16px;
-
-    background: #ffffff;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #eeeeee;
 }
 
-#notificationMenu .notification-header h2 {
+#notificationMenu .notification-header h3,
+#notificationMenu .notification-header h4 {
     margin: 0;
-    color: #111827;
     font-size: 17px;
     font-weight: 700;
 }
 
-#notificationMenu .notification-header button {
-    padding: 8px 10px;
-    border: none;
-    border-radius: 7px;
-    background: #eff6ff;
-    color: #2563eb;
-    font-size: 11px;
-    font-weight: 700;
-    white-space: nowrap;
+/* Header action buttons */
+#notificationMenu button {
     cursor: pointer;
+    border: none;
+    background: transparent;
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 600;
 }
 
-#notificationMenu .notification-header button:hover {
-    background: #dbeafe;
+#notificationMenu button:hover {
+    text-decoration: underline;
 }
 
-/* Scrollable notification list */
+/* Notification list */
 #notificationMenu .notification-list {
-    flex: 1;
-    min-height: 0;
-    max-height: 390px;
+    max-height: 350px;
     overflow-y: auto;
-    overscroll-behavior: contain;
 }
 
 /* Individual notification */
@@ -2984,149 +2913,69 @@ body.dark-mode .checkout-button {
     display: flex;
     align-items: flex-start;
     gap: 12px;
-
-    width: 100%;
-    padding: 15px;
-
-    border: none;
+    padding: 14px 16px;
     border-bottom: 1px solid #f0f0f0;
-
-    background: #ffffff;
-    color: #111827;
-    text-align: left;
-
-    cursor: pointer;
 }
 
-#notificationMenu .notification-item:hover {
-    background: #f8fafc;
+#notificationMenu .notification-item:last-child {
+    border-bottom: none;
 }
 
-#notificationMenu .notification-item.unread {
-    background: #eff6ff;
-}
-
-/* Notification icon */
-#notificationMenu .notification-item-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-
-    width: 38px;
-    height: 38px;
-
-    border-radius: 50%;
-    background: #dbeafe;
-    color: #2563eb;
-}
-
-/* Notification text */
+/* Notification message */
 #notificationMenu .notification-item-content {
     flex: 1;
     min-width: 0;
 }
 
-#notificationMenu .notification-item-content h3 {
-    margin: 0 0 5px;
-    color: #111827;
-    font-size: 13px;
-    line-height: 1.4;
-    font-weight: 700;
-}
-
 #notificationMenu .notification-item-content p {
-    margin: 0;
-    color: #6b7280;
-    font-size: 12px;
-    line-height: 1.6;
-    overflow-wrap: anywhere;
+    margin: 0 0 5px;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 #notificationMenu .notification-item-content small {
-    display: block;
-    margin-top: 7px;
-    color: #9ca3af;
-    font-size: 10px;
-}
-
-/* Unread indicator */
-#notificationMenu .notification-unread-dot {
-    flex-shrink: 0;
-    width: 8px;
-    height: 8px;
-    margin-top: 5px;
-    border-radius: 50%;
-    background: #2563eb;
+    color: #777;
+    font-size: 11px;
 }
 
 /* Empty notification message */
 #notificationMenu .empty-notifications {
     padding: 35px 15px;
-    color: #6b7280;
-    font-size: 13px;
-    line-height: 1.6;
     text-align: center;
+    color: #888;
+    font-size: 13px;
+}
+
+/* Footer */
+#notificationMenu .notification-footer {
+    padding: 13px 16px;
+    text-align: center;
+    border-top: 1px solid #eeeeee;
+    background: #fafafa;
+}
+
+#notificationMenu .notification-footer button {
+    color: #dc2626;
+    font-size: 12px;
 }
 
 /* Dark mode */
 body.dark-mode #notificationMenu {
-    background: #1f2937 !important;
-    color: #f3f4f6 !important;
-    border-color: #374151 !important;
+    background: #1f2937;
+    color: #f9fafb;
+    border-color: #374151;
 }
 
-body.dark-mode #notificationMenu .notification-header {
-    background: #1f2937 !important;
-    border-bottom-color: #374151 !important;
-}
-
-body.dark-mode #notificationMenu .notification-header h2,
-body.dark-mode #notificationMenu .notification-item-content h3 {
-    color: #f3f4f6 !important;
-}
-
+body.dark-mode #notificationMenu .notification-header,
 body.dark-mode #notificationMenu .notification-item {
-    background: #1f2937 !important;
-    border-bottom-color: #374151 !important;
+    border-color: #374151;
 }
 
-body.dark-mode #notificationMenu .notification-item:hover,
-body.dark-mode #notificationMenu .notification-item.unread {
-    background: #263b5a !important;
+body.dark-mode #notificationMenu .notification-item-content small {
+    color: #a1a1aa;
 }
 
-body.dark-mode #notificationMenu .notification-item-content p {
-    color: #d1d5db !important;
-}
-
-body.dark-mode #notificationMenu .notification-item-content small,
-body.dark-mode #notificationMenu .empty-notifications {
-    color: #9ca3af !important;
-}
-
-/* Mobile dropdown */
-@media (max-width: 600px) {
-    #notificationMenu {
-        position: fixed;
-        top: 65px;
-        right: 10px;
-
-        width: 380px;
-        max-width: calc(100vw - 20px);
-        max-height: 75vh;
-    }
-
-    #notificationMenu .notification-list {
-        max-height: calc(75vh - 70px);
-    }
-}
-
-/* Very small phones */
-@media (max-width: 360px) {
-    #notificationMenu {
-        right: 5px;
-        width: calc(100vw - 10px);
-        max-width: calc(100vw - 10px);
-    }
+body.dark-mode #notificationMenu .notification-footer {
+    background: #111827;
+    border-color: #374151;
 }
