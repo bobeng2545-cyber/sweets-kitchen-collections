@@ -51,6 +51,61 @@ function initializeSweetWebsite() {
 
     const supabaseClient = window.sweetSupabase;
 
+   
+/* ==========================================
+   LOAD SUPABASE PRODUCT IDs
+========================================== */
+
+async function connectStoreProductIds() {
+
+    if (!supabaseClient) return;
+
+    const { data, error } = await supabaseClient
+        .from("store_products")
+        .select("id, name, price, category")
+        .eq("is_active", true);
+
+    if (error) {
+        console.error("Could not load product IDs:", error);
+        return;
+    }
+
+    const productCards = document.querySelectorAll(".product-card");
+
+    productCards.forEach(card => {
+
+        const button = card.querySelector(".add-to-cart");
+
+        if (!button) return;
+
+        const name = (
+            button.dataset.name ||
+            card.dataset.name ||
+            ""
+        ).trim();
+
+        const price = Number(button.dataset.price);
+
+        const product = data.find(item =>
+            item.name === name &&
+            Number(item.price) === price &&
+            item.category === card.dataset.category
+        );
+
+        if (product) {
+            button.dataset.productId = product.id;
+        } else {
+            console.warn("No matching database product:", name, price);
+        }
+
+    });
+
+    console.log("Store product IDs connected successfully.");
+}
+
+connectStoreProductIds();
+
+
 
     /* =================================================
        3. DARK AND LIGHT MODE
