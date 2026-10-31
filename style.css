@@ -2511,3 +2511,165 @@ body.dark-mode .cancel-checkout-button {
         font-size: .75rem;
     }
 }
+
+/* =====================================================
+   22. FINAL CSS FIXES AND OVERRIDES
+   SWEET'S KITCHEN & COLLECTIONS
+===================================================== */
+
+/* PAYMENT MODAL VISIBILITY */
+.payment-overlay.show {
+    display: flex;
+}
+
+/* Keep hidden elements hidden */
+.payment-overlay[hidden],
+.payment-details[hidden],
+.profile-menu[hidden],
+.notification-menu[hidden],
+.notification-count[hidden] {
+    display: none !important;
+}
+
+/* FLASH SALE BADGE POSITION */
+.products-grid .product-image .flash-sale-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 3;
+    width: fit-content;
+    max-width: calc(100% - 20px);
+}
+
+/* FLASH SALE PRODUCT DISPLAY */
+.products-grid .flash-sale-display {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    min-width: 0;
+    margin: 8px 0;
+}
+
+.products-grid .flash-sale-old-price,
+.products-grid .flash-sale-new-price {
+    overflow-wrap: anywhere;
+}
+
+.products-grid .product-card.on-flash-sale {
+    border: 1px solid #ef4444;
+}
+
+.products-grid .product-card.on-flash-sale .product-buttom {
+    border-top-color: #ef4444;
+}
+
+/* MOBILE NAVIGATION LINKS */
+@media (max-width: 900px) {
+    .nav a {
+        display: block;
+        width: 100%;
+        padding: 10px;
+    }
+
+    .nav a:hover {
+        background: rgba(37, 99, 235, .08);
+    }
+}
+
+/* DARK MODE PAYMENT MODAL */
+body.dark-mode .payment-overlay .payment-box {
+    background: #1f2937;
+    color: #f3f4f6;
+    border-color: #374151;
+}
+
+body.dark-mode .payment-box > strong:first-of-type,
+body.dark-mode #paymentDetails h3,
+body.dark-mode .customer-details h3,
+body.dark-mode .customer-details label {
+    color: #f3f4f6;
+}
+
+/* DARK MODE PAYMENT INPUTS */
+body.dark-mode .payment-box select,
+body.dark-mode #paymentNetwork,
+body.dark-mode .customer-details input,
+body.dark-mode .customer-details textarea {
+    background: #111827;
+    color: #f3f4f6;
+    border-color: #4b5563;
+}
+
+/* DARK MODE PAYMENT DETAILS */
+body.dark-mode #paymentDetails,
+body.dark-mode .customer-details {
+    background: #111827;
+    border-color: #374151;
+}
+
+body.dark-mode #paymentInstructions {
+    color: #d1d5db;
+}
+
+body.dark-mode #paymentReference {
+    background: #111827;
+    color: #d1d5db;
+    border-color: #4b5563;
+}
+
+/* DARK MODE DELIVERY FORM */
+body.dark-mode .delivery-field input,
+body.dark-mode .delivery-field select,
+body.dark-mode .delivery-field textarea {
+    background: #111827;
+    color: #f3f4f6;
+    border-color: #4b5563;
+}
+
+body.dark-mode .delivery-checkout-card .payment-order,
+body.dark-mode .delivery-details-section {
+    background: #111827;
+}
+
+/* RESPONSIVE PAYMENT MODAL */
+@media (max-width: 600px) {
+    .payment-overlay {
+        align-items: flex-start;
+        padding: 12px;
+    }
+
+    .payment-overlay .payment-box {
+        width: 100%;
+        max-width: 440px;
+        max-height: calc(100dvh - 24px);
+        margin: auto;
+        overflow-y: auto;
+    }
+
+    .delivery-checkout-card {
+        width: 100%;
+        max-height: calc(100dvh - 24px);
+        overflow-y: auto;
+    }
+}
+
+/* ACCESSIBILITY */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 3px;
+}
+
+/* PREVENT LONG CONTENT FROM BREAKING LAYOUT */
+.product-card,
+.order-card,
+.profile-menu,
+.notification-menu,
+.payment-box,
+.delivery-checkout-card {
+    overflow-wrap: anywhere;
+}
