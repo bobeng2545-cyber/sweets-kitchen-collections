@@ -5,186 +5,384 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#111827">
+
     <title>Admin Dashboard | SWEET's KITCHEN & COLLECTIONS</title>
 
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Material Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+    <!-- Admin CSS -->
     <link rel="stylesheet" href="./admin.css">
 </head>
 
 <body>
-    <!-- LOGIN SCREEN -->
+
+    <!-- =====================================
+         ADMIN LOGIN
+    ====================================== -->
+
     <section class="login-screen" id="loginPanel">
+
         <div class="login-card">
+
             <div class="brand-mark">S</div>
+
             <p class="eyebrow">SWEET's KITCHEN & COLLECTIONS</p>
+
             <h1>Welcome Back</h1>
-            <p class="muted">Sign in to manage your store.</p>
+
+            <p class="muted">
+                Sign in to manage your store.
+            </p>
 
             <form id="adminLoginForm">
+
                 <label for="adminEmail">Email Address</label>
-                <input type="email" id="adminEmail" placeholder="admin@example.com" required autocomplete="username">
+
+                <input
+                    type="email"
+                    id="adminEmail"
+                    placeholder="admin@example.com"
+                    required
+                    autocomplete="username"
+                >
 
                 <label for="adminPassword">Password</label>
-                <input type="password" id="adminPassword" placeholder="Enter your password" required autocomplete="current-password">
 
-                <button type="submit" id="loginButton" class="primary-button">
+                <input
+                    type="password"
+                    id="adminPassword"
+                    placeholder="Enter your password"
+                    required
+                    autocomplete="current-password"
+                >
+
+                <button
+                    type="submit"
+                    id="loginButton"
+                    class="primary-button"
+                >
                     Sign In to Dashboard
                 </button>
+
             </form>
-            <p id="loginMessage" class="message" role="status"></p>
-            <a href="./index.html" class="back-link">← Back to Store</a>
+
+            <p
+                id="loginMessage"
+                class="message"
+                role="status"
+                aria-live="polite"
+            ></p>
+
+            <a href="./index.html" class="back-link">
+                ← Back to Store
+            </a>
+
         </div>
+
     </section>
 
-    <!-- ADMIN DASHBOARD -->
+
+    <!-- =====================================
+         MAIN ADMIN DASHBOARD
+    ====================================== -->
+
     <div class="admin-layout" id="dashboard" hidden>
 
+        <!-- SIDEBAR -->
+
         <aside class="sidebar" id="sidebar">
+
             <div class="sidebar-brand">
+
                 <div class="brand-mark small">S</div>
+
                 <div>
                     <strong>SWEET's KITCHEN</strong>
                     <span>ADMINISTRATION</span>
                 </div>
+
             </div>
 
+
+            <!-- NAVIGATION -->
+
             <nav class="sidebar-nav" aria-label="Admin navigation">
+
                 <p class="nav-heading">MAIN MENU</p>
 
-                <button class="nav-link active" data-section="overview">
+                <button
+                    type="button"
+                    class="nav-link active"
+                    data-section="overview"
+                >
                     <span class="material-symbols-outlined">dashboard</span>
                     Overview
                 </button>
 
-                <button class="nav-link" data-section="orders">
+                <button
+                    type="button"
+                    class="nav-link"
+                    data-section="orders"
+                >
                     <span class="material-symbols-outlined">shopping_bag</span>
                     Orders
                     <span class="nav-badge" id="navPendingCount">0</span>
                 </button>
 
-                <button class="nav-link" data-section="products">
+                <button
+                    type="button"
+                    class="nav-link"
+                    data-section="products"
+                >
                     <span class="material-symbols-outlined">inventory_2</span>
                     Products
                 </button>
 
-                <button class="nav-link" data-section="flash-sales">
+                <button
+                    type="button"
+                    class="nav-link"
+                    data-section="flash-sales"
+                >
                     <span class="material-symbols-outlined">local_fire_department</span>
                     Flash Sales
                 </button>
 
-                <button class="nav-link" data-section="customers">
+                <button
+                    type="button"
+                    class="nav-link"
+                    data-section="customers"
+                >
                     <span class="material-symbols-outlined">groups</span>
                     Customers
                 </button>
 
-                <p class="nav-heading management-heading">MANAGEMENT</p>
+
+                <p class="nav-heading management-heading">
+                    MANAGEMENT
+                </p>
 
                 <a href="./index.html" class="nav-link store-link">
                     <span class="material-symbols-outlined">storefront</span>
                     View Store
                 </a>
+
             </nav>
 
+
+            <!-- SIDEBAR BOTTOM -->
+
             <div class="sidebar-bottom">
+
                 <div class="admin-profile">
+
                     <div class="admin-avatar">A</div>
+
                     <div class="admin-details">
                         <strong id="adminName">Administrator</strong>
                         <span id="adminEmailDisplay">Store Manager</span>
                     </div>
+
                 </div>
-                <button type="button" id="logoutButton" class="logout-button">
+
+                <button
+                    type="button"
+                    id="logoutButton"
+                    class="logout-button"
+                >
                     <span class="material-symbols-outlined">logout</span>
                     Sign Out
                 </button>
+
             </div>
+
         </aside>
 
+
+        <!-- MOBILE SIDEBAR OVERLAY -->
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+        <!-- MAIN CONTENT -->
+
         <main class="main-content">
+
+
+            <!-- TOP HEADER -->
+
             <header class="topbar">
+
                 <div class="topbar-left">
-                    <button type="button" id="mobileMenuButton" class="icon-button" aria-label="Open menu">
+
+                    <button
+                        type="button"
+                        id="mobileMenuButton"
+                        class="icon-button"
+                        aria-label="Open menu"
+                    >
                         <span class="material-symbols-outlined">menu</span>
                     </button>
+
                     <div>
                         <p class="eyebrow">STORE MANAGEMENT</p>
                         <h1 id="pageTitle">Dashboard Overview</h1>
                     </div>
+
                 </div>
 
+
                 <div class="topbar-right">
-                    <span class="live-indicator">● Store Admin</span>
-                    <button type="button" id="refreshDashboardButton" class="refresh-button">
+
+                    <span class="live-indicator">
+                        ● Store Admin
+                    </span>
+
+                    <button
+                        type="button"
+                        id="refreshDashboardButton"
+                        class="refresh-button"
+                    >
                         <span class="material-symbols-outlined">refresh</span>
                         Refresh
                     </button>
+
                 </div>
+
             </header>
 
-            <div id="globalMessage" class="global-message" role="status" aria-live="polite"></div>
 
-            <!-- OVERVIEW -->
-            <section class="dashboard-section active-section" id="section-overview">
+            <!-- GLOBAL MESSAGE -->
+
+            <div
+                id="globalMessage"
+                class="global-message"
+                role="status"
+                aria-live="polite"
+            ></div>
+
+
+            <!-- =====================================
+                 OVERVIEW SECTION
+            ====================================== -->
+
+            <section
+                class="dashboard-section active-section"
+                id="overviewSection"
+            >
+
                 <div class="welcome-row">
+
                     <div>
                         <h2>Store Overview</h2>
-                        <p>Monitor your business performance and daily activities.</p>
+                        <p>
+                            Monitor your business performance and daily activities.
+                        </p>
                     </div>
+
                     <span class="date-label" id="todayDate"></span>
+
                 </div>
 
+
+                <!-- STATISTICS -->
+
                 <div class="stats-grid">
+
                     <article class="stat-card">
+
                         <div class="stat-icon purple">
                             <span class="material-symbols-outlined">payments</span>
                         </div>
+
                         <p>Total Sales</p>
+
                         <h2 id="totalSales">GH₵0.00</h2>
+
                         <span>Verified paid orders</span>
+
                     </article>
 
+
                     <article class="stat-card">
+
                         <div class="stat-icon orange">
                             <span class="material-symbols-outlined">receipt_long</span>
                         </div>
+
                         <p>Total Orders</p>
+
                         <h2 id="totalOrders">0</h2>
+
                         <span>Orders received</span>
+
                     </article>
 
+
                     <article class="stat-card">
+
                         <div class="stat-icon blue">
                             <span class="material-symbols-outlined">pending_actions</span>
                         </div>
+
                         <p>Pending Orders</p>
+
                         <h2 id="pendingOrders">0</h2>
+
                         <span>Awaiting processing</span>
+
                     </article>
 
+
                     <article class="stat-card">
+
                         <div class="stat-icon green">
                             <span class="material-symbols-outlined">inventory</span>
                         </div>
+
                         <p>Active Products</p>
+
                         <h2 id="totalProducts">0</h2>
+
                         <span>Products listed in store</span>
+
                     </article>
+
                 </div>
 
+
+                <!-- RECENT ORDERS -->
+
                 <div class="content-card recent-orders-card">
+
                     <div class="card-heading">
+
                         <div>
                             <h2>Recent Orders</h2>
                             <p>Latest customer purchases</p>
                         </div>
-                        <button class="text-button" data-section="orders">View All Orders →</button>
+
+                        <button
+                            type="button"
+                            class="text-button"
+                            data-section="orders"
+                        >
+                            View All Orders →
+                        </button>
+
                     </div>
 
+
                     <div class="table-wrap">
+
                         <table>
+
                             <thead>
                                 <tr>
                                     <th>Order Reference</th>
@@ -193,43 +391,91 @@
                                     <th>Order Status</th>
                                 </tr>
                             </thead>
+
                             <tbody id="recentOrdersBody">
-                                <tr><td colspan="4" class="empty-cell">Sign in to load your orders.</td></tr>
+
+                                <tr>
+                                    <td colspan="4" class="empty-cell">
+                                        Sign in to load your orders.
+                                    </td>
+                                </tr>
+
                             </tbody>
+
                         </table>
+
                     </div>
+
                 </div>
+
             </section>
 
-            <!-- ORDERS -->
-            <section class="dashboard-section" id="section-orders">
+
+
+            <!-- =====================================
+                 ORDERS SECTION
+            ====================================== -->
+
+            <section
+                class="dashboard-section"
+                id="ordersSection"
+            >
+
                 <div class="section-heading">
+
                     <div>
                         <h2>Order Management</h2>
-                        <p>Review customer orders and manage fulfilment.</p>
+                        <p>
+                            Review customer orders and manage fulfilment.
+                        </p>
                     </div>
-                    <button type="button" class="primary-button compact" id="refreshOrdersButton">
+
+                    <button
+                        type="button"
+                        class="primary-button compact"
+                        id="refreshOrdersButton"
+                    >
                         Refresh Orders
                     </button>
+
                 </div>
 
+
                 <div class="content-card">
+
                     <div class="toolbar">
-                        <input type="search" id="searchOrders" placeholder="Search by order reference...">
+
+                        <input
+                            type="search"
+                            id="searchOrders"
+                            placeholder="Search by order reference..."
+                        >
+
                         <select id="orderStatusFilter">
+
                             <option value="">All order statuses</option>
                             <option value="pending">Pending</option>
                             <option value="preparing">Preparing</option>
                             <option value="ready">Ready</option>
                             <option value="delivered">Delivered</option>
                             <option value="cancelled">Cancelled</option>
+
                         </select>
+
                     </div>
 
-                    <p id="ordersMessage" class="table-message" role="status"></p>
+
+                    <p
+                        id="ordersMessage"
+                        class="table-message"
+                        role="status"
+                    ></p>
+
 
                     <div class="table-wrap">
+
                         <table>
+
                             <thead>
                                 <tr>
                                     <th>Order Reference</th>
@@ -239,42 +485,90 @@
                                     <th>Action</th>
                                 </tr>
                             </thead>
+
                             <tbody id="ordersTableBody">
-                                <tr><td colspan="5" class="empty-cell">Orders will appear here.</td></tr>
+
+                                <tr>
+                                    <td colspan="5" class="empty-cell">
+                                        Orders will appear here.
+                                    </td>
+                                </tr>
+
                             </tbody>
+
                         </table>
+
                     </div>
+
                 </div>
+
             </section>
 
-            <!-- PRODUCTS -->
-            <section class="dashboard-section" id="section-products">
+
+
+            <!-- =====================================
+                 PRODUCTS SECTION
+            ====================================== -->
+
+            <section
+                class="dashboard-section"
+                id="productsSection"
+            >
+
                 <div class="section-heading">
+
                     <div>
                         <h2>Product Inventory</h2>
-                        <p>Add and manage products displayed in your online store.</p>
+                        <p>
+                            Add and manage products displayed in your online store.
+                        </p>
                     </div>
-                    <button type="button" class="primary-button compact" id="addProductButton">
+
+                    <button
+                        type="button"
+                        class="primary-button compact"
+                        id="addProductButton"
+                    >
                         + Add Product
                     </button>
+
                 </div>
 
+
                 <div class="content-card">
+
                     <div class="toolbar">
-                        <input type="search" id="searchProducts" placeholder="Search products...">
+
+                        <input
+                            type="search"
+                            id="searchProducts"
+                            placeholder="Search products..."
+                        >
+
                         <select id="productCategoryFilter">
+
                             <option value="">All categories</option>
                             <option value="Fashion">Fashion</option>
                             <option value="Electronics">Electronics</option>
                             <option value="Kitchen Tools">Kitchen Tools</option>
                             <option value="Beauty">Beauty</option>
+
                         </select>
+
                     </div>
 
-                    <p id="productsMessage" class="table-message" role="status"></p>
+
+                    <p
+                        id="productsMessage"
+                        class="table-message"
+                        role="status"
+                    ></p>
+
 
                     <div class="table-wrap">
+
                         <table>
+
                             <thead>
                                 <tr>
                                     <th>Product</th>
@@ -284,30 +578,69 @@
                                     <th>Action</th>
                                 </tr>
                             </thead>
+
                             <tbody id="productsTableBody">
-                                <tr><td colspan="5" class="empty-cell">Products will appear here.</td></tr>
+
+                                <tr>
+                                    <td colspan="5" class="empty-cell">
+                                        Products will appear here.
+                                    </td>
+                                </tr>
+
                             </tbody>
+
                         </table>
+
                     </div>
+
                 </div>
+
             </section>
 
-            <!-- FLASH SALES -->
-            <section class="dashboard-section" id="section-flash-sales">
+
+
+            <!-- =====================================
+                 FLASH SALES SECTION
+            ====================================== -->
+
+            <section
+                class="dashboard-section"
+                id="flash-salesSection"
+            >
+
                 <div class="section-heading">
+
                     <div>
                         <h2>Flash Sales</h2>
-                        <p>Create special discounts to attract more customers.</p>
+                        <p>
+                            Create special discounts to attract more customers.
+                        </p>
                     </div>
-                    <button type="button" class="primary-button compact" id="addFlashSaleButton">
+
+                    <button
+                        type="button"
+                        class="primary-button compact"
+                        id="addFlashSaleButton"
+                    >
                         + Create Flash Sale
                     </button>
+
                 </div>
 
+
                 <div class="content-card">
-                    <p id="salesMessage" class="table-message" role="status"></p>
+
+                    <p
+                        id="salesMessage"
+                        class="table-message"
+                        role="status"
+                    ></p>
+
+
                     <div class="table-wrap">
+
                         <table>
+
                             <thead>
                                 <tr>
                                     <th>Product</th>
@@ -318,104 +651,301 @@
                                     <th>Action</th>
                                 </tr>
                             </thead>
+
                             <tbody id="flashSalesTableBody">
-                                <tr><td colspan="6" class="empty-cell">Flash sales will appear here.</td></tr>
+
+                                <tr>
+                                    <td colspan="6" class="empty-cell">
+                                        Flash sales will appear here.
+                                    </td>
+                                </tr>
+
                             </tbody>
+
                         </table>
+
                     </div>
+
                 </div>
+
             </section>
 
-            <!-- CUSTOMERS -->
-            <section class="dashboard-section" id="section-customers">
+
+
+            <!-- =====================================
+                 CUSTOMERS SECTION
+            ====================================== -->
+
+            <section
+                class="dashboard-section"
+                id="customersSection"
+            >
+
                 <div class="section-heading">
+
                     <div>
                         <h2>Customer Management</h2>
-                        <p>Customer information and purchasing activity.</p>
+                        <p>
+                            Customer information and purchasing activity.
+                        </p>
                     </div>
+
                 </div>
+
 
                 <div class="content-card">
+
                     <div class="empty-state">
+
                         <span class="material-symbols-outlined">groups</span>
-                        <h3>Customer records</h3>
-                        <p>We'll connect this section after confirming the customer data and privacy permissions in your database.</p>
+
+                        <h3>Customer Records</h3>
+
+                        <p>
+                            Customer management will be connected after
+                            confirming the customer database and privacy
+                            permissions.
+                        </p>
+
                     </div>
+
                 </div>
+
             </section>
+
         </main>
+
     </div>
 
-    <!-- PRODUCT MODAL -->
-    <div class="modal-backdrop" id="productModal" hidden>
-        <div class="modal-card">
+
+
+    <!-- =====================================
+         PRODUCT MODAL
+    ====================================== -->
+
+    <div
+        class="modal"
+        id="productModal"
+        hidden
+        aria-hidden="true"
+    >
+
+        <div class="modal-content">
+
             <div class="modal-heading">
+
                 <div>
                     <h2 id="productModalTitle">Add New Product</h2>
                     <p>Enter the product information below.</p>
                 </div>
-                <button type="button" class="close-modal" data-close-modal="productModal">×</button>
+
+                <button
+                    type="button"
+                    class="close-modal"
+                    data-close-modal="productModal"
+                    aria-label="Close product form"
+                >
+                    ×
+                </button>
+
             </div>
 
+
             <form id="productForm">
+
                 <input type="hidden" id="productId">
 
+
                 <label for="productName">Product Name</label>
-                <input type="text" id="productName" required>
+
+                <input
+                    type="text"
+                    id="productName"
+                    placeholder="Enter product name"
+                    required
+                >
+
 
                 <label for="productCategory">Category</label>
-                <input type="text" id="productCategory" placeholder="e.g. Kitchen Tools" required>
+
+                <input
+                    type="text"
+                    id="productCategory"
+                    placeholder="e.g. Kitchen Tools"
+                    required
+                >
+
 
                 <label for="productPrice">Price (GH₵)</label>
-                <input type="number" id="productPrice" min="0" step="0.01" required>
+
+                <input
+                    type="number"
+                    id="productPrice"
+                    min="0"
+                    step="0.01"
+                    placeholder="Enter product price"
+                    required
+                >
+
 
                 <label for="productImage">Product Image URL</label>
-                <input type="url" id="productImage" placeholder="https://...">
+
+                <input
+                    type="url"
+                    id="productImage"
+                    placeholder="https://..."
+                >
+
 
                 <label class="checkbox-row">
-                    <input type="checkbox" id="productActive" checked>
-                    Display this product in the store
+
+                    <input
+                        type="checkbox"
+                        id="productActive"
+                        checked
+                    >
+
+                    Display this product in the store.
+
                 </label>
 
-                <p id="productFormMessage" class="message" role="status"></p>
-                <button type="submit" class="primary-button" id="saveProductButton">Save Product</button>
+
+                <p
+                    id="productFormMessage"
+                    class="message"
+                    role="status"
+                ></p>
+
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                    id="saveProductButton"
+                >
+                    Save Product
+                </button>
+
             </form>
+
         </div>
+
     </div>
 
-    <!-- FLASH SALE MODAL -->
-    <div class="modal-backdrop" id="flashSaleModal" hidden>
-        <div class="modal-card">
+
+
+    <!-- =====================================
+         FLASH SALE MODAL
+    ====================================== -->
+
+    <div
+        class="modal"
+        id="flashSaleModal"
+        hidden
+        aria-hidden="true"
+    >
+
+        <div class="modal-content">
+
             <div class="modal-heading">
+
                 <div>
                     <h2>Create Flash Sale</h2>
                     <p>Set a discount for one of your products.</p>
                 </div>
-                <button type="button" class="close-modal" data-close-modal="flashSaleModal">×</button>
+
+                <button
+                    type="button"
+                    class="close-modal"
+                    data-close-modal="flashSaleModal"
+                    aria-label="Close flash sale form"
+                >
+                    ×
+                </button>
+
             </div>
 
+
             <form id="flashSaleForm">
+
+
                 <label for="saleProduct">Product</label>
+
                 <select id="saleProduct" required>
+
                     <option value="">Select a product</option>
+
                 </select>
 
-                <label for="saleDiscount">Discount Percentage (%)</label>
-                <input type="number" id="saleDiscount" min="1" max="99" required>
 
-                <label for="saleStart">Start Date and Time</label>
-                <input type="datetime-local" id="saleStart" required>
+                <label for="saleDiscount">
+                    Discount Percentage (%)
+                </label>
 
-                <label for="saleEnd">End Date and Time</label>
-                <input type="datetime-local" id="saleEnd" required>
+                <input
+                    type="number"
+                    id="saleDiscount"
+                    min="1"
+                    max="99"
+                    placeholder="e.g. 20"
+                    required
+                >
 
-                <p id="saleFormMessage" class="message" role="status"></p>
-                <button type="submit" class="primary-button" id="saveFlashSaleButton">Create Flash Sale</button>
+
+                <label for="saleStart">
+                    Start Date and Time
+                </label>
+
+                <input
+                    type="datetime-local"
+                    id="saleStart"
+                    required
+                >
+
+
+                <label for="saleEnd">
+                    End Date and Time
+                </label>
+
+                <input
+                    type="datetime-local"
+                    id="saleEnd"
+                    required
+                >
+
+
+                <p
+                    id="saleFormMessage"
+                    class="message"
+                    role="status"
+                ></p>
+
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                    id="saveFlashSaleButton"
+                >
+                    Create Flash Sale
+                </button>
+
             </form>
+
         </div>
+
     </div>
 
+
+
+    <!-- =====================================
+         SUPABASE
+    ====================================== -->
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+    <!-- ADMIN JAVASCRIPT -->
+
     <script src="./admin.js"></script>
+
 </body>
 </html>
