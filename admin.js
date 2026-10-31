@@ -1111,40 +1111,32 @@ async function callFlashSalesFunction(method = "GET", body) {
 function populateFlashSaleProducts(selectedProduct = "") {
     const select = flashSaleElements.product;
 
-    if (!select) return;
+   function populateFlashSaleProducts(selectedProduct = "") {
+    const select = flashSaleElements.product;
 
-    const previousValue = selectedProduct || select.value;
+    if (!select) {
+        console.error("Flash Sale product dropdown was not found.");
+        return;
+    }
 
-    select.replaceChildren();
+    select.innerHTML = '<option value="">Choose a product</option>';
 
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = "Choose a product";
+    inventoryProducts.forEach(product => {
+        if (!product.product_name) return;
 
-    select.appendChild(placeholder);
-
-    const availableProducts = inventoryProducts.filter(
-        product => product.active === true
-    );
-
-    availableProducts.forEach(product => {
         const option = document.createElement("option");
 
         option.value = product.product_name;
-        option.textContent =
-            `${product.product_name} — ${formatMoney(product.unit_price)}`;
+        option.textContent = product.product_name;
+
+        if (product.product_name === selectedProduct) {
+            option.selected = true;
+        }
 
         select.appendChild(option);
     });
 
-    if (
-        previousValue &&
-        availableProducts.some(
-            product => product.product_name === previousValue
-        )
-    ) {
-        select.value = previousValue;
-    }
+    console.log("Products added to Flash Sales:", inventoryProducts);
 }
 
 // ==========================================
