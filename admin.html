@@ -1,15 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Admin Dashboard | SWEET's KITCHEN</title>
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
@@ -29,20 +27,10 @@
             flex-wrap: wrap;
         }
 
-        header h1 {
-            margin: 0;
-            font-size: 21px;
-        }
+        header h1 { margin: 0; font-size: 21px; }
+        header p { margin: 6px 0 0; color: #cbd5e1; font-size: 13px; }
 
-        header p {
-            margin: 6px 0 0;
-            color: #cbd5e1;
-            font-size: 13px;
-        }
-
-        button, input, select {
-            font: inherit;
-        }
+        button, input, select { font: inherit; }
 
         button {
             border: 0;
@@ -51,15 +39,9 @@
             cursor: pointer;
         }
 
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+        button:disabled { opacity: .6; cursor: not-allowed; }
 
-        .logout-btn {
-            background: #fff;
-            color: #202a36;
-        }
+        .logout-btn { background: white; color: #202a36; }
 
         main {
             max-width: 1200px;
@@ -82,25 +64,22 @@
             margin: 24px 0;
         }
 
-        .summary-card,
-        .orders-panel,
-        .login-panel {
+        .summary-card, .orders-panel, .login-panel,
+        .inventory-panel, .flash-sales-panel {
             background: white;
             border: 1px solid #e5e7eb;
             border-radius: 12px;
             padding: 22px;
         }
 
-        .summary-card p {
+        .summary-card p, .inventory-card p {
             color: #687386;
             margin: 0 0 12px;
         }
 
-        .summary-card strong {
-            font-size: 28px;
-        }
+        .summary-card strong { font-size: 28px; }
 
-        .orders-heading {
+        .orders-heading, .flash-sales-heading {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -109,9 +88,7 @@
             margin-bottom: 18px;
         }
 
-        .orders-heading h2 {
-            margin: 0;
-        }
+        .orders-heading h2 { margin: 0; }
 
         #searchOrders {
             width: 100%;
@@ -121,9 +98,7 @@
             border-radius: 7px;
         }
 
-        .table-wrap {
-            overflow-x: auto;
-        }
+        .table-wrap { overflow-x: auto; }
 
         table {
             width: 100%;
@@ -137,10 +112,7 @@
             text-align: left;
         }
 
-        th {
-            background: #f8fafc;
-            font-size: 13px;
-        }
+        th { background: #f8fafc; font-size: 13px; }
 
         #ordersMessage {
             color: #687386;
@@ -171,19 +143,8 @@
             color: white;
         }
 
-        /* INVENTORY MANAGEMENT */
-
-        .inventory-panel {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 22px;
-            margin: 24px 0;
-        }
-
-        .inventory-panel h2 {
-            margin-top: 0;
-        }
+        .inventory-panel, .flash-sales-panel { margin: 24px 0; }
+        .inventory-panel h2, .flash-sales-panel h2 { margin-top: 0; }
 
         .inventory-summary {
             display: grid;
@@ -199,38 +160,20 @@
             border-radius: 10px;
         }
 
-        .inventory-card p {
-            color: #687386;
-            margin: 0 0 10px;
-        }
+        .inventory-card strong { font-size: 25px; }
 
-        .inventory-card strong {
-            font-size: 25px;
-        }
-
-        .inventory-actions {
+        .inventory-actions, .flash-sale-form-buttons {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
             margin: 18px 0;
         }
 
-        .primary-btn {
-            background: #202a36;
-            color: white;
-        }
+        .primary-btn { background: #202a36; color: white; }
+        .secondary-btn { background: #e8edf3; color: #202a36; }
+        .danger-btn { background: #fee2e2; color: #991b1b; }
 
-        .secondary-btn {
-            background: #e8edf3;
-            color: #202a36;
-        }
-
-        .danger-btn {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .inventory-form {
+        .inventory-form, .flash-sale-form {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 14px;
@@ -241,19 +184,17 @@
             border-radius: 10px;
         }
 
-        .inventory-form h3 {
-            margin: 0;
-        }
+        .inventory-form h3, .flash-sale-form h3 { margin: 0; }
 
-        .inventory-form label {
+        .inventory-form label, .flash-sale-form label {
             display: block;
             margin-bottom: 6px;
             font-size: 14px;
             font-weight: 600;
         }
 
-        .inventory-form input,
-        .inventory-form select {
+        .inventory-form input, .inventory-form select,
+        .flash-sale-form input, .flash-sale-form select {
             width: 100%;
             min-width: 0;
             padding: 11px;
@@ -262,13 +203,9 @@
             background: white;
         }
 
-        .inventory-form input[type="file"] {
-            padding: 10px;
-        }
+        .inventory-form input[type="file"] { padding: 10px; }
 
-        .inventory-form .full-width {
-            grid-column: 1 / -1;
-        }
+        .full-width { grid-column: 1 / -1; }
 
         .image-help {
             display: block;
@@ -295,85 +232,25 @@
             border-radius: 8px;
         }
 
-        #productImageMessage,
-        #inventoryMessage {
+        #productImageMessage, #inventoryMessage,
+        #flashSalesMessage {
             overflow-wrap: anywhere;
             font-size: 13px;
             line-height: 1.5;
         }
 
-        #productsTable {
-            min-width: 900px;
-        }
-
-        #productsTable button {
+        #productsTable { min-width: 900px; }
+        #productsTable button, #flashSalesTableBody button {
             margin: 3px;
             padding: 8px 10px;
         }
 
-        .low-stock {
-            color: #b45309;
-            font-weight: bold;
-        }
-
-        .in-stock {
-            color: #15803d;
-            font-weight: bold;
-        }
-
-        /* FLASH SALES MANAGEMENT */
-
-        .flash-sales-panel {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 22px;
-            margin: 24px 0;
-        }
-
-        .flash-sales-panel h2 {
-            margin-top: 0;
-        }
+        .low-stock { color: #b45309; font-weight: bold; }
+        .in-stock { color: #15803d; font-weight: bold; }
 
         .flash-sales-description {
             color: #687386;
             line-height: 1.6;
-        }
-
-        .flash-sale-form {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px;
-            margin: 20px 0;
-            padding: 18px;
-            background: #f8fafc;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-        }
-
-        .flash-sale-form h3 {
-            margin: 0;
-        }
-
-        .flash-sale-form label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .flash-sale-form input,
-        .flash-sale-form select {
-            width: 100%;
-            min-width: 0;
-            padding: 11px;
-            border: 1px solid #d7dce3;
-            border-radius: 7px;
-            background: white;
-        }
-
-        .flash-sale-form .full-width {
-            grid-column: 1 / -1;
         }
 
         .flash-sale-checkbox {
@@ -382,65 +259,22 @@
             gap: 9px;
         }
 
-        .flash-sale-checkbox input {
-            width: auto;
-        }
+        .flash-sale-checkbox input { width: auto; }
 
-        .flash-sale-form-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+        .flash-sale-status { font-weight: bold; }
 
-        .flash-sales-heading {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin: 20px 0;
-        }
-
-        .flash-sales-heading h3 {
-            margin: 0;
-        }
-
-        #flashSalesMessage {
-            font-size: 13px;
-            line-height: 1.5;
-            overflow-wrap: anywhere;
-        }
-
-        #flashSalesTableBody button {
-            margin: 3px;
-            padding: 8px 10px;
-        }
-
-        .flash-sale-status {
-            font-weight: bold;
-        }
-
-        [hidden] {
-            display: none !important;
-        }
+        [hidden] { display: none !important; }
 
         @media (max-width: 650px) {
-            .summary,
-            .inventory-summary,
-            .inventory-form,
+            .summary, .inventory-summary, .inventory-form,
             .flash-sale-form {
                 grid-template-columns: 1fr;
             }
 
-            main {
-                margin-top: 22px;
-                padding: 0 12px;
-            }
+            main { margin-top: 22px; padding: 0 12px; }
 
-            .inventory-panel,
-            .flash-sales-panel {
-                padding: 14px;
-            }
+            .inventory-panel, .flash-sales-panel,
+            .orders-panel { padding: 14px; }
 
             .inventory-form .full-width,
             .flash-sale-form .full-width {
@@ -451,468 +285,361 @@
 </head>
 
 <body>
-    <header>
-        <div>
-            <h1>SWEET's KITCHEN &amp; COLLECTIONS</h1>
-            <p>Store Administration Dashboard</p>
-        </div>
 
-        <button
-            id="logoutButton"
-            class="logout-btn"
-            type="button"
-            hidden
-        >
-            Sign out
-        </button>
-    </header>
+<header>
+    <div>
+        <h1>SWEET's KITCHEN &amp; COLLECTIONS</h1>
+        <p>Store Administration Dashboard</p>
+    </div>
 
-    <main>
-        <!-- ADMIN LOGIN -->
-        <section id="loginPanel" class="login-panel">
-            <h2>Administrator Login</h2>
-            <p>Sign in using your approved administrator account.</p>
+    <button id="logoutButton" class="logout-btn" type="button" hidden>
+        Sign out
+    </button>
+</header>
 
-            <form id="adminLoginForm">
-                <label for="adminEmail">Email address</label>
-                <input
-                    id="adminEmail"
-                    type="email"
-                    autocomplete="username"
-                    required
-                >
+<main>
 
-                <label for="adminPassword">Password</label>
-                <input
-                    id="adminPassword"
-                    type="password"
-                    autocomplete="current-password"
-                    required
-                >
+    <!-- ADMIN LOGIN -->
+    <section id="loginPanel" class="login-panel">
+        <h2>Administrator Login</h2>
+        <p>Sign in using your approved administrator account.</p>
 
-                <button id="loginButton" type="submit">
-                    Sign in
-                </button>
-            </form>
+        <form id="adminLoginForm">
+            <label for="adminEmail">Email address</label>
+            <input id="adminEmail" type="email"
+                   autocomplete="username" required>
 
-            <p id="loginMessage" role="status" aria-live="polite"></p>
-        </section>
+            <label for="adminPassword">Password</label>
+            <input id="adminPassword" type="password"
+                   autocomplete="current-password" required>
 
-        <!-- ADMIN DASHBOARD -->
-        <section id="dashboard" hidden>
-            <p class="notice">
-                Customer and order information is restricted to
-                authorized administrators.
-            </p>
+            <button id="loginButton" type="submit">Sign in</button>
+        </form>
 
-            <!-- ORDER SUMMARY -->
-            <div class="summary">
-                <div class="summary-card">
-                    <p>Paid orders</p>
-                    <strong id="paidOrdersCount">—</strong>
-                </div>
+        <p id="loginMessage" role="status" aria-live="polite"></p>
+    </section>
 
-                <div class="summary-card">
-                    <p>Awaiting preparation</p>
-                    <strong id="pendingOrdersCount">—</strong>
-                </div>
+    <!-- ADMIN DASHBOARD -->
+    <section id="dashboard" hidden>
+
+        <p class="notice">
+            Customer and order information is restricted to authorized administrators.
+        </p>
+
+        <!-- ORDER SUMMARY -->
+        <div class="summary">
+            <div class="summary-card">
+                <p>Paid orders</p>
+                <strong id="paidOrdersCount">—</strong>
             </div>
 
-            <!-- CUSTOMER ORDERS -->
-            <section class="orders-panel">
-                <div class="orders-heading">
-                    <h2>Customer Orders</h2>
+            <div class="summary-card">
+                <p>Awaiting preparation</p>
+                <strong id="pendingOrdersCount">—</strong>
+            </div>
+        </div>
 
-                    <button id="refreshOrdersButton" type="button">
-                        Refresh orders
+        <!-- CUSTOMER ORDERS -->
+        <section class="orders-panel">
+            <div class="orders-heading">
+                <h2>Customer Orders</h2>
+                <button id="refreshOrdersButton" type="button">
+                    Refresh orders
+                </button>
+            </div>
+
+            <input id="searchOrders" type="search"
+                   placeholder="Search by order reference"
+                   aria-label="Search orders by reference">
+
+            <p id="ordersMessage" role="status" aria-live="polite">
+                Loading orders...
+            </p>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order reference</th>
+                            <th>Total (GH₵)</th>
+                            <th>Payment</th>
+                            <th>Order status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- INVENTORY MANAGEMENT -->
+        <section class="inventory-panel" id="inventoryPanel">
+
+            <div class="orders-heading">
+                <div>
+                    <h2>Inventory Management</h2>
+                    <p>Manage products, categories, prices, images and stock.</p>
+                </div>
+
+                <div class="inventory-actions">
+                    <button type="button" class="primary-btn"
+                            id="addProductButton">
+                        Add New Product
                     </button>
-                </div>
 
-                <input
-                    id="searchOrders"
-                    type="search"
-                    placeholder="Search by order reference"
-                    aria-label="Search orders by reference"
-                >
-
-                <p
-                    id="ordersMessage"
-                    role="status"
-                    aria-live="polite"
-                >
-                    Loading orders...
-                </p>
-
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order reference</th>
-                                <th>Total (GH₵)</th>
-                                <th>Payment</th>
-                                <th>Order status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ordersTableBody"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- INVENTORY MANAGEMENT -->
-            <section class="inventory-panel" id="inventoryPanel">
-                <div class="orders-heading">
-                    <div>
-                        <h2>Inventory Management</h2>
-                        <p>Manage products, categories, prices, images and stock.</p>
-                    </div>
-
-                    <button
-                        type="button"
-                        class="secondary-btn"
-                        id="refreshInventoryButton"
-                    >
+                    <button type="button" class="secondary-btn"
+                            id="refreshInventoryButton">
                         Refresh inventory
                     </button>
                 </div>
+            </div>
 
-                <!-- INVENTORY SUMMARY -->
-                <div class="inventory-summary">
-                    <div class="inventory-card">
-                        <p>Active products</p>
-                        <strong id="activeProductsCount">—</strong>
-                    </div>
-
-                    <div class="inventory-card">
-                        <p>Total units in stock</p>
-                        <strong id="totalStockCount">—</strong>
-                    </div>
-
-                    <div class="inventory-card">
-                        <p>Low-stock products</p>
-                        <strong id="lowStockCount">—</strong>
-                    </div>
+            <!-- INVENTORY SUMMARY -->
+            <div class="inventory-summary">
+                <div class="inventory-card">
+                    <p>Active products</p>
+                    <strong id="activeProductsCount">—</strong>
                 </div>
 
-                <!-- ADD / EDIT PRODUCT FORM -->
-                <form id="productForm" class="inventory-form" hidden>
-                    <h3 class="full-width" id="productFormTitle">
-                        Add a new product
-                    </h3>
-
-                    <input
-                        type="hidden"
-                        id="originalProductName"
-                    >
-
-                    <div>
-                        <label for="productName">Product name</label>
-                        <input
-                            id="productName"
-                            type="text"
-                            maxlength="150"
-                            required
-                        >
-                    </div>
-
-                    <div>
-                        <label for="productCategory">Product category</label>
-                        <select id="productCategory" name="category" required>
-                            <option value="kitchen tools">Kitchen Tools</option>
-                            <option value="fashion">Fashion</option>
-                            <option value="electronics">Electronics</option>
-                            <option value="beauty">Beauty</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="productPrice">Price (GH₵)</label>
-                        <input
-                            id="productPrice"
-                            type="number"
-                            min="0.01"
-                            step="0.01"
-                            required
-                        >
-                    </div>
-
-                    <div>
-                        <label for="productStock">Current stock quantity</label>
-                        <input
-                            id="productStock"
-                            type="number"
-                            min="0"
-                            step="1"
-                            required
-                        >
-                    </div>
-
-                    <div>
-                        <label for="productLowStock">Low-stock warning level</label>
-                        <input
-                            id="productLowStock"
-                            type="number"
-                            min="0"
-                            step="1"
-                            value="5"
-                            required
-                        >
-                    </div>
-
-                    <!-- PRODUCT IMAGE UPLOAD -->
-                    <div class="full-width">
-                        <label for="productImage">Product image</label>
-
-                        <input
-                            id="productImage"
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                        >
-
-                        <small class="image-help">
-                            Choose a JPG, PNG, or WebP image.
-                            Maximum file size: 5 MB.
-                            Leave this empty when you do not want
-                            to replace an existing image.
-                        </small>
-
-                        <div class="image-preview-box">
-                            <img
-                                id="productImagePreview"
-                                alt="Product image preview"
-                                hidden
-                            >
-
-                            <p
-                                id="productImageMessage"
-                                role="status"
-                                aria-live="polite"
-                            >
-                                Select an image to preview it.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="full-width">
-                        <label for="productActive">Product availability</label>
-                        <select id="productActive">
-                            <option value="true">Active — available for sale</option>
-                            <option value="false">Inactive — unavailable for sale</option>
-                        </select>
-                    </div>
-
-                    <div class="full-width inventory-actions">
-                        <button
-                            type="submit"
-                            class="primary-btn"
-                            id="saveProductButton"
-                        >
-                            Save product
-                        </button>
-
-                        <button
-                            type="button"
-                            class="secondary-btn"
-                            id="cancelProductButton"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-
-                <!-- PRODUCTS TABLE -->
-                <div class="table-wrap">
-                    <table id="productsTable">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Category</th>
-                                <th>Price (GH₵)</th>
-                                <th>Stock</th>
-                                <th>Stock warning</th>
-                                <th>Availability</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-
-                        <tbody id="productsTableBody"></tbody>
-                    </table>
+                <div class="inventory-card">
+                    <p>Total units in stock</p>
+                    <strong id="totalStockCount">—</strong>
                 </div>
 
-                <p
-                    id="inventoryMessage"
-                    role="status"
-                    aria-live="polite"
-                >
-                    Inventory has not been loaded yet.
-                </p>
-            </section>
+                <div class="inventory-card">
+                    <p>Low-stock products</p>
+                    <strong id="lowStockCount">—</strong>
+                </div>
+            </div>
 
-            <!-- FLASH SALES MANAGEMENT -->
-            <section class="flash-sales-panel" id="flashSalesPanel">
+            <!-- ADD / EDIT PRODUCT FORM -->
+            <form id="productForm" class="inventory-form" hidden>
 
-                <div class="orders-heading">
-                    <div>
-                        <h2>Flash Sales Management</h2>
-                        <p class="flash-sales-description">
-                            Create special discounts for your products and
-                            schedule when each sale starts and ends.
+                <h3 class="full-width" id="productFormTitle">
+                    Add a new product
+                </h3>
+
+                <input type="hidden" id="originalProductName">
+
+                <div>
+                    <label for="productName">Product name</label>
+                    <input id="productName" type="text"
+                           maxlength="150" required>
+                </div>
+
+                <div>
+                    <label for="productCategory">Product category</label>
+                    <select id="productCategory" name="category" required>
+                        <option value="">Choose category</option>
+                        <option value="kitchen tools">Kitchen Tools</option>
+                        <option value="fashion">Fashion</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="beauty">Beauty</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="productPrice">Price (GH₵)</label>
+                    <input id="productPrice" type="number"
+                           min="0.01" step="0.01" required>
+                </div>
+
+                <div>
+                    <label for="productStock">Current stock quantity</label>
+                    <input id="productStock" type="number"
+                           min="0" step="1" required>
+                </div>
+
+                <div>
+                    <label for="productLowStock">Low-stock warning level</label>
+                    <input id="productLowStock" type="number"
+                           min="0" step="1" value="5" required>
+                </div>
+
+                <!-- PRODUCT IMAGE -->
+                <div class="full-width">
+                    <label for="productImage">Product image</label>
+
+                    <input id="productImage" type="file"
+                           accept="image/jpeg,image/png,image/webp">
+
+                    <small class="image-help">
+                        Choose a JPG, PNG, or WebP image. Maximum file size: 5 MB.
+                        When editing, leave this empty to keep the existing image.
+                    </small>
+
+                    <div class="image-preview-box">
+                        <img id="productImagePreview"
+                             alt="Product image preview" hidden>
+
+                        <p id="productImageMessage"
+                           role="status" aria-live="polite">
+                            Select an image to preview it.
                         </p>
                     </div>
+                </div>
 
-                    <button
-                        type="button"
-                        class="secondary-btn"
-                        id="refreshFlashSalesButton"
-                    >
-                        Refresh flash sales
+                <div class="full-width">
+                    <label for="productActive">Product availability</label>
+                    <select id="productActive">
+                        <option value="true">Active — available for sale</option>
+                        <option value="false">Inactive — unavailable for sale</option>
+                    </select>
+                </div>
+
+                <div class="full-width inventory-actions">
+                    <button type="submit" class="primary-btn"
+                            id="saveProductButton">
+                        Save product
+                    </button>
+
+                    <button type="button" class="secondary-btn"
+                            id="cancelProductButton">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+
+            <!-- PRODUCTS TABLE -->
+            <div class="table-wrap">
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Price (GH₵)</th>
+                            <th>Stock</th>
+                            <th>Stock warning</th>
+                            <th>Availability</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody"></tbody>
+                </table>
+            </div>
+
+            <p id="inventoryMessage" role="status" aria-live="polite">
+                Inventory has not been loaded yet.
+            </p>
+        </section>
+
+        <!-- FLASH SALES MANAGEMENT -->
+        <section class="flash-sales-panel" id="flashSalesPanel">
+
+            <div class="orders-heading">
+                <div>
+                    <h2>Flash Sales Management</h2>
+                    <p class="flash-sales-description">
+                        Create special discounts for your products and
+                        schedule when each sale starts and ends.
+                    </p>
+                </div>
+
+                <button type="button" class="secondary-btn"
+                        id="refreshFlashSalesButton">
+                    Refresh flash sales
+                </button>
+            </div>
+
+            <!-- CREATE / EDIT FLASH SALE -->
+            <form id="flashSaleForm" class="flash-sale-form">
+
+                <h3 class="full-width" id="flashSaleFormTitle">
+                    Create Flash Sale
+                </h3>
+
+                <input type="hidden" id="flashSaleId">
+
+                <div class="full-width">
+                    <label for="flashSaleProduct">Select product</label>
+                    <select id="flashSaleProduct" required>
+                        <option value="">Choose a product</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="flashSaleDiscount">
+                        Discount percentage (%)
+                    </label>
+                    <input type="number" id="flashSaleDiscount"
+                           min="0.01" max="100" step="0.01"
+                           placeholder="e.g. 20" required>
+                </div>
+
+                <div>
+                    <label for="flashSaleStart">Sale start date and time</label>
+                    <input type="datetime-local" id="flashSaleStart" required>
+                </div>
+
+                <div>
+                    <label for="flashSaleEnd">Sale end date and time</label>
+                    <input type="datetime-local" id="flashSaleEnd" required>
+                </div>
+
+                <div>
+                    <label class="flash-sale-checkbox" for="flashSaleActive">
+                        <input type="checkbox" id="flashSaleActive" checked>
+                        Activate this flash sale
+                    </label>
+                </div>
+
+                <div class="full-width flash-sale-form-buttons">
+                    <button type="submit" class="primary-btn"
+                            id="saveFlashSaleButton">
+                        Save Flash Sale
+                    </button>
+
+                    <button type="button" class="secondary-btn"
+                            id="cancelFlashSaleButton" hidden>
+                        Cancel Editing
+                    </button>
+
+                    <button type="button" class="secondary-btn"
+                            id="addFlashSaleButton">
+                        Add New Flash Sale
                     </button>
                 </div>
 
-                <!-- CREATE / EDIT FLASH SALE FORM -->
-                <form id="flashSaleForm" class="flash-sale-form">
+                <p id="flashSalesMessage" class="full-width"
+                   role="status" aria-live="polite"></p>
+            </form>
 
-                    <h3 class="full-width" id="flashSaleFormTitle">
-                        Create Flash Sale
-                    </h3>
+            <hr>
 
-                    <input
-                        type="hidden"
-                        id="flashSaleId"
-                    >
+            <!-- EXISTING FLASH SALES -->
+            <div class="flash-sales-heading">
+                <h3>Existing Flash Sales</h3>
+            </div>
 
-                    <div class="full-width">
-                        <label for="flashSaleProduct">
-                            Select product
-                        </label>
+            <div class="table-wrap">
+                <table id="flashSalesTable">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Discount</th>
+                            <th>Starts</th>
+                            <th>Ends</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="flashSalesTableBody">
+                        <tr>
+                            <td colspan="6">No flash sales loaded yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-                        <select id="flashSaleProduct" required>
-                            <option value="">Choose a product</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="flashSaleDiscount">
-                            Discount percentage (%)
-                        </label>
-
-                        <input
-                            type="number"
-                            id="flashSaleDiscount"
-                            min="0.01"
-                            max="100"
-                            step="0.01"
-                            placeholder="e.g. 20"
-                            required
-                        >
-                    </div>
-
-                    <div>
-                        <label for="flashSaleStart">
-                            Sale start date and time
-                        </label>
-
-                        <input
-                            type="datetime-local"
-                            id="flashSaleStart"
-                            required
-                        >
-                    </div>
-
-                    <div>
-                        <label for="flashSaleEnd">
-                            Sale end date and time
-                        </label>
-
-                        <input
-                            type="datetime-local"
-                            id="flashSaleEnd"
-                            required
-                        >
-                    </div>
-
-                    <div>
-                        <label class="flash-sale-checkbox" for="flashSaleActive">
-                            <input
-                                type="checkbox"
-                                id="flashSaleActive"
-                                checked
-                            >
-                            Activate this flash sale
-                        </label>
-                    </div>
-
-                    <div class="full-width flash-sale-form-buttons">
-                        <button
-                            type="submit"
-                            class="primary-btn"
-                            id="saveFlashSaleButton"
-                        >
-                            Save Flash Sale
-                        </button>
-
-                        <button
-                            type="button"
-                            class="secondary-btn"
-                            id="cancelFlashSaleButton"
-                            hidden
-                        >
-                            Cancel Editing
-                        </button>
-
-                        <button
-                            type="button"
-                            class="secondary-btn"
-                            id="addFlashSaleButton"
-                        >
-                            Add New Flash Sale
-                        </button>
-                    </div>
-
-                    <p
-                        id="flashSalesMessage"
-                        class="full-width"
-                        role="status"
-                        aria-live="polite"
-                    ></p>
-                </form>
-
-                <hr>
-
-                <!-- EXISTING FLASH SALES -->
-                <div class="flash-sales-heading">
-                    <h3>Existing Flash Sales</h3>
-                </div>
-
-                <div class="table-wrap">
-                    <table id="flashSalesTable">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Discount</th>
-                                <th>Starts</th>
-                                <th>Ends</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-
-                        <tbody id="flashSalesTableBody">
-                            <tr>
-                                <td colspan="6">
-                                    No flash sales loaded yet.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-            </section>
         </section>
-    </main>
+    </section>
+</main>
 
-    <!-- SUPABASE CLIENT AND EXISTING ADMIN JAVASCRIPT -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./admin.js"></script>
+<!-- SUPABASE CLIENT -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- ADMIN JAVASCRIPT -->
+<script src="./admin.js"></script>
+
 </body>
 </html>
