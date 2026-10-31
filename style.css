@@ -2609,3 +2609,102 @@ body.dark-mode footer {
     background-color: #1e1e1e;
     color: #ffffff;
 }
+
+
+/* =========================================
+   SWEET's KITCHEN & COLLECTIONS
+   DARK AND LIGHT MODE
+========================================= */
+
+/* Smooth theme transition */
+body,
+body * {
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+/* LIGHT MODE */
+body {
+    background-color: #ffffff;
+    color: #222222;
+}
+
+/* DARK MODE */
+body.dark-mode {
+    background-color: #121212 !important;
+    color: #f5f5f5 !important;
+}
+
+/* Main sections */
+body.dark-mode header,
+body.dark-mode .header,
+body.dark-mode nav,
+body.dark-mode .nav,
+body.dark-mode section,
+body.dark-mode .product-card,
+body.dark-mode .categories,
+body.dark-mode .search-section,
+body.dark-mode footer,
+body.dark-mode .cart,
+body.dark-mode .cart-overlay,
+body.dark-mode .payment-box,
+body.dark-mode .profile-menu,
+body.dark-mode .notification-menu {
+    background-color: #1e1e1e !important;
+    color: #f5f5f5 !important;
+}
+
+/* Headings and paragraphs */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode label,
+body.dark-mode a {
+    color: #f5f5f5;
+}
+
+/* Form fields */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+    background-color: #292929 !important;
+    color: #ffffff !important;
+    border: 1px solid #555555 !important;
+}
+
+/* Buttons */
+body.dark-mode button {
+    color: #ffffff;
+}
+
+/* Theme button */
+body.dark-mode .theme-toggle {
+    background-color: #333333;
+    color: #ffd54f !important;
+}
+
+/* Product cards */
+body.dark-mode .product-card {
+    border: 1px solid #444444;
+}
+
+/* Cart item */
+body.dark-mode .cart-item {
+    background-color: #292929;
+    color: #ffffff;
+}
+
+/* Empty cart */
+body.dark-mode .empty-cart {
+    color: #ffffff;
+}
+
+/* Light mode theme button */
+.theme-toggle {
+    cursor: pointer;
+}
