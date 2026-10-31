@@ -1,7 +1,19 @@
+
 /* =====================================================
    SWEET's KITCHEN & COLLECTIONS
-   MAIN WEBSITE JAVASCRIPT
-   Supabase + Cart + Search + Profile + Paystack
+   COMPLETE MAIN WEBSITE JAVASCRIPT
+
+   Features:
+   1. Supabase connection
+   2. Dark and light mode
+   3. Mobile navigation
+   4. Shopping cart
+   5. Add, increase, decrease and remove products
+   6. Product search
+   7. Category filtering
+   8. Customer profile and logout
+   9. Paystack checkout
+   10. My Orders navigation
 ===================================================== */
 
 
@@ -10,10 +22,14 @@
 ===================================================== */
 
 const SUPABASE_URL = "https://vbrlprrbtumonmroybdv.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_QN5w738LNyUrYy2X93M1OQ_md6F2xTN";
+
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_QN5w738LNyUrYy2X93M1OQ_md6F2xTN";
 
 if (!window.supabase) {
-    console.error("Supabase library is missing. Check your Supabase CDN script in HTML.");
+    console.error(
+        "Supabase library is missing. Check your Supabase CDN script."
+    );
 } else {
     window.sweetSupabase = window.supabase.createClient(
         SUPABASE_URL,
@@ -29,27 +45,111 @@ if (!window.supabase) {
 function initializeSweetWebsite() {
 
     const supabaseClient = window.sweetSupabase;
-   
+
+
     /* =================================================
-       3. MOBILE MENU
+       3. DARK AND LIGHT MODE
+    ================================================= */
+
+    const themeToggle = document.getElementById("themeToggle");
+    const themeIcon = document.getElementById("themeIcon");
+
+    function applyTheme(theme) {
+
+        const isDark = theme === "dark";
+
+        document.body.classList.toggle("dark-mode", isDark);
+
+        if (themeIcon) {
+            themeIcon.textContent = isDark ? "light_mode" : "dark_mode";
+        }
+
+        if (themeToggle) {
+            themeToggle.setAttribute(
+                "aria-label",
+                isDark ? "Switch to light mode" : "Switch to dark mode"
+            );
+
+            themeToggle.setAttribute(
+                "title",
+                isDark ? "Switch to light mode" : "Switch to dark mode"
+            );
+        }
+    }
+
+    let savedTheme = "light";
+
+    try {
+        savedTheme = localStorage.getItem("sweetTheme") || "light";
+    } catch (error) {
+        console.warn("Could not load saved theme:", error);
+    }
+
+    applyTheme(savedTheme);
+
+    if (themeToggle) {
+
+        themeToggle.addEventListener("click", function () {
+
+            const isDark =
+                document.body.classList.contains("dark-mode");
+
+            const newTheme = isDark ? "light" : "dark";
+
+            applyTheme(newTheme);
+
+            try {
+                localStorage.setItem("sweetTheme", newTheme);
+            } catch (error) {
+                console.warn("Could not save theme:", error);
+            }
+
+        });
+
+    }
+
+
+    /* =================================================
+       4. MOBILE MENU
     ================================================= */
 
     const menuButton = document.getElementById("menuButton");
     const navMenu = document.getElementById("nav");
 
     if (menuButton && navMenu) {
+
+        menuButton.setAttribute("aria-expanded", "false");
+
         menuButton.addEventListener("click", function () {
+
             navMenu.classList.toggle("show");
 
             const isOpen = navMenu.classList.contains("show");
 
-            menuButton.setAttribute("aria-expanded", String(isOpen));
+            menuButton.setAttribute(
+                "aria-expanded",
+                String(isOpen)
+            );
+
         });
+
+        // Close menu after clicking a navigation link.
+        navMenu.querySelectorAll("a").forEach(function (link) {
+
+            link.addEventListener("click", function () {
+
+                navMenu.classList.remove("show");
+                menuButton.setAttribute("aria-expanded", "false");
+
+            });
+
+        });
+
     }
 
 
     /* =================================================
-       4. SHOPPING CART ELEMENTS
+       5. SHOPPING CART ELEMENTS
     ================================================= */
 
     let cart = [];
@@ -63,30 +163,56 @@ function initializeSweetWebsite() {
     const checkoutButton = document.getElementById("checkoutButton");
 
 
-    // Open cart
+    // Open cart.
     if (cartButton && cartOverlay) {
+
         cartButton.addEventListener("click", function () {
+
             cartOverlay.classList.add("show");
+
         });
+
     }
 
 
-    // Close cart
+    // Close cart.
     if (closeCart && cartOverlay) {
+
         closeCart.addEventListener("click", function () {
+
             cartOverlay.classList.remove("show");
+
         });
+
+    }
+
+
+    // Close cart when clicking outside its contents.
+    if (cartOverlay) {
+
+        cartOverlay.addEventListener("click", function (event) {
+
+            if (event.target === cartOverlay) {
+                cartOverlay.classList.remove("show");
+            }
+
+        });
+
     }
 
 
     /* =================================================
-       5. UPDATE CART DISPLAY
+       6. UPDATE CART DISPLAY
     ================================================= */
 
     function updateCart() {
 
         if (!cartItem || !cartCount || !cartTotal) {
-            console.error("One or more cart HTML elements are missing.");
+
+            console.error(
+                "Cart HTML is missing. Check cartItem, cartCount and cartTotal."
+            );
+
             return;
         }
 
@@ -113,23 +239,26 @@ function initializeSweetWebsite() {
             numberOfItems += item.quantity;
 
             const cartItemElement = document.createElement("div");
-            cartItemElement.classList.add("cart-item");
+            cartItemElement.className = "cart-item";
 
+            // Product information.
             const itemInfo = document.createElement("div");
-            itemInfo.classList.add("cart-item-info");
+            itemInfo.className = "cart-item-info";
 
             const itemName = document.createElement("h3");
             itemName.textContent = item.name;
 
             const itemPrice = document.createElement("p");
-            itemPrice.textContent = "GH₵" + item.price.toLocaleString();
+            itemPrice.textContent =
+                "GH₵" + item.price.toLocaleString("en-GH");
 
             itemInfo.appendChild(itemName);
             itemInfo.appendChild(itemPrice);
 
 
+            // Quantity controls.
             const quantityControls = document.createElement("div");
-            quantityControls.classList.add("quantity-controls");
+            quantityControls.className = "quantity-controls";
 
             const decreaseButton = document.createElement("button");
             decreaseButton.type = "button";
@@ -138,7 +267,7 @@ function initializeSweetWebsite() {
             decreaseButton.textContent = "−";
             decreaseButton.setAttribute(
                 "aria-label",
-                "Decrease " + item.name + " quantity"
+                "Decrease quantity"
             );
 
             const quantityNumber = document.createElement("span");
@@ -151,7 +280,7 @@ function initializeSweetWebsite() {
             increaseButton.textContent = "+";
             increaseButton.setAttribute(
                 "aria-label",
-                "Increase " + item.name + " quantity"
+                "Increase quantity"
             );
 
             quantityControls.appendChild(decreaseButton);
@@ -159,6 +288,7 @@ function initializeSweetWebsite() {
             quantityControls.appendChild(increaseButton);
 
 
+            // Remove button.
             const removeButton = document.createElement("button");
             removeButton.type = "button";
             removeButton.className = "remove-item";
@@ -171,9 +301,12 @@ function initializeSweetWebsite() {
             cartItemElement.appendChild(removeButton);
 
             cartItem.appendChild(cartItemElement);
+
         });
 
+
         cartCount.textContent = numberOfItems;
+
         cartTotal.textContent = "GH₵" + total.toLocaleString(
             "en-GH",
             {
@@ -181,11 +314,12 @@ function initializeSweetWebsite() {
                 maximumFractionDigits: 2
             }
         );
+
     }
 
 
     /* =================================================
-       6. ADD PRODUCTS TO CART
+       7. ADD PRODUCTS TO CART
     ================================================= */
 
     const addCartButtons = document.querySelectorAll(".add-to-cart");
@@ -194,40 +328,62 @@ function initializeSweetWebsite() {
 
         button.addEventListener("click", function () {
 
-            const name = button.dataset.name;
+            const name = (button.dataset.name || "").trim();
             const price = Number(button.dataset.price);
 
-            if (!name || !Number.isFinite(price) || price < 0) {
-                alert("This product has invalid information. Please contact the store.");
+            if (
+                !name ||
+                !Number.isFinite(price) ||
+                price < 0
+            ) {
+
+                alert("This product has invalid information.");
+
                 return;
             }
+
+
+            // Match both name and price.
+            // This allows two products with the same name but
+            // different prices to be treated separately.
 
             const existingProduct = cart.find(function (item) {
-                return item.name === name;
+
+                return (
+                    item.name === name &&
+                    item.price === price
+                );
+
             });
+
 
             if (existingProduct) {
-                alert("This product is already in your cart. Use + or − to change the quantity.");
-                return;
+
+                existingProduct.quantity++;
+
+            } else {
+
+                cart.push({
+                    name: name,
+                    price: price,
+                    quantity: 1
+                });
+
             }
 
-            cart.push({
-                name: name,
-                price: price,
-                quantity: 1
-            });
 
             updateCart();
 
             button.textContent = "Added to Cart";
             button.disabled = true;
+
         });
 
     });
 
 
     /* =================================================
-       7. CART QUANTITY AND REMOVE BUTTONS
+       8. CART QUANTITY AND REMOVE BUTTONS
     ================================================= */
 
     if (cartItem) {
@@ -244,12 +400,15 @@ function initializeSweetWebsite() {
 
             const index = Number(button.dataset.index);
 
-            if (!Number.isInteger(index) || !cart[index]) {
+            if (
+                !Number.isInteger(index) ||
+                !cart[index]
+            ) {
                 return;
             }
 
 
-            // Increase quantity
+            // Increase quantity.
             if (button.classList.contains("increase")) {
 
                 cart[index].quantity++;
@@ -257,31 +416,33 @@ function initializeSweetWebsite() {
             }
 
 
-            // Decrease quantity
+            // Decrease quantity.
             else if (button.classList.contains("decrease")) {
 
                 cart[index].quantity--;
 
                 if (cart[index].quantity <= 0) {
 
-                    const removedProductName = cart[index].name;
+                    const removedItem = cart[index];
 
                     cart.splice(index, 1);
 
-                    restoreAddButton(removedProductName);
+                    restoreAddButton(removedItem);
+
                 }
 
             }
 
 
-            // Remove product completely
+            // Remove product completely.
             else if (button.classList.contains("remove-item")) {
 
-                const removedProductName = cart[index].name;
+                const removedItem = cart[index];
 
                 cart.splice(index, 1);
 
-                restoreAddButton(removedProductName);
+                restoreAddButton(removedItem);
+
             }
 
             updateCart();
@@ -291,36 +452,47 @@ function initializeSweetWebsite() {
     }
 
 
-    // Restore Add to Cart button when product is removed
-    function restoreAddButton(productName) {
+    // Restore the Add to Cart button after removing a product.
+    function restoreAddButton(removedItem) {
 
-        document.querySelectorAll(".add-to-cart").forEach(function (button) {
+        document.querySelectorAll(".add-to-cart").forEach(
+            function (button) {
 
-            if (button.dataset.name === productName) {
+                const name = (button.dataset.name || "").trim();
+                const price = Number(button.dataset.price);
 
-                button.disabled = false;
-                button.textContent = "Add to Cart";
+                if (
+                    name === removedItem.name &&
+                    price === removedItem.price
+                ) {
+
+                    button.disabled = false;
+                    button.textContent = "Add to Cart";
+
+                }
 
             }
-
-        });
+        );
 
     }
 
 
-    // Display the initial empty cart
+    // Initial cart display.
     updateCart();
 
 
     /* =================================================
-       8. PRODUCT SEARCH AND CATEGORY FILTERING
+       9. PRODUCT SEARCH AND CATEGORY FILTERING
     ================================================= */
 
     const searchInput = document.getElementById("searchInput");
     const searchButton = document.getElementById("searchButton");
 
-    const categoryButtons = document.querySelectorAll(".category-btn");
-    const productCards = document.querySelectorAll(".product-card");
+    const categoryButtons =
+        document.querySelectorAll(".category-btn");
+
+    const productCards =
+        document.querySelectorAll(".product-card");
 
     const productSection = document.getElementById("products");
     const productsGrid = document.getElementById("productsGrid");
@@ -328,7 +500,7 @@ function initializeSweetWebsite() {
     let selectedCategory = "all";
 
 
-    // Create no-results message
+    // Create no-results message.
     let searchMessage = document.getElementById("searchMessage");
 
     if (!searchMessage && productsGrid) {
@@ -341,7 +513,11 @@ function initializeSweetWebsite() {
         searchMessage.style.padding = "20px";
         searchMessage.style.display = "none";
 
-        productsGrid.insertAdjacentElement("afterend", searchMessage);
+        productsGrid.insertAdjacentElement(
+            "afterend",
+            searchMessage
+        );
+
     }
 
 
@@ -375,7 +551,6 @@ function initializeSweetWebsite() {
                 productCategory.includes(searchTerm) ||
                 displayedCategory.includes(searchTerm);
 
-
             const matchesCategory =
                 selectedCategory === "all" ||
                 productCategory === selectedCategory;
@@ -396,14 +571,16 @@ function initializeSweetWebsite() {
 
 
         if (searchMessage) {
+
             searchMessage.style.display =
                 matchingProducts === 0 ? "block" : "none";
+
         }
 
     }
 
 
-    // Search button
+    // Search button.
     if (searchButton) {
 
         searchButton.addEventListener("click", function () {
@@ -411,10 +588,12 @@ function initializeSweetWebsite() {
             filterProducts();
 
             if (productSection) {
+
                 productSection.scrollIntoView({
                     behavior: "smooth",
                     block: "start"
                 });
+
             }
 
         });
@@ -422,13 +601,13 @@ function initializeSweetWebsite() {
     }
 
 
-    // Search while typing
+    // Search while typing.
     if (searchInput) {
 
         searchInput.addEventListener("input", filterProducts);
 
 
-        // Search when Enter is pressed
+        // Search when Enter is pressed.
         searchInput.addEventListener("keydown", function (event) {
 
             if (event.key === "Enter") {
@@ -438,10 +617,12 @@ function initializeSweetWebsite() {
                 filterProducts();
 
                 if (productSection) {
+
                     productSection.scrollIntoView({
                         behavior: "smooth",
                         block: "start"
                     });
+
                 }
 
             }
@@ -451,7 +632,7 @@ function initializeSweetWebsite() {
     }
 
 
-    // Category buttons
+    // Category buttons.
     categoryButtons.forEach(function (button) {
 
         button.addEventListener("click", function () {
@@ -462,7 +643,9 @@ function initializeSweetWebsite() {
 
 
             categoryButtons.forEach(function (categoryButton) {
+
                 categoryButton.classList.remove("active");
+
             });
 
             button.classList.add("active");
@@ -470,10 +653,12 @@ function initializeSweetWebsite() {
             filterProducts();
 
             if (productSection) {
+
                 productSection.scrollIntoView({
                     behavior: "smooth",
                     block: "start"
                 });
+
             }
 
         });
@@ -482,26 +667,46 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
-       9. CUSTOMER PROFILE
+       10. CUSTOMER PROFILE
     ================================================= */
 
     (function setupCustomerProfile() {
 
-        const profileButton = document.getElementById("profileButton");
-        const profileArea = document.getElementById("profileArea");
-        const profileMenu = document.getElementById("profileMenu");
+        const profileButton =
+            document.getElementById("profileButton");
 
-        const profileName = document.getElementById("profileName");
-        const profileNameDisplay = document.getElementById("profileNameDisplay");
-        const profileEmail = document.getElementById("profileEmail");
+        const profileArea =
+            document.getElementById("profileArea");
 
-        const accountLink = document.getElementById("accountLink");
-        const logoutButton = document.getElementById("logoutButton");
+        const profileMenu =
+            document.getElementById("profileMenu");
+
+        const profileName =
+            document.getElementById("profileName");
+
+        const profileNameDisplay =
+            document.getElementById("profileNameDisplay");
+
+        const profileEmail =
+            document.getElementById("profileEmail");
+
+        const accountLink =
+            document.getElementById("accountLink");
+
+        const logoutButton =
+            document.getElementById("logoutButton");
 
 
-        if (!supabaseClient || !profileButton || !profileArea || !profileMenu) {
+        if (
+            !supabaseClient ||
+            !profileButton ||
+            !profileArea ||
+            !profileMenu
+        ) {
 
-            console.warn("Customer profile was not initialized. Check the profile HTML IDs.");
+            console.warn(
+                "Customer profile was not initialized. Check the profile HTML IDs."
+            );
 
             return;
         }
@@ -538,7 +743,8 @@ function initializeSweetWebsite() {
 
         function showSignedIn(user) {
 
-            const fullName = user.user_metadata?.full_name || "";
+            const fullName =
+                user.user_metadata?.full_name || "";
 
             const firstName =
                 fullName.trim().split(/\s+/)[0] ||
@@ -573,123 +779,157 @@ function initializeSweetWebsite() {
 
             profileMenu.hidden = true;
 
-            profileButton.setAttribute("aria-expanded", "false");
+            profileButton.setAttribute(
+                "aria-expanded",
+                "false"
+            );
 
         }
 
 
         async function refreshProfile() {
 
-            const { data, error } = await supabaseClient.auth.getUser();
+            try {
 
-            if (error || !data.user) {
+                const { data, error } =
+                    await supabaseClient.auth.getUser();
+
+                if (error || !data.user) {
+
+                    showSignedOut();
+
+                } else {
+
+                    showSignedIn(data.user);
+
+                }
+
+            } catch (error) {
+
+                console.error("Profile loading failed:", error);
 
                 showSignedOut();
-
-            } else {
-
-                showSignedIn(data.user);
 
             }
 
         }
 
 
-        // Profile button
-        profileButton.addEventListener("click", async function (event) {
-
-            event.preventDefault();
-            event.stopPropagation();
-
-            const { data, error } = await supabaseClient.auth.getUser();
-
-
-            // Send signed-out customer to login page
-            if (error || !data.user) {
-
-                window.location.href = "./login.html";
-
-                return;
-            }
-
-
-            const shouldOpen = profileMenu.hidden;
-
-            profileMenu.hidden = !shouldOpen;
-
-            profileButton.setAttribute(
-                "aria-expanded",
-                String(shouldOpen)
-            );
-
-        });
-
-
-        // Close profile menu when clicking outside
-        document.addEventListener("click", function (event) {
-
-            if (!profileArea.contains(event.target)) {
-                closeProfileMenu();
-            }
-
-        });
-
-
-        // Customer logout
-        if (logoutButton) {
-
-            logoutButton.addEventListener("click", async function (event) {
+        // Open profile menu or redirect to login.
+        profileButton.addEventListener(
+            "click",
+            async function (event) {
 
                 event.preventDefault();
                 event.stopPropagation();
 
-                logoutButton.disabled = true;
-
                 try {
 
-                    const { error } = await supabaseClient.auth.signOut();
+                    const { data, error } =
+                        await supabaseClient.auth.getUser();
 
-                    if (error) {
-                        throw error;
+                    if (error || !data.user) {
+
+                        window.location.href = "./login.html";
+
+                        return;
+
                     }
 
-                    closeProfileMenu();
-                    showSignedOut();
+                    const shouldOpen = profileMenu.hidden;
 
-                    window.location.href = "./login.html";
+                    profileMenu.hidden = !shouldOpen;
+
+                    profileButton.setAttribute(
+                        "aria-expanded",
+                        String(shouldOpen)
+                    );
 
                 } catch (error) {
 
-                    console.error("Logout failed:", error);
+                    console.error("Could not check customer login:", error);
 
-                    alert("Unable to log out. Please try again.");
-
-                } finally {
-
-                    logoutButton.disabled = false;
+                    alert("Unable to check your account. Please try again.");
 
                 }
 
-            });
+            }
+        );
 
-        }
 
+        // Close profile menu when clicking outside.
+        document.addEventListener("click", function (event) {
 
-        // Listen for customer login/logout changes
-        supabaseClient.auth.onAuthStateChange(function (_event, session) {
+            if (!profileArea.contains(event.target)) {
 
-            if (session?.user) {
-
-                showSignedIn(session.user);
-
-            } else {
-
-                showSignedOut();
                 closeProfileMenu();
 
             }
 
         });
+
+
+        // Customer logout.
+        if (logoutButton) {
+
+            logoutButton.addEventListener(
+                "click",
+                async function (event) {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    logoutButton.disabled = true;
+
+                    try {
+
+                        const { error } =
+                            await supabaseClient.auth.signOut();
+
+                        if (error) {
+                            throw error;
+                        }
+
+                        closeProfileMenu();
+                        showSignedOut();
+
+                        window.location.href = "./login.html";
+
+                    } catch (error) {
+
+                        console.error("Logout failed:", error);
+
+                        alert("Unable to log out. Please try again.");
+
+                    } finally {
+
+                        logoutButton.disabled = false;
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        // Listen for login and logout changes.
+        supabaseClient.auth.onAuthStateChange(
+            function (_event, session) {
+
+                if (session?.user) {
+
+                    showSignedIn(session.user);
+
+                } else {
+
+                    showSignedOut();
+                    closeProfileMenu();
+
+                }
+
+            }
+        );
 
 
         refreshProfile();
@@ -698,25 +938,43 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
-       10. PAYSTACK CHECKOUT
+       11. PAYSTACK CHECKOUT
     ================================================= */
 
     (function setupPaystackCheckout() {
 
-        const paymentOverlay = document.getElementById("paymentOverlay");
-        const closePayment = document.getElementById("closePayment");
-        const closePaymentBottom = document.getElementById("closePaymentBottom");
+        const paymentOverlay =
+            document.getElementById("paymentOverlay");
 
-        const paymentNetwork = document.getElementById("paymentNetwork");
-        const paymentTotal = document.getElementById("paymentTotal");
-        const paymentReference = document.getElementById("paymentReference");
+        const closePayment =
+            document.getElementById("closePayment");
 
-        const customerEmail = document.getElementById("customerEmail");
-        const customerName = document.getElementById("customerName");
-        const customerPhone = document.getElementById("customerPhone");
-        const deliveryAddress = document.getElementById("deliveryAddress");
+        const closePaymentBottom =
+            document.getElementById("closePaymentBottom");
 
-        const confirmButton = document.getElementById("confirmPaymentInstructions");
+        const paymentNetwork =
+            document.getElementById("paymentNetwork");
+
+        const paymentTotal =
+            document.getElementById("paymentTotal");
+
+        const paymentReference =
+            document.getElementById("paymentReference");
+
+        const customerEmail =
+            document.getElementById("customerEmail");
+
+        const customerName =
+            document.getElementById("customerName");
+
+        const customerPhone =
+            document.getElementById("customerPhone");
+
+        const deliveryAddress =
+            document.getElementById("deliveryAddress");
+
+        const confirmButton =
+            document.getElementById("confirmPaymentInstructions");
 
 
         if (
@@ -732,9 +990,12 @@ function initializeSweetWebsite() {
             !confirmButton
         ) {
 
-            console.error("Checkout error: One or more required checkout HTML elements are missing.");
+            console.error(
+                "Checkout error: One or more required checkout HTML elements are missing."
+            );
 
             return;
+
         }
 
 
@@ -746,36 +1007,37 @@ function initializeSweetWebsite() {
         }
 
 
-        // Open payment window
+        // Open payment window.
         checkoutButton.addEventListener("click", function (event) {
 
             event.preventDefault();
 
             if (cart.length === 0) {
 
-                alert("Your cart is empty. Add a product before checkout.");
+                alert(
+                    "Your cart is empty. Add a product before checkout."
+                );
 
                 return;
+
             }
 
 
             const subtotal = cart.reduce(function (sum, item) {
 
-                return sum + (Number(item.price) * Number(item.quantity));
+                return sum + (item.price * item.quantity);
 
             }, 0);
 
 
-            // Display estimate including the 1% fee shown in your existing checkout.
-            // The Edge Function must calculate and verify the final payment amount.
+            // This is only the displayed estimate.
+            // The Edge Function must calculate the final amount securely.
             const total = subtotal + (subtotal * 0.01);
-
 
             paymentTotal.textContent = "GH₵" + total.toFixed(2);
 
             paymentReference.textContent =
                 "Generated securely when checkout starts.";
-
 
             paymentNetwork.value = "";
 
@@ -785,163 +1047,184 @@ function initializeSweetWebsite() {
         });
 
 
-        // Start Paystack payment
-        confirmButton.addEventListener("click", async function (event) {
+        // Start Paystack payment.
+        confirmButton.addEventListener(
+            "click",
+            async function (event) {
 
-            event.preventDefault();
-
-
-            if (
-                !customerEmail.value.trim() ||
-                !customerEmail.checkValidity() ||
-                !customerName.value.trim() ||
-                !customerPhone.value.trim() ||
-                !deliveryAddress.value.trim()
-            ) {
-
-                alert("Please complete all customer details with a valid email.");
-
-                return;
-            }
+                event.preventDefault();
 
 
-            const network = paymentNetwork.value;
+                // Validate customer information.
+                if (
+                    !customerEmail.value.trim() ||
+                    !customerEmail.checkValidity() ||
+                    !customerName.value.trim() ||
+                    !customerPhone.value.trim() ||
+                    !deliveryAddress.value.trim()
+                ) {
 
-            if (!["mtn", "telecel", "at"].includes(network)) {
-
-                alert("Please select your Mobile Money network.");
-
-                return;
-            }
-
-
-            if (cart.length === 0) {
-
-                alert("Your cart is empty.");
-
-                return;
-            }
-
-
-            if (!supabaseClient) {
-
-                alert("The payment service is not connected. Please refresh the page.");
-
-                return;
-            }
-
-
-            const originalButtonText = confirmButton.textContent;
-
-            confirmButton.disabled = true;
-            confirmButton.textContent = "Connecting to Paystack...";
-
-
-            try {
-
-                const items = cart.map(function (item) {
-
-                    return {
-                        name: String(item.name),
-                        quantity: Number(item.quantity)
-                    };
-
-                });
-
-
-                const { data, error } = await supabaseClient.functions.invoke(
-                    "initialize-paystack",
-                    {
-                        body: {
-                            action: "initialize",
-                            email: customerEmail.value.trim(),
-                            customerName: customerName.value.trim(),
-                            customerPhone: customerPhone.value.trim(),
-                            deliveryAddress: deliveryAddress.value.trim(),
-                            network: network,
-                            items: items
-                        }
-                    }
-                );
-
-
-                if (error) {
-
-                    console.error("Checkout function error:", error);
-                    console.error("Error message:", error.message);
-                    console.error("Error details:", error.details);
-                    console.error("Error hint:", error.hint);
-                    console.error("Error code:", error.code);
-
-
-                    if (error.context) {
-
-                        try {
-
-                            console.error(
-                                "Server response:",
-                                await error.context.clone().text()
-                            );
-
-                        } catch (readError) {
-
-                            console.error(
-                                "Could not read server response:",
-                                readError
-                            );
-
-                        }
-
-                    }
-
-                    throw new Error(
-                        "Payment connection failed. Check the browser console for details."
+                    alert(
+                        "Please complete all customer details with a valid email."
                     );
+
+                    return;
 
                 }
 
 
-                if (!data || !data.authorization_url) {
+                // Validate mobile money network.
+                const network = paymentNetwork.value;
 
-                    throw new Error(
-                        data?.error || "Paystack did not return a payment link."
-                    );
+                if (!["mtn", "telecel", "at"].includes(network)) {
+
+                    alert("Please select your Mobile Money network.");
+
+                    return;
 
                 }
 
 
-                // Redirect customer to Paystack
-                window.location.href = data.authorization_url;
+                if (cart.length === 0) {
+
+                    alert("Your cart is empty.");
+
+                    return;
+
+                }
 
 
-            } catch (error) {
+                if (!supabaseClient) {
 
-                console.error("Paystack checkout error:", error);
+                    alert(
+                        "The payment service is not connected. Please refresh the page."
+                    );
 
-                alert(
-                    error.message ||
-                    "Payment could not start. Please try again."
-                );
+                    return;
 
-                confirmButton.disabled = false;
-                confirmButton.textContent = originalButtonText;
+                }
+
+
+                const originalButtonText = confirmButton.textContent;
+
+                confirmButton.disabled = true;
+                confirmButton.textContent = "Connecting to Paystack...";
+
+
+                try {
+
+                    const items = cart.map(function (item) {
+
+                        return {
+                            name: String(item.name),
+                            quantity: Number(item.quantity)
+                        };
+
+                    });
+
+
+                    const { data, error } =
+                        await supabaseClient.functions.invoke(
+                            "initialize-paystack",
+                            {
+                                body: {
+                                    action: "initialize",
+                                    email: customerEmail.value.trim(),
+                                    customerName: customerName.value.trim(),
+                                    customerPhone: customerPhone.value.trim(),
+                                    deliveryAddress: deliveryAddress.value.trim(),
+                                    network: network,
+                                    items: items
+                                }
+                            }
+                        );
+
+
+                    if (error) {
+
+                        console.error(
+                            "Checkout function error:",
+                            error
+                        );
+
+                        if (error.context) {
+
+                            try {
+
+                                console.error(
+                                    "Server response:",
+                                    await error.context.clone().text()
+                                );
+
+                            } catch (readError) {
+
+                                console.error(
+                                    "Could not read server response:",
+                                    readError
+                                );
+
+                            }
+
+                        }
+
+                        throw new Error(
+                            "Payment connection failed. Check the browser console for details."
+                        );
+
+                    }
+
+
+                    if (!data || !data.authorization_url) {
+
+                        throw new Error(
+                            data?.error ||
+                            "Paystack did not return a payment link."
+                        );
+
+                    }
+
+
+                    // Redirect customer to Paystack.
+                    window.location.href = data.authorization_url;
+
+
+                } catch (error) {
+
+                    console.error(
+                        "Paystack checkout error:",
+                        error
+                    );
+
+                    alert(
+                        error.message ||
+                        "Payment could not start. Please try again."
+                    );
+
+                    confirmButton.disabled = false;
+                    confirmButton.textContent = originalButtonText;
+
+                }
 
             }
+        );
 
-        });
 
-
-        // Close payment window
+        // Close payment window.
         if (closePayment) {
 
-            closePayment.addEventListener("click", closePaymentWindow);
+            closePayment.addEventListener(
+                "click",
+                closePaymentWindow
+            );
 
         }
 
-
         if (closePaymentBottom) {
 
-            closePaymentBottom.addEventListener("click", closePaymentWindow);
+            closePaymentBottom.addEventListener(
+                "click",
+                closePaymentWindow
+            );
 
         }
 
@@ -954,39 +1237,51 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
-       11. MY ORDERS NAVIGATION
+       12. MY ORDERS NAVIGATION
     ================================================= */
 
-    const myOrdersMenuLink = document.getElementById("myOrdersLink");
-    const myOrdersSectionElement = document.getElementById("myOrders");
+    const myOrdersMenuLink =
+        document.getElementById("myOrdersLink");
+
+    const myOrdersSectionElement =
+        document.getElementById("myOrders");
 
 
     if (myOrdersMenuLink && myOrdersSectionElement) {
 
-        myOrdersMenuLink.addEventListener("click", function (event) {
+        myOrdersMenuLink.addEventListener(
+            "click",
+            function (event) {
 
-            event.preventDefault();
+                event.preventDefault();
 
-            myOrdersSectionElement.hidden = false;
-            myOrdersSectionElement.style.display = "block";
+                myOrdersSectionElement.hidden = false;
+                myOrdersSectionElement.style.display = "block";
 
-            myOrdersSectionElement.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
+                myOrdersSectionElement.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
 
-        });
+            }
+        );
 
     }
 
 
-    console.log("SWEET's KITCHEN & COLLECTIONS website initialized.");
+    /* =================================================
+       13. INITIALIZATION COMPLETE
+    ================================================= */
+
+    console.log(
+        "SWEET's KITCHEN & COLLECTIONS website initialized successfully."
+    );
 
 }
 
 
 /* =====================================================
-   12. START WEBSITE AFTER HTML IS READY
+   14. START WEBSITE AFTER HTML IS READY
 ===================================================== */
 
 if (document.readyState === "loading") {
