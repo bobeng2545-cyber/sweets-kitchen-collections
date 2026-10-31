@@ -2,7 +2,6 @@
 /* =====================================================
    SWEET's KITCHEN & COLLECTIONS
    COMPLETE MAIN WEBSITE JAVASCRIPT
-   Corrected replacement: main.js
 
    FEATURES
    1. Supabase connection
@@ -13,8 +12,9 @@
    6. Product search
    7. Category filtering
    8. Customer profile and logout
-   9. Paystack checkout preparation
-   10. My Orders navigation
+   9. Paystack checkout
+   10. Secure notification token storage
+   11. My Orders navigation
 ===================================================== */
 
 
@@ -29,9 +29,7 @@ const SUPABASE_PUBLISHABLE_KEY =
     "sb_publishable_QN5w738LNyUrYy2X93M1OQ_md6F2xTN";
 
 if (!window.supabase) {
-    console.error(
-        "Supabase library is missing. Check the Supabase CDN script."
-    );
+    console.error("Supabase library is missing. Check the Supabase CDN script.");
 } else {
     window.sweetSupabase = window.supabase.createClient(
         SUPABASE_URL,
@@ -51,68 +49,75 @@ function initializeSweetWebsite() {
 
     const supabaseClient = window.sweetSupabase;
 
-   
-/* ==========================================
-   LOAD SUPABASE PRODUCT IDs
-========================================== */
 
-async function connectStoreProductIds() {
+    /* =================================================
+       3. CONNECT SUPABASE PRODUCT IDS
+    ================================================= */
 
-    if (!supabaseClient) return;
+    async function connectStoreProductIds() {
 
-    const { data, error } = await supabaseClient
-        .from("store_products")
-        .select("id, name, price, category")
-        .eq("is_active", true);
+        if (!supabaseClient) return;
 
-    if (error) {
-        console.error("Could not load product IDs:", error);
-        return;
-    }
+        const { data, error } = await supabaseClient
+            .from("store_products")
+            .select("id, name, price, category")
+            .eq("is_active", true);
 
-    const productCards = document.querySelectorAll(".product-card");
-
-    productCards.forEach(card => {
-
-        const button = card.querySelector(".add-to-cart");
-
-        if (!button) return;
-
-        const name = (
-            button.dataset.name ||
-            card.dataset.name ||
-            ""
-        ).trim();
-
-        const price = Number(button.dataset.price);
-
-        const product = data.find(item =>
-            item.name === name &&
-            Number(item.price) === price &&
-            item.category === card.dataset.category
-        );
-
-        if (product) {
-            button.dataset.productId = product.id;
-        } else {
-            console.warn("No matching database product:", name, price);
+        if (error) {
+            console.error("Could not load product IDs:", error);
+            return;
         }
 
-    });
+        const productCards =
+            document.querySelectorAll(".product-card");
 
-    console.log("Store product IDs connected successfully.");
-}
+        productCards.forEach(card => {
 
-connectStoreProductIds();
+            const button = card.querySelector(".add-to-cart");
 
+            if (!button) return;
+
+            const name = (
+                button.dataset.name ||
+                card.dataset.name ||
+                ""
+            ).trim();
+
+            const price = Number(button.dataset.price);
+
+            const product = data.find(item =>
+                item.name === name &&
+                Number(item.price) === price &&
+                item.category === card.dataset.category
+            );
+
+            if (product) {
+                button.dataset.productId = product.id;
+            } else {
+                console.warn(
+                    "No matching database product:",
+                    name,
+                    price
+                );
+            }
+
+        });
+
+        console.log("Store product IDs connected successfully.");
+    }
+
+    connectStoreProductIds();
 
 
     /* =================================================
-       3. DARK AND LIGHT MODE
+       4. DARK AND LIGHT MODE
     ================================================= */
 
-    const themeToggle = document.getElementById("themeToggle");
-    const themeIcon = document.getElementById("themeIcon");
+    const themeToggle =
+        document.getElementById("themeToggle");
+
+    const themeIcon =
+        document.getElementById("themeIcon");
 
     function applyTheme(theme) {
 
@@ -144,7 +149,8 @@ connectStoreProductIds();
     let savedTheme = "light";
 
     try {
-        savedTheme = localStorage.getItem("sweetTheme") || "light";
+        savedTheme =
+            localStorage.getItem("sweetTheme") || "light";
     } catch (error) {
         console.warn("Could not load saved theme:", error);
     }
@@ -174,11 +180,14 @@ connectStoreProductIds();
 
 
     /* =================================================
-       4. MOBILE NAVIGATION
+       5. MOBILE NAVIGATION
     ================================================= */
 
-    const menuButton = document.getElementById("menuButton");
-    const navMenu = document.getElementById("nav");
+    const menuButton =
+        document.getElementById("menuButton");
+
+    const navMenu =
+        document.getElementById("nav");
 
     if (menuButton && navMenu) {
 
@@ -216,18 +225,31 @@ connectStoreProductIds();
 
 
     /* =================================================
-       5. SHOPPING CART
+       6. SHOPPING CART
     ================================================= */
 
     let cart = [];
 
-    const cartOverlay = document.getElementById("cartOverlay");
-    const cartItem = document.getElementById("cartItem");
-    const cartButton = document.getElementById("cartButton");
-    const closeCart = document.getElementById("closeCart");
-    const cartTotal = document.getElementById("cartTotal");
-    const cartCount = document.getElementById("cartCount");
-    const checkoutButton = document.getElementById("checkoutButton");
+    const cartOverlay =
+        document.getElementById("cartOverlay");
+
+    const cartItem =
+        document.getElementById("cartItem");
+
+    const cartButton =
+        document.getElementById("cartButton");
+
+    const closeCart =
+        document.getElementById("closeCart");
+
+    const cartTotal =
+        document.getElementById("cartTotal");
+
+    const cartCount =
+        document.getElementById("cartCount");
+
+    const checkoutButton =
+        document.getElementById("checkoutButton");
 
 
     function openCart() {
@@ -276,7 +298,7 @@ connectStoreProductIds();
 
 
     /* =================================================
-       6. CURRENCY FORMATTER
+       7. CURRENCY FORMATTER
     ================================================= */
 
     function formatMoney(amount) {
@@ -290,7 +312,7 @@ connectStoreProductIds();
 
 
     /* =================================================
-       7. UPDATE CART DISPLAY
+       8. UPDATE CART DISPLAY
     ================================================= */
 
     function updateCart() {
@@ -309,7 +331,8 @@ connectStoreProductIds();
 
         if (cart.length === 0) {
 
-            const emptyMessage = document.createElement("p");
+            const emptyMessage =
+                document.createElement("p");
 
             emptyMessage.className = "empty-cart";
             emptyMessage.textContent = "Your cart is empty.";
@@ -335,16 +358,24 @@ connectStoreProductIds();
             total += item.price * item.quantity;
             numberOfItems += item.quantity;
 
-            const cartItemElement = document.createElement("div");
+            const cartItemElement =
+                document.createElement("div");
+
             cartItemElement.className = "cart-item";
 
-            const itemInfo = document.createElement("div");
+            const itemInfo =
+                document.createElement("div");
+
             itemInfo.className = "cart-item-info";
 
-            const itemName = document.createElement("h3");
+            const itemName =
+                document.createElement("h3");
+
             itemName.textContent = item.name;
 
-            const itemPrice = document.createElement("p");
+            const itemPrice =
+                document.createElement("p");
+
             itemPrice.textContent = formatMoney(item.price);
 
             itemInfo.appendChild(itemName);
@@ -353,27 +384,37 @@ connectStoreProductIds();
 
             // Quantity controls.
 
-            const quantityControls = document.createElement("div");
+            const quantityControls =
+                document.createElement("div");
+
             quantityControls.className = "quantity-controls";
 
-            const decreaseButton = document.createElement("button");
+            const decreaseButton =
+                document.createElement("button");
+
             decreaseButton.type = "button";
             decreaseButton.className = "decrease";
             decreaseButton.dataset.index = index;
             decreaseButton.textContent = "−";
+
             decreaseButton.setAttribute(
                 "aria-label",
                 "Decrease quantity"
             );
 
-            const quantityNumber = document.createElement("span");
+            const quantityNumber =
+                document.createElement("span");
+
             quantityNumber.textContent = item.quantity;
 
-            const increaseButton = document.createElement("button");
+            const increaseButton =
+                document.createElement("button");
+
             increaseButton.type = "button";
             increaseButton.className = "increase";
             increaseButton.dataset.index = index;
             increaseButton.textContent = "+";
+
             increaseButton.setAttribute(
                 "aria-label",
                 "Increase quantity"
@@ -386,7 +427,9 @@ connectStoreProductIds();
 
             // Remove button.
 
-            const removeButton = document.createElement("button");
+            const removeButton =
+                document.createElement("button");
+
             removeButton.type = "button";
             removeButton.className = "remove-item";
             removeButton.dataset.index = index;
@@ -411,18 +454,17 @@ connectStoreProductIds();
     }
 
 
-    /* =====================================================
-       8. ADD PRODUCTS TO CART
-    ===================================================== */
+    /* =================================================
+       9. ADD PRODUCTS TO CART
+    ================================================= */
 
     function addProductToCart(button) {
 
-        const name = (button.dataset.name || "").trim();
+        const name =
+            (button.dataset.name || "").trim();
 
-        const price = Number(button.dataset.price);
-
-        // Product ID will be required for database checkout.
-        // Supports either data-product-id or data-id.
+        const price =
+            Number(button.dataset.price);
 
         const productId =
             button.dataset.productId ||
@@ -439,10 +481,6 @@ connectStoreProductIds();
             return;
 
         }
-
-        // A product with no ID can still be added to the cart.
-        // However, it cannot be checked out until connected
-        // to a real Supabase product record.
 
         const existingProduct = cart.find(function (item) {
 
@@ -484,8 +522,6 @@ connectStoreProductIds();
         button.dataset.originalText = originalText;
         button.textContent = "Added to Cart";
 
-        // Do not disable the button. Customers can add more.
-
         window.setTimeout(function () {
 
             button.textContent = originalText;
@@ -494,8 +530,6 @@ connectStoreProductIds();
 
     }
 
-
-    // Event delegation also supports products loaded later.
 
     document.addEventListener("click", function (event) {
 
@@ -508,9 +542,9 @@ connectStoreProductIds();
     });
 
 
-    /* =====================================================
-       9. CART QUANTITY AND REMOVE BUTTONS
-    ===================================================== */
+    /* =================================================
+       10. CART QUANTITY AND REMOVE BUTTONS
+    ================================================= */
 
     if (cartItem) {
 
@@ -560,22 +594,29 @@ connectStoreProductIds();
     updateCart();
 
 
-    /* =====================================================
-       10. PRODUCT SEARCH AND CATEGORY FILTERING
-    ===================================================== */
+    /* =================================================
+       11. PRODUCT SEARCH AND CATEGORY FILTERING
+    ================================================= */
 
-    const searchInput = document.getElementById("searchInput");
-    const searchButton = document.getElementById("searchButton");
+    const searchInput =
+        document.getElementById("searchInput");
+
+    const searchButton =
+        document.getElementById("searchButton");
 
     const categoryButtons =
         document.querySelectorAll(".category-btn");
 
-    const productSection = document.getElementById("products");
-    const productsGrid = document.getElementById("productsGrid");
+    const productSection =
+        document.getElementById("products");
+
+    const productsGrid =
+        document.getElementById("productsGrid");
 
     let selectedCategory = "all";
 
-    let searchMessage = document.getElementById("searchMessage");
+    let searchMessage =
+        document.getElementById("searchMessage");
 
     if (!searchMessage && productsGrid) {
 
@@ -600,8 +641,6 @@ connectStoreProductIds();
         const searchTerm = searchInput
             ? searchInput.value.trim().toLowerCase()
             : "";
-
-        // Get cards each time so newly loaded products are included.
 
         const productCards =
             document.querySelectorAll(".product-card");
@@ -726,9 +765,9 @@ connectStoreProductIds();
     });
 
 
-    /* =====================================================
-       11. CUSTOMER PROFILE
-    ===================================================== */
+    /* =================================================
+       12. CUSTOMER PROFILE
+    ================================================= */
 
     (function setupCustomerProfile() {
 
@@ -975,9 +1014,9 @@ connectStoreProductIds();
     })();
 
 
-    /* =====================================================
-       12. PAYSTACK CHECKOUT
-    ===================================================== */
+    /* =================================================
+       13. PAYSTACK CHECKOUT + NOTIFICATION TOKEN
+    ================================================= */
 
     (function setupPaystackCheckout() {
 
@@ -1060,9 +1099,6 @@ connectStoreProductIds();
 
             }, 0);
 
-            // Display estimate only.
-            // The server must calculate the actual amount.
-
             const estimatedTotal = subtotal * 1.01;
 
             paymentTotal.textContent = formatMoney(estimatedTotal);
@@ -1130,10 +1166,6 @@ connectStoreProductIds();
             }
 
 
-            // Every product must have a real database ID.
-            // This prevents the payment server from relying on
-            // customer-supplied product names or browser prices.
-
             const missingProductId = cart.some(function (item) {
 
                 return !item.productId;
@@ -1163,14 +1195,18 @@ connectStoreProductIds();
 
             try {
 
+                // Prepare verified product IDs and quantities.
                 const items = cart.map(function (item) {
-    return {
-        productId: item.productId,
-        quantity: Math.max(1, Number(item.quantity) || 1)
-    };
-});
+
+                    return {
+                        productId: item.productId,
+                        quantity: Number(item.quantity)
+                    };
+
+                });
 
 
+                // Request payment initialization.
                 const { data, error } =
                     await supabaseClient.functions.invoke(
                         "initialize-paystack",
@@ -1213,7 +1249,8 @@ connectStoreProductIds();
                     }
 
                     throw new Error(
-                        "Payment could not be initialized. The payment server may not have been deployed yet."
+                        data?.error ||
+                        "Payment could not be initialized. Please check the payment server logs."
                     );
 
                 }
@@ -1222,15 +1259,71 @@ connectStoreProductIds();
                 if (!data || !data.authorization_url) {
 
                     throw new Error(
-                        data?.error || "Paystack did not return a payment link."
+                        data?.error ||
+                        "Paystack did not return a payment link."
                     );
 
                 }
 
 
-                // Redirect to Paystack only after the server
-                // successfully returns a payment authorization URL.
+                // Make sure the server returned both notification credentials.
+                if (
+                    !data.reference ||
+                    !data.notification_token
+                ) {
 
+                    throw new Error(
+                        "Payment started without notification access details. Please contact the store."
+                    );
+
+                }
+
+
+                // Save the private notification token before redirecting.
+                // It is stored separately for each order.
+                const notificationStorageKey =
+                    "sweet_order_notification_" + data.reference;
+
+                try {
+
+                    localStorage.setItem(
+                        notificationStorageKey,
+                        JSON.stringify({
+                            reference: data.reference,
+                            token: data.notification_token,
+                            savedAt: new Date().toISOString()
+                        })
+                    );
+
+                } catch (storageError) {
+
+                    console.error(
+                        "Notification token could not be saved:",
+                        storageError
+                    );
+
+                    throw new Error(
+                        "Your order notification access could not be saved. Please enable browser storage and try again."
+                    );
+
+                }
+
+
+                // Display the order reference before redirecting.
+                paymentReference.textContent = data.reference;
+
+
+                console.log(
+                    "Payment initialized successfully.",
+                    data.reference
+                );
+
+                console.log(
+                    "Private order notification access saved."
+                );
+
+
+                // Redirect to Paystack.
                 window.location.href = data.authorization_url;
 
 
@@ -1284,9 +1377,9 @@ connectStoreProductIds();
     })();
 
 
-    /* =====================================================
-       13. MY ORDERS NAVIGATION
-    ===================================================== */
+    /* =================================================
+       14. MY ORDERS NAVIGATION
+    ================================================= */
 
     const myOrdersMenuLink =
         document.getElementById("myOrdersLink");
@@ -1313,9 +1406,9 @@ connectStoreProductIds();
     }
 
 
-    /* =====================================================
-       14. INITIALIZATION COMPLETE
-    ===================================================== */
+    /* =================================================
+       15. INITIALIZATION COMPLETE
+    ================================================= */
 
     console.log(
         "SWEET's KITCHEN & COLLECTIONS website initialized successfully."
@@ -1325,7 +1418,7 @@ connectStoreProductIds();
 
 
 /* =====================================================
-   15. START WEBSITE AFTER HTML IS READY
+   16. START WEBSITE AFTER HTML IS READY
 ===================================================== */
 
 if (document.readyState === "loading") {
