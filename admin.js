@@ -1111,16 +1111,15 @@ async function callFlashSalesFunction(method = "GET", body) {
 function populateFlashSaleProducts(selectedProduct = "") {
     const select = flashSaleElements.product;
 
-   function populateFlashSaleProducts(selectedProduct = "") {
-    const select = flashSaleElements.product;
-
     if (!select) {
         console.error("Flash Sale product dropdown was not found.");
         return;
     }
 
+    // Keep the default option
     select.innerHTML = '<option value="">Choose a product</option>';
 
+    // Add every product loaded from Inventory Management
     inventoryProducts.forEach(product => {
         if (!product.product_name) return;
 
@@ -1136,9 +1135,11 @@ function populateFlashSaleProducts(selectedProduct = "") {
         select.appendChild(option);
     });
 
-    console.log("Products added to Flash Sales:", inventoryProducts);
+    console.log(
+        "Products available for Flash Sales:",
+        inventoryProducts.map(product => product.product_name)
+    );
 }
-
 // ==========================================
 // FLASH SALES: DETERMINE STATUS
 // ==========================================
