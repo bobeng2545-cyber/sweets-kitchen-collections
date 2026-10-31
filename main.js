@@ -474,24 +474,24 @@ function createProductCard(product) {
     const card = document.createElement("article");
     card.className = "product-card";
 
-    card.dataset.name = product.product_name;
-    card.dataset.category = safeText(product.category || "general")
-        .toLowerCase();
+    card.dataset.name = safeText(product.product_name);
+    card.dataset.category = safeText(
+        product.category || "general"
+    ).toLowerCase();
 
     const imageContainer = document.createElement("div");
     imageContainer.className = "product-image";
 
     const image = document.createElement("img");
 
-    image.src = product.image_url ||
-        "./images/product-placeholder.png";
-
-    image.alt = product.product_name;
+    image.src = getProductImageUrl(product.image_url);
+    image.alt = safeText(product.product_name);
     image.loading = "lazy";
 
-    image.addEventListener("error", () => {
-        image.src = "./images/product-placeholder.png";
-    }, { once: true });
+    image.onerror = function () {
+        this.onerror = null;
+        this.src = "./images/product-placeholder.png";
+    };
 
     const favouriteButton = document.createElement("button");
     favouriteButton.type = "button";
@@ -504,8 +504,11 @@ function createProductCard(product) {
 
     favouriteButton.addEventListener("click", () => {
         favouriteButton.classList.toggle("active");
+
         favouriteButton.textContent =
-            favouriteButton.classList.contains("active") ? "♥" : "♡";
+            favouriteButton.classList.contains("active")
+                ? "♥"
+                : "♡";
     });
 
     imageContainer.append(image, favouriteButton);
