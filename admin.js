@@ -157,6 +157,41 @@ const productStock =
 const productImage =
     document.getElementById("productImage");
 
+const productImageFile =
+    document.getElementById("productImageFile");
+
+const productImagePreview =
+    document.getElementById("productImagePreview");
+
+productImageFile.addEventListener("change", () => {
+    const file = productImageFile.files[0];
+
+    if (!file) {
+        productImagePreview.removeAttribute("src");
+        productImagePreview.hidden = true;
+        return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+        showMessage(
+            productFormMessage,
+            "Please select a valid image file.",
+            "error"
+        );
+
+        productImageFile.value = "";
+        productImagePreview.hidden = true;
+        return;
+    }
+
+    const previewURL = URL.createObjectURL(file);
+
+    productImagePreview.src = previewURL;
+    productImagePreview.hidden = false;
+
+    hideMessage(productFormMessage);
+});
+
 const productActive =
     document.getElementById("productActive");
 
@@ -907,6 +942,9 @@ function openNewProductModal() {
 
     productForm.reset();
 
+   productImagePreview.removeAttribute("src");
+   productImagePreview.hidden = true;
+
     productId.value = "";
     productStock.value = "0";
     productActive.checked = true;
@@ -940,6 +978,13 @@ function openEditProductModal(id) {
     productPrice.value = product.price ?? 0;
     productStock.value = product.stock ?? 0;
     productImage.value = product.image_url || "";
+   productImageFile.value = "";
+   productImagePreview.hidden = true;
+
+if (product.image_url) {
+    productImagePreview.src = product.image_url;
+    productImagePreview.hidden = false;
+}
     productActive.checked = product.is_active === true;
 
     productModalTitle.textContent = "Edit Product";
@@ -948,6 +993,59 @@ function openEditProductModal(id) {
     hideMessage(productFormMessage);
 
     openModal(productModal);
+}
+
+   async function uploadProductImage(file) {
+    const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif"
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+        throw new Error(
+            "Use a JPG, PNG, WEBP or GIF image."
+        );
+    }
+
+    const maxSize = 5 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+        throw new Error(
+            "Image size must not exceed 5 MB."
+        );
+    }
+
+    const fileExtension = file.name
+        .split(".")
+        .pop()
+        .toLowerCase();
+
+    const filePath =
+        `${crypto.randomUUID()}.${fileExtension}`;
+
+    const { error } = await supabase.storage
+        .from("product-images")
+        .upload(filePath, file, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: file.type
+        });
+
+    if (error) throw error;
+
+    const { data } = supabase.storage
+        .from("product-images")
+        .getPublicUrl(filePath);
+
+    if (!data?.publicUrl) {
+        throw new Error(
+            "Image uploaded, but its public URL could not be generated."
+        );
+    }
+
+    return data.publicUrl;
 }
 
 
@@ -965,7 +1063,7 @@ productForm.addEventListener("submit", async event => {
     const price = Number(productPrice.value);
     const stock = Number(productStock.value);
 
-    const imageUrl = productImage.value.trim();
+    let imageUrl = productImage.value.trim();
 
     if (!name || !category) {
         showMessage(
@@ -997,21 +1095,29 @@ productForm.addEventListener("submit", async event => {
         return;
     }
 
-    const productData = {
-        name,
-        description,
-        category,
-        price,
-        stock,
-        image_url: imageUrl,
-        is_active: productActive.checked
-    };
+    const selectedImage = productImageFile.files[0];
 
+if (selectedImage) {
     setButtonLoading(
         saveProductButton,
         true,
-        "Saving..."
+        "Uploading image..."
     );
+
+    imageUrl = await uploadProductImage(selectedImage);
+}
+
+const productData = {
+    name,
+    description,
+    category,
+    price,
+    stock,
+    image_url: imageUrl,
+    is_active: productActive.checked
+};
+
+    
 
     try {
         let result;
