@@ -3435,3 +3435,10 @@ body.dark-mode #myOrders #refreshOrdersBtn:hover {
         padding: 16px;
     }
 }
+
+#myOrdersList .order-details,
+#myOrdersList .order-details p,
+#myOrdersList .order-details span,
+#myOrdersList .order-details strong {
+    color: #000000 !important;
+}
