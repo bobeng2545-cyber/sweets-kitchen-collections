@@ -3146,3 +3146,57 @@ body.dark-mode .flash-sale-heading p {
         font-size: 17px;
     }
 }
+
+/* =========================================
+   FLASH SALE FINAL STYLING FIX
+========================================= */
+
+/* Flash Sale Add to Cart button */
+.flash-sale-card .add-to-cart {
+    display: block;
+    width: 100%;
+    min-height: 42px;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    background: #d62828;
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.flash-sale-card .add-to-cart:hover {
+    background: #a71919;
+}
+
+/* Flash Sale section in dark mode */
+body.dark-mode .flash-sale-section {
+    background: #252525 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .flash-sale-heading h2 {
+    color: #ff6b6b !important;
+}
+
+body.dark-mode .flash-sale-heading p {
+    color: #d1d5db !important;
+}
+
+body.dark-mode .flash-sale-card {
+    background: #333333 !important;
+    color: #ffffff !important;
+    border-color: #4b5563 !important;
+}
+
+body.dark-mode .flash-sale-details h3 {
+    color: #ffffff !important;
+}
+
+body.dark-mode .flash-sale-original {
+    color: #d1d5db !important;
+}
+
+body.dark-mode .flash-sale-message {
+    color: #d1d5db !important;
+}
