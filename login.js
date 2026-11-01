@@ -7,7 +7,7 @@ const SUPABASE_URL =
     "https://vbrlprrbtumonmroybdv.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY =
-    "sb_publishable_QN5w738LnyUrYy2X93M1OQ_md6F2xTN";
+    "sb_publishable_QN5w738LNyUrYy2X93M1OQ_md6F2xTN";
 
 
 /* =====================================================
