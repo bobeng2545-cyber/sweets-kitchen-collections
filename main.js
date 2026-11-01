@@ -83,98 +83,179 @@ function initializeSweetWebsite() {
        4. CONNECT SUPABASE PRODUCT IDS
     ================================================= */
 
-    async function connectStoreProductIds() {
+    
+async function connectStoreProductIds() {
+    if (!supabaseClient) {
+        console.error("Supabase connection is unavailable.");
+        return;
+    }
 
-        if (!supabaseClient) {
-            console.error("Supabase connection is unavailable.");
-            return;
-        }
+    const { data, error } = await supabaseClient
+        .from("store_products")
+        .select("id, name, description, price, category, image_url, stock")
+        .eq("is_active", true);
 
-        const { data, error } = await supabaseClient
-            .from("store_products")
-            .select("id, name, price, category, stock")
-            .eq("is_active", true);
+    if (error) {
+        console.error("Could not load store products:", error);
+        throw error;
+    }
 
-        if (error) {
-            console.error("Could not load product IDs:", error);
-            throw error;
-        }
+    const productsGrid = document.getElementById("productsGrid");
 
-        function normalize(value) {
-            return String(value || "")
-                .toLowerCase()
-                .replace(/[^a-z0-9]/g, "");
-        }
+    if (!productsGrid) {
+        console.error("Products grid was not found.");
+        return;
+    }
 
-        const productCards = document.querySelectorAll(
-            ".product-card:not(.flash-sale-card)"
-        );
+    function normalize(value) {
+        return String(value || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+    }
 
-        productCards.forEach(card => {
+    // Remove previously generated database cards
+    productsGrid
+        .querySelectorAll(".database-product-card")
+        .forEach(card => card.remove());
 
-            const button = card.querySelector(".add-to-cart");
+    const existingCards = Array.from(
+        productsGrid.querySelectorAll(
+            ".product-card:not(.flash-sale-card):not(.database-product-card)"
+        )
+    );
 
-            if (!button) return;
+    const usedProductIds = new Set();
 
-            const cardName =
-                button.dataset.name ||
-                card.dataset.name ||
-                card.querySelector("h3")?.textContent ||
-                "";
+    // Connect database products to the six existing HTML cards
+    existingCards.forEach(card => {
+        const button = card.querySelector(".add-to-cart");
+        if (!button) return;
 
-            const cardCategory = card.dataset.category || "";
+        const cardName =
+            button.dataset.name ||
+            card.dataset.name ||
+            card.querySelector("h3")?.textContent ||
+            "";
 
-            const product = data.find(item => {
+        const cardCategory = card.dataset.category || "";
 
-                const sameName =
-                    normalize(item.name) === normalize(cardName);
-
-                const sameCategory =
-                    normalize(item.category) === normalize(cardCategory);
-
-                return sameName && sameCategory;
-
-            }) || data.find(item => {
-
-                return (
-                    normalize(item.name) === normalize(cardName) &&
-                    Number(item.price) === Number(button.dataset.price)
-                );
-
-            });
-
-            if (product) {
-
-                button.dataset.productId = product.id;
-
-                button.dataset.originalPrice =
-                    String(Number(product.price));
-
-                // Do not overwrite the displayed price here.
-
-                if (
-                    product.stock !== null &&
-                    product.stock !== undefined &&
-                    Number(product.stock) <= 0
-                ) {
-                    button.disabled = true;
-                    button.textContent = "Out of Stock";
-                }
-
-            } else {
-
-                console.warn(
-                    "No matching database product:",
-                    cardName,
-                    cardCategory
-                );
-
-            }
-
+        const product = data.find(item => {
+            return (
+                !usedProductIds.has(item.id) &&
+                normalize(item.name) === normalize(cardName) &&
+                normalize(item.category) === normalize(cardCategory)
+            );
+        }) || data.find(item => {
+            return (
+                !usedProductIds.has(item.id) &&
+                normalize(item.name) === normalize(cardName) &&
+                Number(item.price) === Number(button.dataset.price)
+            );
         });
 
-        console.log("Store product IDs connected successfully.");
-    }
+        if (product) {
+            button.dataset.productId = product.id;
+            button.dataset.originalPrice = String(Number(product.price));
+
+            usedProductIds.add(product.id);
+
+            if (
+                product.stock !== null &&
+                product.stock !== undefined &&
+                Number(product.stock) <= 0
+            ) {
+                button.disabled = true;
+                button.textContent = "Out of Stock";
+            }
+        }
+    });
+
+    // Add every remaining database product to the storefront
+    data.forEach(product => {
+        if (usedProductIds.has(product.id)) return;
+
+        const card = document.createElement("article");
+        card.className = "product-card database-product-card";
+
+        card.dataset.category = product.category || "";
+        card.dataset.name = product.name || "";
+
+        const imageContainer = document.createElement("div");
+        imageContainer.className = "product-image";
+
+        if (product.image_url) {
+            const image = document.createElement("img");
+            image.src = product.image_url;
+            image.alt = product.name || "Product image";
+            image.loading = "lazy";
+            imageContainer.appendChild(image);
+        }
+
+        const favouriteButton = document.createElement("button");
+        favouriteButton.type = "button";
+        favouriteButton.className = "favourite-button";
+        favouriteButton.setAttribute(
+            "aria-label",
+            `Add ${product.name} to favourites`
+        );
+        favouriteButton.textContent = "💖";
+
+        imageContainer.appendChild(favouriteButton);
+
+        const productInfo = document.createElement("div");
+        productInfo.className = "product-info";
+
+        const category = document.createElement("p");
+        category.className = "products-category";
+        category.textContent = product.category || "Other";
+
+        const heading = document.createElement("h3");
+        heading.textContent = product.name || "Unnamed product";
+
+        const description = document.createElement("p");
+        description.className = "product-description";
+        description.textContent = product.description || "";
+
+        productInfo.append(category, heading, description);
+
+        const productBottom = document.createElement("div");
+        productBottom.className = "product-buttom";
+
+        const price = document.createElement("strong");
+        price.textContent =
+            `GH₵${Number(product.price || 0).toLocaleString("en-GH")}`;
+
+        const addButton = document.createElement("button");
+        addButton.type = "button";
+        addButton.className = "add-to-cart";
+        addButton.textContent = "Add to cart";
+        addButton.dataset.name = product.name || "";
+        addButton.dataset.price = String(Number(product.price || 0));
+        addButton.dataset.productId = product.id;
+        addButton.dataset.originalPrice = String(Number(product.price || 0));
+
+        if (
+            product.stock !== null &&
+            product.stock !== undefined &&
+            Number(product.stock) <= 0
+        ) {
+            addButton.disabled = true;
+            addButton.textContent = "Out of Stock";
+        }
+
+        productBottom.append(price, addButton);
+
+        card.append(imageContainer, productInfo, productBottom);
+
+        productsGrid.appendChild(card);
+    });
+
+    console.log(
+        "Store products loaded successfully:",
+        data.length
+    );
+}
+
 
     // IMPORTANT: Flash Sales will wait for this promise.
     const productIdsReady = connectStoreProductIds();
