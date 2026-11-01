@@ -1049,6 +1049,7 @@ if (product.image_url) {
 }
 
 
+
 /* Save product */
 
 productForm.addEventListener("submit", async event => {
@@ -1065,64 +1066,70 @@ productForm.addEventListener("submit", async event => {
 
     let imageUrl = productImage.value.trim();
 
+    // Validate product name and category
     if (!name || !category) {
         showMessage(
             productFormMessage,
             "Product name and category are required.",
             "error"
         );
-
         return;
     }
 
+    // Validate price
     if (!Number.isFinite(price) || price < 0) {
         showMessage(
             productFormMessage,
             "Enter a valid product price.",
             "error"
         );
-
         return;
     }
 
+    // Validate stock
     if (!Number.isInteger(stock) || stock < 0) {
         showMessage(
             productFormMessage,
             "Stock must be a whole number of zero or more.",
             "error"
         );
-
         return;
     }
 
-    const selectedImage = productImageFile.files[0];
+    // Get selected image
+    const selectedImage =
+        productImageFile.files[0];
 
-if (selectedImage) {
+    // Start loading before uploading or saving
     setButtonLoading(
         saveProductButton,
         true,
-        "Uploading image..."
+        selectedImage ? "Uploading image..." : "Saving..."
     );
 
-    imageUrl = await uploadProductImage(selectedImage);
-}
-
-const productData = {
-    name,
-    description,
-    category,
-    price,
-    stock,
-    image_url: imageUrl,
-    is_active: productActive.checked
-};
-
-    
-
     try {
+
+        // Upload image to Supabase Storage
+        if (selectedImage) {
+            imageUrl = await uploadProductImage(selectedImage);
+        }
+
+        // Prepare product information
+        const productData = {
+            name,
+            description,
+            category,
+            price,
+            stock,
+            image_url: imageUrl,
+            is_active: productActive.checked
+        };
+
         let result;
 
+        // Update existing product
         if (editingProductId) {
+
             result = await supabase
                 .from("store_products")
                 .update(productData)
@@ -1131,6 +1138,8 @@ const productData = {
                 .single();
 
         } else {
+
+            // Add new product
             result = await supabase
                 .from("store_products")
                 .insert(productData)
@@ -1138,7 +1147,9 @@ const productData = {
                 .single();
         }
 
-        if (result.error) throw result.error;
+        if (result.error) {
+            throw result.error;
+        }
 
         showMessage(
             productFormMessage,
@@ -1152,13 +1163,17 @@ const productData = {
 
         closeModal(productModal);
 
+        // Reload products and dashboard statistics
         await loadProducts();
 
         updateDashboardStatistics();
 
-        showGlobalMessage("Product saved successfully.");
+        showGlobalMessage(
+            "Product saved successfully."
+        );
 
     } catch (error) {
+
         console.error("Product save error:", error);
 
         showMessage(
@@ -1168,9 +1183,15 @@ const productData = {
         );
 
     } finally {
-        setButtonLoading(saveProductButton, false);
+
+        // Always restore the save button
+        setButtonLoading(
+            saveProductButton,
+            false
+        );
     }
 });
+
 
 
 /* Product table actions */
