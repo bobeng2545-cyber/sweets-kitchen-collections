@@ -986,3 +986,18 @@ td {
         padding: 18px;
     }
 }
+
+#productImagePreview {
+    display: block;
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+}
+
+#productImagePreview[hidden] {
+    display: none;
+}
