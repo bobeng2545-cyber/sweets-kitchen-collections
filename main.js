@@ -81,73 +81,92 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
-       4. CONNECT SUPABASE PRODUCT IDS
-    ================================================= */
+   4. CONNECT SUPABASE PRODUCT IDS
+================================================= */
 
-    async function connectStoreProductIds() {
+async function connectStoreProductIds() {
 
-        if (!supabaseClient) return;
+    if (!supabaseClient) return;
 
-        const { data, error } = await supabaseClient
-            .from("store_products")
-            .select("id, name, price, category")
-            .eq("is_active", true);
+    const { data, error } = await supabaseClient
+        .from("store_products")
+        .select("id, name, price, category")
+        .eq("is_active", true);
 
-        if (error) {
+    if (error) {
+        console.error("Could not load product IDs:", error);
+        return;
+    }
 
-            console.error(
-                "Could not load product IDs:",
-                error
+    function normalize(value) {
+        return String(value || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+    }
+
+    const productCards = document.querySelectorAll(
+        ".product-card:not(.flash-sale-card)"
+    );
+
+    productCards.forEach(card => {
+
+        const button = card.querySelector(".add-to-cart");
+
+        if (!button) return;
+
+        const cardName =
+            button.dataset.name ||
+            card.dataset.name ||
+            card.querySelector("h3")?.textContent ||
+            "";
+
+        const cardCategory = card.dataset.category || "";
+
+        const product = data.find(item => {
+
+            const sameName =
+                normalize(item.name) === normalize(cardName);
+
+            const sameCategory =
+                normalize(item.category) === normalize(cardCategory);
+
+            return sameName && sameCategory;
+
+        }) || data.find(item => {
+
+            return (
+                normalize(item.name) === normalize(cardName) &&
+                Number(item.price) === Number(button.dataset.price)
             );
-
-            return;
-
-        }
-
-        const productCards =
-            document.querySelectorAll(".product-card:not(.flash-sale-card)");
-
-        productCards.forEach(card => {
-
-            const button = card.querySelector(".add-to-cart");
-
-            if (!button) return;
-
-            const name = (
-                button.dataset.name ||
-                card.dataset.name ||
-                ""
-            ).trim();
-
-            const price = Number(button.dataset.price);
-
-            const product = data.find(item =>
-                item.name === name &&
-                Number(item.price) === price &&
-                item.category === card.dataset.category
-            );
-
-            if (product) {
-
-                button.dataset.productId = product.id;
-
-            } else {
-
-                console.warn(
-                    "No matching database product:",
-                    name,
-                    price
-                );
-
-            }
 
         });
 
-        console.log("Store product IDs connected successfully.");
+        if (product) {
 
-    }
+            button.dataset.productId = product.id;
 
-    connectStoreProductIds();
+            // Keep the original database price available.
+            button.dataset.originalPrice =
+                String(Number(product.price));
+
+            // Do not overwrite the displayed price here.
+        } else {
+
+            console.warn(
+                "No matching database product:",
+                cardName,
+                cardCategory
+            );
+
+        }
+
+    });
+
+    console.log("Store product IDs connected successfully.");
+
+}
+
+connectStoreProductIds();
 
 
     /* =================================================
@@ -900,358 +919,635 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
-       12. FLASH SALE PRODUCTS
-       Separate section above Featured Products
-    ================================================= */
+   12. FLASH SALE PRODUCTS
+   Updates existing product cards AND keeps
+   the separate Flash Sale section.
+================================================= */
 
-    const flashSaleSection =
-        document.getElementById("flashSaleSection");
+const flashSaleSection =
+    document.getElementById("flashSaleSection");
 
-    const flashSaleGrid =
-        document.getElementById("flashSaleGrid");
+const flashSaleGrid =
+    document.getElementById("flashSaleGrid");
 
-    const flashSaleMessage =
-        document.getElementById("flashSaleMessage");
+const flashSaleMessage =
+    document.getElementById("flashSaleMessage");
 
 
-    async function loadStoreFlashSales() {
+/* =================================================
+   12A. NORMALIZE PRODUCT NAMES
+================================================= */
+
+function normalizeFlashSaleText(value) {
+
+    return String(value || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
+
+}
+
+
+/* =================================================
+   12B. RESTORE ORIGINAL PRODUCT CARD PRICES
+================================================= */
+
+function restoreOriginalProductCards() {
+
+    const productCards = document.querySelectorAll(
+        ".product-card:not(.flash-sale-card)"
+    );
+
+    productCards.forEach(card => {
+
+        const button = card.querySelector(".add-to-cart");
+
+        if (!button) return;
+
+        const originalPrice = Number(
+            button.dataset.originalPrice
+        );
+
+        if (!Number.isFinite(originalPrice) || originalPrice <= 0) {
+            return;
+        }
+
+        // Restore the original price.
+        button.dataset.price = String(originalPrice);
+
+        // Remove sale information.
+        delete button.dataset.flashSaleId;
+
+        const priceElement = card.querySelector(
+            ".product-buttom strong, .product-bottom strong"
+        );
+
+        if (priceElement) {
+            priceElement.textContent = formatMoney(originalPrice);
+        }
+
+        // Remove the old price.
+        card.querySelectorAll(
+            ".product-card-original-price"
+        ).forEach(element => element.remove());
+
+        // Remove the sale badge.
+        card.querySelectorAll(
+            ".product-card-sale-badge"
+        ).forEach(element => element.remove());
+
+    });
+
+}
+
+
+/* =================================================
+   12C. APPLY FLASH SALES TO EXISTING PRODUCT CARDS
+================================================= */
+
+function updateExistingProductCardsWithFlashSales(sales) {
+
+    // First restore all normal product cards.
+    restoreOriginalProductCards();
+
+    const productCards = document.querySelectorAll(
+        ".product-card:not(.flash-sale-card)"
+    );
+
+    sales.forEach(sale => {
+
+        const product = sale.product;
+
+        if (!product) return;
+
+        const discount = Number(
+            sale.discount_percentage
+        );
+
+        const originalPrice = Number(product.price);
 
         if (
-            !supabaseClient ||
-            !flashSaleSection ||
-            !flashSaleGrid
+            !Number.isFinite(discount) ||
+            discount <= 0 ||
+            discount >= 100 ||
+            !Number.isFinite(originalPrice) ||
+            originalPrice <= 0
         ) {
+            return;
+        }
+
+        // Find the matching existing product card.
+        let matchingCard = null;
+
+        productCards.forEach(card => {
+
+            if (matchingCard) return;
+
+            const button = card.querySelector(".add-to-cart");
+
+            if (!button) return;
+
+            const existingProductId =
+                button.dataset.productId;
+
+            const cardName =
+                button.dataset.name ||
+                card.dataset.name ||
+                card.querySelector("h3")?.textContent ||
+                "";
+
+            const cardCategory =
+                card.dataset.category || "";
+
+            const sameProductId =
+                existingProductId &&
+                existingProductId === String(product.id);
+
+            const sameName =
+                normalizeFlashSaleText(cardName) ===
+                normalizeFlashSaleText(product.name);
+
+            const sameCategory =
+                normalizeFlashSaleText(cardCategory) ===
+                normalizeFlashSaleText(product.category);
+
+            if (
+                sameProductId ||
+                (sameName && sameCategory)
+            ) {
+                matchingCard = card;
+            }
+
+        });
+
+        if (!matchingCard) {
 
             console.warn(
-                "Flash Sale HTML or Supabase connection is missing."
+                "Could not find existing product card for Flash Sale:",
+                product.name
             );
 
             return;
+        }
+
+        const button =
+            matchingCard.querySelector(".add-to-cart");
+
+        if (!button) return;
+
+        const discountedPrice = Number(
+            (
+                originalPrice *
+                (1 - discount / 100)
+            ).toFixed(2)
+        );
+
+        // Update the button information.
+        button.dataset.productId = product.id;
+
+        button.dataset.originalPrice =
+            String(originalPrice);
+
+        button.dataset.price =
+            String(discountedPrice);
+
+        button.dataset.flashSaleId = sale.id;
+
+        // Update the existing visible product price.
+        const priceElement = matchingCard.querySelector(
+            ".product-buttom strong, .product-bottom strong"
+        );
+
+        if (priceElement) {
+
+            priceElement.textContent =
+                formatMoney(discountedPrice);
+
+            // Show the original price beside the sale price.
+            const oldPrice =
+                document.createElement("span");
+
+            oldPrice.className =
+                "flash-sale-original product-card-original-price";
+
+            oldPrice.textContent =
+                formatMoney(originalPrice);
+
+            priceElement.insertAdjacentElement(
+                "afterend",
+                oldPrice
+            );
+
+        } else {
+
+            console.warn(
+                "Could not find the product price element for:",
+                product.name
+            );
 
         }
 
+        // Add the discount badge to the product image.
+        let imageContainer = matchingCard.querySelector(
+            ".product-image, .product-img"
+        );
 
-        try {
+        if (!imageContainer) {
 
-            const { data, error } = await supabaseClient
-                .from("store_flash_sales")
-                .select(`
+            const image = matchingCard.querySelector("img");
+
+            if (image) {
+                imageContainer = image.parentElement;
+            }
+
+        }
+
+        if (imageContainer) {
+
+            imageContainer.style.position = "relative";
+
+            const badge =
+                document.createElement("span");
+
+            badge.className =
+                "flash-sale-badge product-card-sale-badge";
+
+            badge.textContent =
+                `${discount}% OFF`;
+
+            imageContainer.appendChild(badge);
+
+        }
+
+        // Keep product stock information.
+        if (
+            product.stock !== null &&
+            product.stock !== undefined &&
+            Number(product.stock) <= 0
+        ) {
+
+            button.disabled = true;
+
+            button.textContent = "Out of Stock";
+
+        }
+
+        console.log(
+            "Existing product card updated:",
+            product.name,
+            formatMoney(discountedPrice)
+        );
+
+    });
+
+}
+
+
+/* =================================================
+   12D. LOAD FLASH SALES FROM SUPABASE
+================================================= */
+
+async function loadStoreFlashSales() {
+
+    if (!supabaseClient) {
+
+        console.error("Supabase connection is unavailable.");
+
+        return;
+
+    }
+
+    if (!flashSaleSection || !flashSaleGrid) {
+
+        console.warn(
+            "Flash Sale HTML elements are missing."
+        );
+
+        return;
+
+    }
+
+    try {
+
+        const { data, error } = await supabaseClient
+            .from("store_flash_sales")
+            .select(`
+                id,
+                product_id,
+                discount_percentage,
+                starts_at,
+                ends_at,
+                is_active,
+                product:store_products (
                     id,
-                    product_id,
-                    discount_percentage,
-                    starts_at,
-                    ends_at,
-                    is_active,
-                    product:store_products (
-                        id,
-                        name,
-                        description,
-                        price,
-                        category,
-                        image_url,
-                        stock,
-                        is_active
-                    )
-                `)
-                .eq("is_active", true);
+                    name,
+                    description,
+                    price,
+                    category,
+                    image_url,
+                    stock,
+                    is_active
+                )
+            `)
+            .eq("is_active", true);
 
+        if (error) throw error;
 
-            if (error) throw error;
+        const now = Date.now();
 
+        const activeSales = (data || []).filter(sale => {
 
-            const now = Date.now();
+            const start =
+                new Date(sale.starts_at).getTime();
 
+            const end =
+                new Date(sale.ends_at).getTime();
 
-            // Only show active sales within their date and time.
-            const activeSales = (data || []).filter(sale => {
+            const product = sale.product;
 
-                const start =
-                    new Date(sale.starts_at).getTime();
+            return (
 
-                const end =
-                    new Date(sale.ends_at).getTime();
+                sale.is_active === true &&
 
-                const product = sale.product;
+                Number.isFinite(start) &&
 
-                return (
+                Number.isFinite(end) &&
 
-                    sale.is_active === true &&
+                now >= start &&
 
-                    Number.isFinite(start) &&
+                now < end &&
 
-                    Number.isFinite(end) &&
+                product &&
 
-                    now >= start &&
+                product.is_active === true &&
 
-                    now < end &&
+                Number(product.price) > 0 &&
 
-                    product &&
+                Number(sale.discount_percentage) > 0 &&
 
-                    product.is_active === true &&
+                Number(sale.discount_percentage) < 100
 
-                    Number(product.price) > 0 &&
-
-                    Number(sale.discount_percentage) > 0 &&
-
-                    Number(sale.discount_percentage) < 100
-
-                );
-
-            });
-
-
-            renderStoreFlashSales(activeSales);
-
-
-        } catch (error) {
-
-            console.error(
-                "Flash Sale loading failed:",
-                error
             );
 
-            flashSaleGrid.replaceChildren();
+        });
 
-            flashSaleSection.hidden = false;
+        // IMPORTANT:
+        // Update the existing product cards first.
+        updateExistingProductCardsWithFlashSales(activeSales);
 
-            if (flashSaleMessage) {
+        // Then update the separate Flash Sale section.
+        renderStoreFlashSales(activeSales);
 
-                flashSaleMessage.hidden = false;
+    } catch (error) {
 
-                flashSaleMessage.textContent =
-                    "Flash Sale offers could not be loaded. Please try again later.";
+        console.error(
+            "Flash Sale loading failed:",
+            error
+        );
 
-            }
+        // Restore normal prices if sales cannot be confirmed.
+        restoreOriginalProductCards();
+
+        flashSaleGrid.replaceChildren();
+
+        flashSaleSection.hidden = false;
+
+        if (flashSaleMessage) {
+
+            flashSaleMessage.hidden = false;
+
+            flashSaleMessage.textContent =
+                "Flash Sale offers could not be loaded. Please try again later.";
 
         }
 
     }
 
-
-    function renderStoreFlashSales(sales) {
-
-        flashSaleGrid.replaceChildren();
+}
 
 
-        if (!sales.length) {
+/* =================================================
+   12E. RENDER SEPARATE FLASH SALE SECTION
+================================================= */
 
-            flashSaleSection.hidden = true;
+function renderStoreFlashSales(sales) {
 
-            if (flashSaleMessage) {
-                flashSaleMessage.hidden = true;
-            }
+    flashSaleGrid.replaceChildren();
 
-            return;
+    if (!sales.length) {
 
-        }
-
-
-        flashSaleSection.hidden = false;
+        flashSaleSection.hidden = true;
 
         if (flashSaleMessage) {
             flashSaleMessage.hidden = true;
         }
 
-
-        sales.forEach(function (sale) {
-
-            const product = sale.product;
-
-            const originalPrice =
-                Number(product.price);
-
-            const discount =
-                Number(sale.discount_percentage);
-
-            const discountedPrice = Number(
-                (
-                    originalPrice *
-                    (1 - discount / 100)
-                ).toFixed(2)
-            );
-
-
-            const card =
-                document.createElement("article");
-
-            card.className =
-                "flash-sale-card product-card";
-
-            card.dataset.name =
-                product.name || "";
-
-            card.dataset.category =
-                product.category || "";
-
-
-            // Discount badge.
-
-            const badge =
-                document.createElement("span");
-
-            badge.className = "flash-sale-badge";
-
-            badge.textContent = `${discount}% OFF`;
-
-
-            // Product image.
-
-            const image =
-                document.createElement("img");
-
-            image.src = product.image_url || "";
-
-            image.alt =
-                product.name || "Flash sale product";
-
-            image.loading = "lazy";
-
-            image.onerror = function () {
-
-                image.style.display = "none";
-
-            };
-
-
-            // Product details.
-
-            const details =
-                document.createElement("div");
-
-            details.className = "flash-sale-details";
-
-
-            const name =
-                document.createElement("h3");
-
-            name.textContent =
-                product.name || "Product";
-
-
-            const description =
-                document.createElement("p");
-
-            description.textContent =
-                product.description || "";
-
-
-            // Prices.
-
-            const prices =
-                document.createElement("div");
-
-            prices.className = "flash-sale-prices";
-
-
-            const salePrice =
-                document.createElement("span");
-
-            salePrice.className = "flash-sale-price";
-
-            salePrice.textContent =
-                formatMoney(discountedPrice);
-
-
-            const oldPrice =
-                document.createElement("span");
-
-            oldPrice.className = "flash-sale-original";
-
-            oldPrice.textContent =
-                formatMoney(originalPrice);
-
-
-            prices.appendChild(salePrice);
-
-            prices.appendChild(oldPrice);
-
-
-            // Add to Cart button.
-
-            const button =
-                document.createElement("button");
-
-            button.type = "button";
-
-            button.className =
-                "add-to-cart flash-sale-add";
-
-            button.textContent = "Add to Cart";
-
-
-            // Connect to the existing cart system.
-
-            button.dataset.name =
-                product.name || "";
-
-            button.dataset.price =
-                String(discountedPrice);
-
-            button.dataset.productId =
-                product.id;
-
-            button.dataset.flashSaleId =
-                sale.id;
-
-            button.dataset.originalPrice =
-                String(originalPrice);
-
-
-            if (Number(product.stock) <= 0) {
-
-                button.disabled = true;
-
-                button.textContent = "Out of Stock";
-
-            }
-
-
-            details.appendChild(name);
-
-            details.appendChild(description);
-
-            details.appendChild(prices);
-
-            details.appendChild(button);
-
-
-            card.appendChild(badge);
-
-            card.appendChild(image);
-
-            card.appendChild(details);
-
-
-            flashSaleGrid.appendChild(card);
-
-        });
-
-
-        // Apply current search and category filters.
-        filterProducts();
-
-
-        console.log(
-            `${sales.length} active flash sale product(s) loaded.`
-        );
+        return;
 
     }
 
+    flashSaleSection.hidden = false;
 
-    // Load flash sales when the website starts.
-    loadStoreFlashSales();
+    if (flashSaleMessage) {
+        flashSaleMessage.hidden = true;
+    }
+
+    sales.forEach(function (sale) {
+
+        const product = sale.product;
+
+        const originalPrice =
+            Number(product.price);
+
+        const discount =
+            Number(sale.discount_percentage);
+
+        const discountedPrice = Number(
+            (
+                originalPrice *
+                (1 - discount / 100)
+            ).toFixed(2)
+        );
+
+        const card =
+            document.createElement("article");
+
+        card.className =
+            "flash-sale-card product-card";
+
+        card.dataset.name =
+            product.name || "";
+
+        card.dataset.category =
+            product.category || "";
 
 
-    // Refresh flash sales every minute.
-    window.setInterval(function () {
+        // Discount badge.
+        const badge =
+            document.createElement("span");
 
-        if (!document.hidden) {
+        badge.className = "flash-sale-badge";
 
-            loadStoreFlashSales();
+        badge.textContent = `${discount}% OFF`;
+
+
+        // Product image.
+        const image =
+            document.createElement("img");
+
+        image.src = product.image_url || "";
+
+        image.alt =
+            product.name || "Flash sale product";
+
+        image.loading = "lazy";
+
+        image.onerror = function () {
+            image.style.display = "none";
+        };
+
+
+        // Product details.
+        const details =
+            document.createElement("div");
+
+        details.className = "flash-sale-details";
+
+
+        const name =
+            document.createElement("h3");
+
+        name.textContent =
+            product.name || "Product";
+
+
+        const description =
+            document.createElement("p");
+
+        description.textContent =
+            product.description || "";
+
+
+        // Prices.
+        const prices =
+            document.createElement("div");
+
+        prices.className = "flash-sale-prices";
+
+
+        const salePrice =
+            document.createElement("span");
+
+        salePrice.className = "flash-sale-price";
+
+        salePrice.textContent =
+            formatMoney(discountedPrice);
+
+
+        const oldPrice =
+            document.createElement("span");
+
+        oldPrice.className = "flash-sale-original";
+
+        oldPrice.textContent =
+            formatMoney(originalPrice);
+
+
+        prices.appendChild(salePrice);
+
+        prices.appendChild(oldPrice);
+
+
+        // Add to Cart button.
+        const button =
+            document.createElement("button");
+
+        button.type = "button";
+
+        button.className =
+            "add-to-cart flash-sale-add";
+
+        button.textContent = "Add to Cart";
+
+
+        button.dataset.name =
+            product.name || "";
+
+        button.dataset.price =
+            String(discountedPrice);
+
+        button.dataset.productId =
+            product.id;
+
+        button.dataset.flashSaleId =
+            sale.id;
+
+        button.dataset.originalPrice =
+            String(originalPrice);
+
+
+        if (
+            product.stock !== null &&
+            product.stock !== undefined &&
+            Number(product.stock) <= 0
+        ) {
+
+            button.disabled = true;
+
+            button.textContent = "Out of Stock";
 
         }
 
-    }, 60000);
+
+        details.appendChild(name);
+
+        details.appendChild(description);
+
+        details.appendChild(prices);
+
+        details.appendChild(button);
+
+
+        card.appendChild(badge);
+
+        card.appendChild(image);
+
+        card.appendChild(details);
+
+
+        flashSaleGrid.appendChild(card);
+
+    });
+
+    // Keep the existing search and category filters working.
+    filterProducts();
+
+    console.log(
+        `${sales.length} active Flash Sale product(s) loaded.`
+    );
+
+}
+
+
+/* =================================================
+   12F. LOAD FLASH SALES WHEN WEBSITE STARTS
+================================================= */
+
+loadStoreFlashSales();
+
+
+/* =================================================
+   12G. AUTOMATIC FLASH SALE REFRESH
+================================================= */
+
+window.setInterval(function () {
+
+    if (!document.hidden) {
+
+        loadStoreFlashSales();
+
+    }
+
+}, 60000);
 
 
     /* =================================================
