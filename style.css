@@ -3224,3 +3224,214 @@ body.dark-mode .flash-sale-message {
     font-size: 12px;
     font-weight: bold;
 }
+
+
+/* =========================================
+   SWEET'S KITCHEN & COLLECTIONS
+   MY ORDERS — FINAL DARK MODE DESIGN
+========================================= */
+
+/* Main orders section */
+#myOrders {
+    width: 100%;
+    max-width: 1100px;
+    margin: 25px auto;
+    padding: 35px 20px;
+    border-radius: 16px;
+    background: #f8fafc;
+    color: #1f2937;
+    scroll-margin-top: 100px;
+}
+
+/* Orders container */
+#myOrders .orders-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Header */
+#myOrders .orders-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+#myOrders .orders-header h2 {
+    margin: 0 0 8px;
+    color: #1e293b;
+    font-size: 28px;
+}
+
+#myOrders .orders-header p {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Refresh button */
+#myOrders #refreshOrdersBtn {
+    margin: 0;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+#myOrders #refreshOrdersBtn:hover {
+    background: #1d4ed8;
+}
+
+/* Orders message */
+#myOrders #ordersMessage {
+    margin: 15px 0 20px;
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #475569;
+    line-height: 1.6;
+}
+
+/* Orders list */
+#myOrders #myOrdersList {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+/* Individual order cards */
+#myOrders .order-card {
+    min-width: 0;
+    padding: 22px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #334155;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+#myOrders .order-card h3 {
+    color: #1e293b;
+}
+
+#myOrders .order-card p,
+#myOrders .order-card ul {
+    color: #64748b;
+}
+
+#myOrders .order-reference,
+#myOrders .order-total,
+#myOrders .order-detail-value {
+    color: #1e293b;
+}
+
+/* DARK MODE */
+body.dark-mode #myOrders {
+    background: #111827 !important;
+    color: #f9fafb !important;
+}
+
+body.dark-mode #myOrders .orders-header h2 {
+    color: #f9fafb !important;
+}
+
+body.dark-mode #myOrders .orders-header p {
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode #myOrders #ordersMessage {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode #myOrders .order-card {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+    color: #f9fafb !important;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode #myOrders .order-card h3 {
+    color: #f9fafb !important;
+}
+
+body.dark-mode #myOrders .order-card p,
+body.dark-mode #myOrders .order-card ul,
+body.dark-mode #myOrders .order-reference-label,
+body.dark-mode #myOrders .order-total-label,
+body.dark-mode #myOrders .order-detail-label {
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode #myOrders .order-reference,
+body.dark-mode #myOrders .order-total,
+body.dark-mode #myOrders .order-detail-value {
+    color: #f9fafb !important;
+}
+
+body.dark-mode #myOrders .order-card-divider {
+    border-top-color: #374151 !important;
+}
+
+/* Keep payment status colours visible in dark mode */
+body.dark-mode #myOrders .payment-success,
+body.dark-mode #myOrders .status-success {
+    background: #14532d !important;
+    color: #bbf7d0 !important;
+}
+
+body.dark-mode #myOrders .payment-pending,
+body.dark-mode #myOrders .status-pending {
+    background: #713f12 !important;
+    color: #fef3c7 !important;
+}
+
+body.dark-mode #myOrders .payment-danger,
+body.dark-mode #myOrders .status-danger {
+    background: #7f1d1d !important;
+    color: #fecaca !important;
+}
+
+/* Dark mode refresh button */
+body.dark-mode #myOrders #refreshOrdersBtn {
+    background: #2563eb !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode #myOrders #refreshOrdersBtn:hover {
+    background: #1d4ed8 !important;
+}
+
+/* Mobile layout */
+@media (max-width: 600px) {
+    #myOrders {
+        margin: 15px auto;
+        padding: 22px 12px;
+    }
+
+    #myOrders .orders-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    #myOrders .orders-header h2 {
+        font-size: 23px;
+    }
+
+    #myOrders #myOrdersList {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 15px;
+    }
+
+    #myOrders .order-card {
+        padding: 16px;
+    }
+}
