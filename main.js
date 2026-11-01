@@ -34,16 +34,16 @@ if (!window.supabase) {
     );
 } else {
     window.sweetSupabase = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY,
-    {
-        auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY,
+        {
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true
+            }
         }
-    }
-);
+    );
 }
 
 
@@ -76,97 +76,108 @@ function initializeSweetWebsite() {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
-
     }
 
 
     /* =================================================
-   4. CONNECT SUPABASE PRODUCT IDS
-================================================= */
+       4. CONNECT SUPABASE PRODUCT IDS
+    ================================================= */
 
-async function connectStoreProductIds() {
+    async function connectStoreProductIds() {
 
-    if (!supabaseClient) return;
+        if (!supabaseClient) {
+            console.error("Supabase connection is unavailable.");
+            return;
+        }
 
-    const { data, error } = await supabaseClient
-        .from("store_products")
-        .select("id, name, price, category")
-        .eq("is_active", true);
+        const { data, error } = await supabaseClient
+            .from("store_products")
+            .select("id, name, price, category, stock")
+            .eq("is_active", true);
 
-    if (error) {
-        console.error("Could not load product IDs:", error);
-        return;
-    }
+        if (error) {
+            console.error("Could not load product IDs:", error);
+            throw error;
+        }
 
-    function normalize(value) {
-        return String(value || "")
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, "");
-    }
+        function normalize(value) {
+            return String(value || "")
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, "");
+        }
 
-    const productCards = document.querySelectorAll(
-        ".product-card:not(.flash-sale-card)"
-    );
+        const productCards = document.querySelectorAll(
+            ".product-card:not(.flash-sale-card)"
+        );
 
-    productCards.forEach(card => {
+        productCards.forEach(card => {
 
-        const button = card.querySelector(".add-to-cart");
+            const button = card.querySelector(".add-to-cart");
 
-        if (!button) return;
+            if (!button) return;
 
-        const cardName =
-            button.dataset.name ||
-            card.dataset.name ||
-            card.querySelector("h3")?.textContent ||
-            "";
+            const cardName =
+                button.dataset.name ||
+                card.dataset.name ||
+                card.querySelector("h3")?.textContent ||
+                "";
 
-        const cardCategory = card.dataset.category || "";
+            const cardCategory = card.dataset.category || "";
 
-        const product = data.find(item => {
+            const product = data.find(item => {
 
-            const sameName =
-                normalize(item.name) === normalize(cardName);
+                const sameName =
+                    normalize(item.name) === normalize(cardName);
 
-            const sameCategory =
-                normalize(item.category) === normalize(cardCategory);
+                const sameCategory =
+                    normalize(item.category) === normalize(cardCategory);
 
-            return sameName && sameCategory;
+                return sameName && sameCategory;
 
-        }) || data.find(item => {
+            }) || data.find(item => {
 
-            return (
-                normalize(item.name) === normalize(cardName) &&
-                Number(item.price) === Number(button.dataset.price)
-            );
+                return (
+                    normalize(item.name) === normalize(cardName) &&
+                    Number(item.price) === Number(button.dataset.price)
+                );
+
+            });
+
+            if (product) {
+
+                button.dataset.productId = product.id;
+
+                button.dataset.originalPrice =
+                    String(Number(product.price));
+
+                // Do not overwrite the displayed price here.
+
+                if (
+                    product.stock !== null &&
+                    product.stock !== undefined &&
+                    Number(product.stock) <= 0
+                ) {
+                    button.disabled = true;
+                    button.textContent = "Out of Stock";
+                }
+
+            } else {
+
+                console.warn(
+                    "No matching database product:",
+                    cardName,
+                    cardCategory
+                );
+
+            }
 
         });
 
-        if (product) {
+        console.log("Store product IDs connected successfully.");
+    }
 
-            button.dataset.productId = product.id;
-
-            // Keep the original database price available.
-            button.dataset.originalPrice =
-                String(Number(product.price));
-
-            // Do not overwrite the displayed price here.
-        } else {
-
-            console.warn(
-                "No matching database product:",
-                cardName,
-                cardCategory
-            );
-
-        }
-
-    });
-
-    console.log("Store product IDs connected successfully.");
-
-}
-
-connectStoreProductIds();
+    // IMPORTANT: Flash Sales will wait for this promise.
+    const productIdsReady = connectStoreProductIds();
 
 
     /* =================================================
@@ -186,11 +197,9 @@ connectStoreProductIds();
         document.body.classList.toggle("dark-mode", isDark);
 
         if (themeIcon) {
-
             themeIcon.textContent = isDark
                 ? "light_mode"
                 : "dark_mode";
-
         }
 
         if (themeToggle) {
@@ -204,22 +213,16 @@ connectStoreProductIds();
                 "title",
                 isDark ? "Switch to light mode" : "Switch to dark mode"
             );
-
         }
-
     }
 
     let savedTheme = "light";
 
     try {
-
         savedTheme =
             localStorage.getItem("sweetTheme") || "light";
-
     } catch (error) {
-
         console.warn("Could not load saved theme:", error);
-
     }
 
     applyTheme(savedTheme);
@@ -236,17 +239,11 @@ connectStoreProductIds();
             applyTheme(newTheme);
 
             try {
-
                 localStorage.setItem("sweetTheme", newTheme);
-
             } catch (error) {
-
                 console.warn("Could not save theme:", error);
-
             }
-
         });
-
     }
 
 
@@ -274,7 +271,6 @@ connectStoreProductIds();
                 "aria-expanded",
                 String(isOpen)
             );
-
         });
 
         navMenu.querySelectorAll("a").forEach(function (link) {
@@ -287,11 +283,8 @@ connectStoreProductIds();
                     "aria-expanded",
                     "false"
                 );
-
             });
-
         });
-
     }
 
 
@@ -324,20 +317,16 @@ connectStoreProductIds();
 
 
     function openCart() {
-
         if (cartOverlay) {
             cartOverlay.classList.add("show");
         }
-
     }
 
 
     function closeCartWindow() {
-
         if (cartOverlay) {
             cartOverlay.classList.remove("show");
         }
-
     }
 
 
@@ -356,9 +345,7 @@ connectStoreProductIds();
             if (event.target === cartOverlay) {
                 closeCartWindow();
             }
-
         });
-
     }
 
     document.addEventListener("keydown", function (event) {
@@ -366,7 +353,6 @@ connectStoreProductIds();
         if (event.key === "Escape") {
             closeCartWindow();
         }
-
     });
 
 
@@ -383,7 +369,6 @@ connectStoreProductIds();
             );
 
             return;
-
         }
 
         cartItem.innerHTML = "";
@@ -394,13 +379,11 @@ connectStoreProductIds();
                 document.createElement("p");
 
             emptyMessage.className = "empty-cart";
-
             emptyMessage.textContent = "Your cart is empty.";
 
             cartItem.appendChild(emptyMessage);
 
             cartCount.textContent = "0";
-
             cartTotal.textContent = formatMoney(0);
 
             if (checkoutButton) {
@@ -408,7 +391,6 @@ connectStoreProductIds();
             }
 
             return;
-
         }
 
         let total = 0;
@@ -417,7 +399,6 @@ connectStoreProductIds();
         cart.forEach(function (item, index) {
 
             total += item.price * item.quantity;
-
             numberOfItems += item.quantity;
 
             const cartItemElement =
@@ -425,18 +406,15 @@ connectStoreProductIds();
 
             cartItemElement.className = "cart-item";
 
-
             const itemInfo =
                 document.createElement("div");
 
             itemInfo.className = "cart-item-info";
 
-
             const itemName =
                 document.createElement("h3");
 
             itemName.textContent = item.name;
-
 
             const itemPrice =
                 document.createElement("p");
@@ -444,11 +422,8 @@ connectStoreProductIds();
             itemPrice.textContent = formatMoney(item.price);
 
             itemInfo.appendChild(itemName);
-
             itemInfo.appendChild(itemPrice);
 
-
-            // Quantity controls.
 
             const quantityControls =
                 document.createElement("div");
@@ -460,11 +435,8 @@ connectStoreProductIds();
                 document.createElement("button");
 
             decreaseButton.type = "button";
-
             decreaseButton.className = "decrease";
-
             decreaseButton.dataset.index = index;
-
             decreaseButton.textContent = "−";
 
             decreaseButton.setAttribute(
@@ -483,11 +455,8 @@ connectStoreProductIds();
                 document.createElement("button");
 
             increaseButton.type = "button";
-
             increaseButton.className = "increase";
-
             increaseButton.dataset.index = index;
-
             increaseButton.textContent = "+";
 
             increaseButton.setAttribute(
@@ -497,45 +466,32 @@ connectStoreProductIds();
 
 
             quantityControls.appendChild(decreaseButton);
-
             quantityControls.appendChild(quantityNumber);
-
             quantityControls.appendChild(increaseButton);
 
-
-            // Remove button.
 
             const removeButton =
                 document.createElement("button");
 
             removeButton.type = "button";
-
             removeButton.className = "remove-item";
-
             removeButton.dataset.index = index;
-
             removeButton.textContent = "Remove";
 
 
             cartItemElement.appendChild(itemInfo);
-
             cartItemElement.appendChild(quantityControls);
-
             cartItemElement.appendChild(removeButton);
 
             cartItem.appendChild(cartItemElement);
-
         });
 
-
         cartCount.textContent = numberOfItems;
-
         cartTotal.textContent = formatMoney(total);
 
         if (checkoutButton) {
             checkoutButton.disabled = false;
         }
-
     }
 
 
@@ -544,6 +500,8 @@ connectStoreProductIds();
     ================================================= */
 
     function addProductToCart(button) {
+
+        if (button.disabled) return;
 
         const name =
             (button.dataset.name || "").trim();
@@ -561,20 +519,14 @@ connectStoreProductIds();
             !Number.isFinite(price) ||
             price <= 0
         ) {
-
             alert("This product has invalid information.");
-
             return;
-
         }
-
 
         const existingProduct = cart.find(function (item) {
 
             if (productId && item.productId) {
-
                 return item.productId === productId;
-
             }
 
             return (
@@ -582,18 +534,13 @@ connectStoreProductIds();
                 !item.productId &&
                 item.name === name
             );
-
         });
-
 
         if (existingProduct) {
 
-            // Update the price in case the product is now on sale.
             existingProduct.price = price;
-
             existingProduct.quantity++;
 
-            // Keep the latest sale information.
             existingProduct.flashSaleId =
                 button.dataset.flashSaleId || null;
 
@@ -603,42 +550,29 @@ connectStoreProductIds();
         } else {
 
             cart.push({
-
                 productId: productId,
-
                 name: name,
-
                 price: price,
-
                 quantity: 1,
-
-                flashSaleId:
-                    button.dataset.flashSaleId || null,
-
+                flashSaleId: button.dataset.flashSaleId || null,
                 originalPrice:
                     Number(button.dataset.originalPrice) || price
-
             });
-
         }
 
-
         updateCart();
-
 
         const originalText =
             button.dataset.originalText || "Add to Cart";
 
         button.dataset.originalText = originalText;
-
         button.textContent = "Added to Cart";
 
         window.setTimeout(function () {
-
-            button.textContent = originalText;
-
+            if (!button.disabled) {
+                button.textContent = originalText;
+            }
         }, 1000);
-
     }
 
 
@@ -653,7 +587,6 @@ connectStoreProductIds();
         if (!button) return;
 
         addProductToCart(button);
-
     });
 
 
@@ -686,7 +619,6 @@ connectStoreProductIds();
                 return;
             }
 
-
             if (button.classList.contains("increase")) {
 
                 cart[index].quantity++;
@@ -702,13 +634,10 @@ connectStoreProductIds();
             } else if (button.classList.contains("remove-item")) {
 
                 cart.splice(index, 1);
-
             }
 
             updateCart();
-
         });
-
     }
 
     updateCart();
@@ -744,21 +673,15 @@ connectStoreProductIds();
         searchMessage = document.createElement("p");
 
         searchMessage.id = "searchMessage";
-
-        searchMessage.textContent =
-            "No matching products found.";
-
+        searchMessage.textContent = "No matching products found.";
         searchMessage.style.textAlign = "center";
-
         searchMessage.style.padding = "20px";
-
         searchMessage.style.display = "none";
 
         productsGrid.insertAdjacentElement(
             "afterend",
             searchMessage
         );
-
     }
 
 
@@ -772,7 +695,6 @@ connectStoreProductIds();
             document.querySelectorAll(".product-card");
 
         let matchingProducts = 0;
-
 
         productCards.forEach(function (card) {
 
@@ -791,41 +713,31 @@ connectStoreProductIds();
                 ""
             ).trim().toLowerCase();
 
-
             const matchesSearch =
                 productName.includes(searchTerm) ||
                 productCategory.includes(searchTerm) ||
                 displayedCategory.includes(searchTerm);
-
 
             const matchesCategory =
                 selectedCategory === "all" ||
                 productCategory === selectedCategory ||
                 displayedCategory === selectedCategory;
 
-
             if (matchesSearch && matchesCategory) {
 
                 card.style.display = "";
-
                 matchingProducts++;
 
             } else {
 
                 card.style.display = "none";
-
             }
-
         });
 
-
         if (searchMessage) {
-
             searchMessage.style.display =
                 matchingProducts === 0 ? "block" : "none";
-
         }
-
     }
 
 
@@ -834,49 +746,29 @@ connectStoreProductIds();
         filterProducts();
 
         if (productSection) {
-
             productSection.scrollIntoView({
-
                 behavior: "smooth",
-
                 block: "start"
-
             });
-
         }
-
     }
 
 
     if (searchButton) {
-
-        searchButton.addEventListener(
-            "click",
-            searchAndScroll
-        );
-
+        searchButton.addEventListener("click", searchAndScroll);
     }
-
 
     if (searchInput) {
 
-        searchInput.addEventListener(
-            "input",
-            filterProducts
-        );
+        searchInput.addEventListener("input", filterProducts);
 
         searchInput.addEventListener("keydown", function (event) {
 
             if (event.key === "Enter") {
-
                 event.preventDefault();
-
                 searchAndScroll();
-
             }
-
         });
-
     }
 
 
@@ -888,666 +780,582 @@ connectStoreProductIds();
                 button.dataset.category || "all"
             ).trim().toLowerCase();
 
-
             categoryButtons.forEach(function (categoryButton) {
-
                 categoryButton.classList.remove("active");
-
             });
-
 
             button.classList.add("active");
 
             filterProducts();
 
-
             if (productSection) {
-
                 productSection.scrollIntoView({
-
                     behavior: "smooth",
-
                     block: "start"
-
                 });
-
             }
-
         });
-
     });
 
 
     /* =================================================
-   12. FLASH SALE PRODUCTS
-   Updates existing product cards AND keeps
-   the separate Flash Sale section.
-================================================= */
+       12. FLASH SALE PRODUCTS
+       Updates existing product cards AND keeps
+       the separate Flash Sale section.
+    ================================================= */
 
-const flashSaleSection =
-    document.getElementById("flashSaleSection");
+    const flashSaleSection =
+        document.getElementById("flashSaleSection");
 
-const flashSaleGrid =
-    document.getElementById("flashSaleGrid");
+    const flashSaleGrid =
+        document.getElementById("flashSaleGrid");
 
-const flashSaleMessage =
-    document.getElementById("flashSaleMessage");
-
-
-/* =================================================
-   12A. NORMALIZE PRODUCT NAMES
-================================================= */
-
-function normalizeFlashSaleText(value) {
-
-    return String(value || "")
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "");
-
-}
+    const flashSaleMessage =
+        document.getElementById("flashSaleMessage");
 
 
-/* =================================================
-   12B. RESTORE ORIGINAL PRODUCT CARD PRICES
-================================================= */
+    function normalizeFlashSaleText(value) {
 
-function restoreOriginalProductCards() {
+        return String(value || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+    }
 
-    const productCards = document.querySelectorAll(
-        ".product-card:not(.flash-sale-card)"
-    );
 
-    productCards.forEach(card => {
+    /* =================================================
+       12A. RESTORE ORIGINAL PRODUCT CARD PRICES
+    ================================================= */
 
-        const button = card.querySelector(".add-to-cart");
+    function restoreOriginalProductCards() {
 
-        if (!button) return;
-
-        const originalPrice = Number(
-            button.dataset.originalPrice
+        const productCards = document.querySelectorAll(
+            ".product-card:not(.flash-sale-card)"
         );
-
-        if (!Number.isFinite(originalPrice) || originalPrice <= 0) {
-            return;
-        }
-
-        // Restore the original price.
-        button.dataset.price = String(originalPrice);
-
-        // Remove sale information.
-        delete button.dataset.flashSaleId;
-
-        const priceElement = card.querySelector(
-            ".product-buttom strong, .product-bottom strong"
-        );
-
-        if (priceElement) {
-            priceElement.textContent = formatMoney(originalPrice);
-        }
-
-        // Remove the old price.
-        card.querySelectorAll(
-            ".product-card-original-price"
-        ).forEach(element => element.remove());
-
-        // Remove the sale badge.
-        card.querySelectorAll(
-            ".product-card-sale-badge"
-        ).forEach(element => element.remove());
-
-    });
-
-}
-
-
-/* =================================================
-   12C. APPLY FLASH SALES TO EXISTING PRODUCT CARDS
-================================================= */
-
-function updateExistingProductCardsWithFlashSales(sales) {
-
-    // First restore all normal product cards.
-    restoreOriginalProductCards();
-
-    const productCards = document.querySelectorAll(
-        ".product-card:not(.flash-sale-card)"
-    );
-
-    sales.forEach(sale => {
-
-        const product = sale.product;
-
-        if (!product) return;
-
-        const discount = Number(
-            sale.discount_percentage
-        );
-
-        const originalPrice = Number(product.price);
-
-        if (
-            !Number.isFinite(discount) ||
-            discount <= 0 ||
-            discount >= 100 ||
-            !Number.isFinite(originalPrice) ||
-            originalPrice <= 0
-        ) {
-            return;
-        }
-
-        // Find the matching existing product card.
-        let matchingCard = null;
 
         productCards.forEach(card => {
-
-            if (matchingCard) return;
 
             const button = card.querySelector(".add-to-cart");
 
             if (!button) return;
 
-            const existingProductId =
-                button.dataset.productId;
-
-            const cardName =
-                button.dataset.name ||
-                card.dataset.name ||
-                card.querySelector("h3")?.textContent ||
-                "";
-
-            const cardCategory =
-                card.dataset.category || "";
-
-            const sameProductId =
-                existingProductId &&
-                existingProductId === String(product.id);
-
-            const sameName =
-                normalizeFlashSaleText(cardName) ===
-                normalizeFlashSaleText(product.name);
-
-            const sameCategory =
-                normalizeFlashSaleText(cardCategory) ===
-                normalizeFlashSaleText(product.category);
+            const originalPrice = Number(
+                button.dataset.originalPrice
+            );
 
             if (
-                sameProductId ||
-                (sameName && sameCategory)
+                !Number.isFinite(originalPrice) ||
+                originalPrice <= 0
             ) {
-                matchingCard = card;
+                return;
             }
 
-        });
+            button.dataset.price = String(originalPrice);
 
-        if (!matchingCard) {
+            delete button.dataset.flashSaleId;
 
-            console.warn(
-                "Could not find existing product card for Flash Sale:",
-                product.name
+            const priceElement = card.querySelector(
+                ".product-buttom strong, .product-bottom strong"
             );
+
+            if (priceElement) {
+                priceElement.textContent =
+                    formatMoney(originalPrice);
+            }
+
+            card.querySelectorAll(
+                ".product-card-original-price"
+            ).forEach(element => element.remove());
+
+            card.querySelectorAll(
+                ".product-card-sale-badge"
+            ).forEach(element => element.remove());
+
+            // Re-enable products unless the database says they are out of stock.
+            if (button.dataset.databaseOutOfStock !== "true") {
+                button.disabled = false;
+
+                if (button.dataset.originalText) {
+                    button.textContent = button.dataset.originalText;
+                }
+            }
+        });
+    }
+
+
+    /* =================================================
+       12B. APPLY FLASH SALES TO EXISTING PRODUCT CARDS
+    ================================================= */
+
+    function updateExistingProductCardsWithFlashSales(sales) {
+
+        restoreOriginalProductCards();
+
+        const productCards = document.querySelectorAll(
+            ".product-card:not(.flash-sale-card)"
+        );
+
+        sales.forEach(sale => {
+
+            const product = sale.product;
+
+            if (!product) return;
+
+            const discount = Number(
+                sale.discount_percentage
+            );
+
+            const originalPrice = Number(product.price);
+
+            if (
+                !Number.isFinite(discount) ||
+                discount <= 0 ||
+                discount >= 100 ||
+                !Number.isFinite(originalPrice) ||
+                originalPrice <= 0
+            ) {
+                return;
+            }
+
+            let matchingCard = null;
+
+            productCards.forEach(card => {
+
+                if (matchingCard) return;
+
+                const button = card.querySelector(".add-to-cart");
+
+                if (!button) return;
+
+                const existingProductId =
+                    button.dataset.productId;
+
+                const cardName =
+                    button.dataset.name ||
+                    card.dataset.name ||
+                    card.querySelector("h3")?.textContent ||
+                    "";
+
+                const cardCategory =
+                    card.dataset.category || "";
+
+                const sameProductId =
+                    existingProductId &&
+                    existingProductId === String(product.id);
+
+                const sameName =
+                    normalizeFlashSaleText(cardName) ===
+                    normalizeFlashSaleText(product.name);
+
+                const sameCategory =
+                    normalizeFlashSaleText(cardCategory) ===
+                    normalizeFlashSaleText(product.category);
+
+                if (
+                    sameProductId ||
+                    (sameName && sameCategory)
+                ) {
+                    matchingCard = card;
+                }
+            });
+
+            if (!matchingCard) {
+
+                console.warn(
+                    "Could not find existing product card for Flash Sale:",
+                    product.name
+                );
+
+                return;
+            }
+
+            const button =
+                matchingCard.querySelector(".add-to-cart");
+
+            if (!button) return;
+
+            const discountedPrice = Number(
+                (
+                    originalPrice *
+                    (1 - discount / 100)
+                ).toFixed(2)
+            );
+
+            button.dataset.productId = product.id;
+
+            button.dataset.originalPrice =
+                String(originalPrice);
+
+            button.dataset.price =
+                String(discountedPrice);
+
+            button.dataset.flashSaleId = sale.id;
+
+            const priceElement = matchingCard.querySelector(
+                ".product-buttom strong, .product-bottom strong"
+            );
+
+            if (priceElement) {
+
+                priceElement.textContent =
+                    formatMoney(discountedPrice);
+
+                const oldPrice =
+                    document.createElement("span");
+
+                oldPrice.className =
+                    "flash-sale-original product-card-original-price";
+
+                oldPrice.textContent =
+                    formatMoney(originalPrice);
+
+                priceElement.insertAdjacentElement(
+                    "afterend",
+                    oldPrice
+                );
+            }
+
+            let imageContainer = matchingCard.querySelector(
+                ".product-image, .product-img"
+            );
+
+            if (!imageContainer) {
+
+                const image = matchingCard.querySelector("img");
+
+                if (image) {
+                    imageContainer = image.parentElement;
+                }
+            }
+
+            if (imageContainer) {
+
+                imageContainer.style.position = "relative";
+
+                const badge =
+                    document.createElement("span");
+
+                badge.className =
+                    "flash-sale-badge product-card-sale-badge";
+
+                badge.textContent = `${discount}% OFF`;
+
+                imageContainer.appendChild(badge);
+            }
+
+            if (
+                product.stock !== null &&
+                product.stock !== undefined &&
+                Number(product.stock) <= 0
+            ) {
+                button.disabled = true;
+                button.dataset.databaseOutOfStock = "true";
+                button.textContent = "Out of Stock";
+            }
+
+            console.log(
+                "Existing product card updated:",
+                product.name,
+                formatMoney(discountedPrice)
+            );
+        });
+    }
+
+
+    /* =================================================
+       12C. RENDER SEPARATE FLASH SALE SECTION
+    ================================================= */
+
+    function renderStoreFlashSales(sales) {
+
+        flashSaleGrid.replaceChildren();
+
+        if (!sales.length) {
+
+            flashSaleSection.hidden = true;
+
+            if (flashSaleMessage) {
+                flashSaleMessage.hidden = true;
+            }
 
             return;
         }
 
-        const button =
-            matchingCard.querySelector(".add-to-cart");
-
-        if (!button) return;
-
-        const discountedPrice = Number(
-            (
-                originalPrice *
-                (1 - discount / 100)
-            ).toFixed(2)
-        );
-
-        // Update the button information.
-        button.dataset.productId = product.id;
-
-        button.dataset.originalPrice =
-            String(originalPrice);
-
-        button.dataset.price =
-            String(discountedPrice);
-
-        button.dataset.flashSaleId = sale.id;
-
-        // Update the existing visible product price.
-        const priceElement = matchingCard.querySelector(
-            ".product-buttom strong, .product-bottom strong"
-        );
-
-        if (priceElement) {
-
-            priceElement.textContent =
-                formatMoney(discountedPrice);
-
-            // Show the original price beside the sale price.
-            const oldPrice =
-                document.createElement("span");
-
-            oldPrice.className =
-                "flash-sale-original product-card-original-price";
-
-            oldPrice.textContent =
-                formatMoney(originalPrice);
-
-            priceElement.insertAdjacentElement(
-                "afterend",
-                oldPrice
-            );
-
-        } else {
-
-            console.warn(
-                "Could not find the product price element for:",
-                product.name
-            );
-
-        }
-
-        // Add the discount badge to the product image.
-        let imageContainer = matchingCard.querySelector(
-            ".product-image, .product-img"
-        );
-
-        if (!imageContainer) {
-
-            const image = matchingCard.querySelector("img");
-
-            if (image) {
-                imageContainer = image.parentElement;
-            }
-
-        }
-
-        if (imageContainer) {
-
-            imageContainer.style.position = "relative";
-
-            const badge =
-                document.createElement("span");
-
-            badge.className =
-                "flash-sale-badge product-card-sale-badge";
-
-            badge.textContent =
-                `${discount}% OFF`;
-
-            imageContainer.appendChild(badge);
-
-        }
-
-        // Keep product stock information.
-        if (
-            product.stock !== null &&
-            product.stock !== undefined &&
-            Number(product.stock) <= 0
-        ) {
-
-            button.disabled = true;
-
-            button.textContent = "Out of Stock";
-
-        }
-
-        console.log(
-            "Existing product card updated:",
-            product.name,
-            formatMoney(discountedPrice)
-        );
-
-    });
-
-}
-
-
-/* =================================================
-   12D. LOAD FLASH SALES FROM SUPABASE
-================================================= */
-
-async function loadStoreFlashSales() {
-
-    if (!supabaseClient) {
-
-        console.error("Supabase connection is unavailable.");
-
-        return;
-
-    }
-
-    if (!flashSaleSection || !flashSaleGrid) {
-
-        console.warn(
-            "Flash Sale HTML elements are missing."
-        );
-
-        return;
-
-    }
-
-    try {
-
-        const { data, error } = await supabaseClient
-            .from("store_flash_sales")
-            .select(`
-                id,
-                product_id,
-                discount_percentage,
-                starts_at,
-                ends_at,
-                is_active,
-                product:store_products (
-                    id,
-                    name,
-                    description,
-                    price,
-                    category,
-                    image_url,
-                    stock,
-                    is_active
-                )
-            `)
-            .eq("is_active", true);
-
-        if (error) throw error;
-
-        const now = Date.now();
-
-        const activeSales = (data || []).filter(sale => {
-
-            const start =
-                new Date(sale.starts_at).getTime();
-
-            const end =
-                new Date(sale.ends_at).getTime();
-
-            const product = sale.product;
-
-            return (
-
-                sale.is_active === true &&
-
-                Number.isFinite(start) &&
-
-                Number.isFinite(end) &&
-
-                now >= start &&
-
-                now < end &&
-
-                product &&
-
-                product.is_active === true &&
-
-                Number(product.price) > 0 &&
-
-                Number(sale.discount_percentage) > 0 &&
-
-                Number(sale.discount_percentage) < 100
-
-            );
-
-        });
-
-        // IMPORTANT:
-        // Update the existing product cards first.
-        updateExistingProductCardsWithFlashSales(activeSales);
-
-        // Then update the separate Flash Sale section.
-        renderStoreFlashSales(activeSales);
-
-    } catch (error) {
-
-        console.error(
-            "Flash Sale loading failed:",
-            error
-        );
-
-        // Restore normal prices if sales cannot be confirmed.
-        restoreOriginalProductCards();
-
-        flashSaleGrid.replaceChildren();
-
         flashSaleSection.hidden = false;
-
-        if (flashSaleMessage) {
-
-            flashSaleMessage.hidden = false;
-
-            flashSaleMessage.textContent =
-                "Flash Sale offers could not be loaded. Please try again later.";
-
-        }
-
-    }
-
-}
-
-
-/* =================================================
-   12E. RENDER SEPARATE FLASH SALE SECTION
-================================================= */
-
-function renderStoreFlashSales(sales) {
-
-    flashSaleGrid.replaceChildren();
-
-    if (!sales.length) {
-
-        flashSaleSection.hidden = true;
 
         if (flashSaleMessage) {
             flashSaleMessage.hidden = true;
         }
 
-        return;
+        sales.forEach(function (sale) {
 
-    }
+            const product = sale.product;
 
-    flashSaleSection.hidden = false;
+            const originalPrice =
+                Number(product.price);
 
-    if (flashSaleMessage) {
-        flashSaleMessage.hidden = true;
-    }
+            const discount =
+                Number(sale.discount_percentage);
 
-    sales.forEach(function (sale) {
+            const discountedPrice = Number(
+                (
+                    originalPrice *
+                    (1 - discount / 100)
+                ).toFixed(2)
+            );
 
-        const product = sale.product;
+            const card =
+                document.createElement("article");
 
-        const originalPrice =
-            Number(product.price);
+            card.className =
+                "flash-sale-card product-card";
 
-        const discount =
-            Number(sale.discount_percentage);
+            card.dataset.name = product.name || "";
+            card.dataset.category = product.category || "";
 
-        const discountedPrice = Number(
-            (
-                originalPrice *
-                (1 - discount / 100)
-            ).toFixed(2)
+
+            const badge =
+                document.createElement("span");
+
+            badge.className = "flash-sale-badge";
+            badge.textContent = `${discount}% OFF`;
+
+
+            const image =
+                document.createElement("img");
+
+            image.src = product.image_url || "";
+            image.alt = product.name || "Flash sale product";
+            image.loading = "lazy";
+
+            image.onerror = function () {
+                image.style.display = "none";
+            };
+
+
+            const details =
+                document.createElement("div");
+
+            details.className = "flash-sale-details";
+
+
+            const name =
+                document.createElement("h3");
+
+            name.textContent = product.name || "Product";
+
+
+            const description =
+                document.createElement("p");
+
+            description.textContent =
+                product.description || "";
+
+
+            const prices =
+                document.createElement("div");
+
+            prices.className = "flash-sale-prices";
+
+
+            const salePrice =
+                document.createElement("span");
+
+            salePrice.className = "flash-sale-price";
+            salePrice.textContent =
+                formatMoney(discountedPrice);
+
+
+            const oldPrice =
+                document.createElement("span");
+
+            oldPrice.className = "flash-sale-original";
+            oldPrice.textContent =
+                formatMoney(originalPrice);
+
+
+            prices.appendChild(salePrice);
+            prices.appendChild(oldPrice);
+
+
+            const button =
+                document.createElement("button");
+
+            button.type = "button";
+
+            button.className =
+                "add-to-cart flash-sale-add";
+
+            button.textContent = "Add to Cart";
+
+            button.dataset.name = product.name || "";
+            button.dataset.price = String(discountedPrice);
+            button.dataset.productId = product.id;
+            button.dataset.flashSaleId = sale.id;
+
+            button.dataset.originalPrice =
+                String(originalPrice);
+
+
+            if (
+                product.stock !== null &&
+                product.stock !== undefined &&
+                Number(product.stock) <= 0
+            ) {
+                button.disabled = true;
+                button.textContent = "Out of Stock";
+            }
+
+
+            details.appendChild(name);
+            details.appendChild(description);
+            details.appendChild(prices);
+            details.appendChild(button);
+
+            card.appendChild(badge);
+            card.appendChild(image);
+            card.appendChild(details);
+
+            flashSaleGrid.appendChild(card);
+        });
+
+        filterProducts();
+
+        console.log(
+            `${sales.length} active Flash Sale product(s) loaded.`
         );
-
-        const card =
-            document.createElement("article");
-
-        card.className =
-            "flash-sale-card product-card";
-
-        card.dataset.name =
-            product.name || "";
-
-        card.dataset.category =
-            product.category || "";
+    }
 
 
-        // Discount badge.
-        const badge =
-            document.createElement("span");
+    /* =================================================
+       12D. LOAD FLASH SALES FROM SUPABASE
+    ================================================= */
 
-        badge.className = "flash-sale-badge";
+    async function loadStoreFlashSales() {
 
-        badge.textContent = `${discount}% OFF`;
+        if (!supabaseClient) {
 
+            console.error("Supabase connection is unavailable.");
 
-        // Product image.
-        const image =
-            document.createElement("img");
-
-        image.src = product.image_url || "";
-
-        image.alt =
-            product.name || "Flash sale product";
-
-        image.loading = "lazy";
-
-        image.onerror = function () {
-            image.style.display = "none";
-        };
-
-
-        // Product details.
-        const details =
-            document.createElement("div");
-
-        details.className = "flash-sale-details";
-
-
-        const name =
-            document.createElement("h3");
-
-        name.textContent =
-            product.name || "Product";
-
-
-        const description =
-            document.createElement("p");
-
-        description.textContent =
-            product.description || "";
-
-
-        // Prices.
-        const prices =
-            document.createElement("div");
-
-        prices.className = "flash-sale-prices";
-
-
-        const salePrice =
-            document.createElement("span");
-
-        salePrice.className = "flash-sale-price";
-
-        salePrice.textContent =
-            formatMoney(discountedPrice);
-
-
-        const oldPrice =
-            document.createElement("span");
-
-        oldPrice.className = "flash-sale-original";
-
-        oldPrice.textContent =
-            formatMoney(originalPrice);
-
-
-        prices.appendChild(salePrice);
-
-        prices.appendChild(oldPrice);
-
-
-        // Add to Cart button.
-        const button =
-            document.createElement("button");
-
-        button.type = "button";
-
-        button.className =
-            "add-to-cart flash-sale-add";
-
-        button.textContent = "Add to Cart";
-
-
-        button.dataset.name =
-            product.name || "";
-
-        button.dataset.price =
-            String(discountedPrice);
-
-        button.dataset.productId =
-            product.id;
-
-        button.dataset.flashSaleId =
-            sale.id;
-
-        button.dataset.originalPrice =
-            String(originalPrice);
-
-
-        if (
-            product.stock !== null &&
-            product.stock !== undefined &&
-            Number(product.stock) <= 0
-        ) {
-
-            button.disabled = true;
-
-            button.textContent = "Out of Stock";
-
+            return;
         }
 
+        if (!flashSaleSection || !flashSaleGrid) {
 
-        details.appendChild(name);
+            console.warn(
+                "Flash Sale HTML elements are missing."
+            );
 
-        details.appendChild(description);
+            return;
+        }
 
-        details.appendChild(prices);
+        try {
 
-        details.appendChild(button);
+            const { data, error } = await supabaseClient
+                .from("store_flash_sales")
+                .select(`
+                    id,
+                    product_id,
+                    discount_percentage,
+                    starts_at,
+                    ends_at,
+                    is_active,
+                    product:store_products (
+                        id,
+                        name,
+                        description,
+                        price,
+                        category,
+                        image_url,
+                        stock,
+                        is_active
+                    )
+                `)
+                .eq("is_active", true);
 
+            if (error) throw error;
 
-        card.appendChild(badge);
+            const now = Date.now();
 
-        card.appendChild(image);
+            const activeSales = (data || []).filter(sale => {
 
-        card.appendChild(details);
+                const start =
+                    new Date(sale.starts_at).getTime();
 
+                const end =
+                    new Date(sale.ends_at).getTime();
 
-        flashSaleGrid.appendChild(card);
+                const product = sale.product;
 
-    });
+                return (
+                    sale.is_active === true &&
+                    Number.isFinite(start) &&
+                    Number.isFinite(end) &&
+                    now >= start &&
+                    now < end &&
+                    product &&
+                    product.is_active === true &&
+                    Number(product.price) > 0 &&
+                    Number(sale.discount_percentage) > 0 &&
+                    Number(sale.discount_percentage) < 100
+                );
+            });
 
-    // Keep the existing search and category filters working.
-    filterProducts();
+            updateExistingProductCardsWithFlashSales(activeSales);
 
-    console.log(
-        `${sales.length} active Flash Sale product(s) loaded.`
-    );
+            renderStoreFlashSales(activeSales);
 
-}
+        } catch (error) {
 
+            console.error(
+                "Flash Sale loading failed:",
+                error
+            );
 
-/* =================================================
-   12F. LOAD FLASH SALES WHEN WEBSITE STARTS
-================================================= */
+            restoreOriginalProductCards();
 
-loadStoreFlashSales();
+            flashSaleGrid.replaceChildren();
 
+            flashSaleSection.hidden = false;
 
-/* =================================================
-   12G. AUTOMATIC FLASH SALE REFRESH
-================================================= */
+            if (flashSaleMessage) {
 
-window.setInterval(function () {
+                flashSaleMessage.hidden = false;
 
-    if (!document.hidden) {
-
-        loadStoreFlashSales();
-
+                flashSaleMessage.textContent =
+                    "Flash Sale offers could not be loaded. Please try again later.";
+            }
+        }
     }
 
-}, 60000);
+
+    /* =================================================
+       12E. START FLASH SALES AFTER PRODUCT IDS LOAD
+    ================================================= */
+
+    productIdsReady
+        .then(function () {
+            return loadStoreFlashSales();
+        })
+        .catch(function (error) {
+
+            console.error(
+                "Product and Flash Sale initialization failed:",
+                error
+            );
+        });
+
+
+    /* =================================================
+       12F. AUTOMATIC FLASH SALE REFRESH
+    ================================================= */
+
+    window.setInterval(function () {
+
+        if (!document.hidden) {
+            loadStoreFlashSales();
+        }
+
+    }, 60000);
 
 
     /* =================================================
@@ -1588,7 +1396,6 @@ window.setInterval(function () {
             );
 
             return;
-
         }
 
 
@@ -1599,7 +1406,6 @@ window.setInterval(function () {
             );
 
             return;
-
         }
 
 
@@ -1620,17 +1426,13 @@ window.setInterval(function () {
             if (accountLink) {
 
                 accountLink.hidden = false;
-
                 accountLink.textContent = "My Account";
-
                 accountLink.href = "./account.html";
-
             }
 
             if (logoutButton) {
                 logoutButton.hidden = true;
             }
-
         }
 
 
@@ -1643,7 +1445,6 @@ window.setInterval(function () {
                 fullName.trim().split(/\s+/)[0] ||
                 user.email?.split("@")[0] ||
                 "Customer";
-
 
             if (profileName) {
                 profileName.textContent = firstName;
@@ -1664,7 +1465,6 @@ window.setInterval(function () {
             if (logoutButton) {
                 logoutButton.hidden = false;
             }
-
         }
 
 
@@ -1676,38 +1476,35 @@ window.setInterval(function () {
                 "aria-expanded",
                 "false"
             );
-
         }
 
 
+        // Use the locally stored session to load the profile.
         async function refreshProfile() {
 
             try {
 
                 const { data, error } =
-                    await supabaseClient.auth.getUser();
+                    await supabaseClient.auth.getSession();
 
-                if (error || !data.user) {
+                if (error) throw error;
 
+                if (!data.session || !data.session.user) {
                     showSignedOut();
-
-                } else {
-
-                    showSignedIn(data.user);
-
+                    return;
                 }
+
+                showSignedIn(data.session.user);
 
             } catch (error) {
 
                 console.error(
-                    "Profile loading failed:",
+                    "Profile session loading failed:",
                     error
                 );
 
                 showSignedOut();
-
             }
-
         }
 
 
@@ -1722,22 +1519,25 @@ window.setInterval(function () {
             async function (event) {
 
                 event.preventDefault();
-
                 event.stopPropagation();
 
                 try {
 
                     const { data, error } =
-                        await supabaseClient.auth.getUser();
+                        await supabaseClient.auth.getSession();
 
-                    if (error || !data.user) {
+                    if (error) throw error;
+
+                    const session = data.session;
+
+                    if (!session || !session.user) {
 
                         window.location.href = "./login.html";
 
                         return;
-
                     }
 
+                    showSignedIn(session.user);
 
                     const shouldOpen = profileMenu.hidden;
 
@@ -1748,7 +1548,6 @@ window.setInterval(function () {
                         String(shouldOpen)
                     );
 
-
                 } catch (error) {
 
                     console.error(
@@ -1757,11 +1556,9 @@ window.setInterval(function () {
                     );
 
                     alert(
-                        "Unable to check your account. Please try again."
+                        "Unable to check your account. Please refresh and try again."
                     );
-
                 }
-
             }
         );
 
@@ -1769,11 +1566,8 @@ window.setInterval(function () {
         document.addEventListener("click", function (event) {
 
             if (!profileArea.contains(event.target)) {
-
                 closeProfileMenu();
-
             }
-
         });
 
 
@@ -1784,11 +1578,9 @@ window.setInterval(function () {
                 async function (event) {
 
                     event.preventDefault();
-
                     event.stopPropagation();
 
                     logoutButton.disabled = true;
-
 
                     try {
 
@@ -1797,13 +1589,10 @@ window.setInterval(function () {
 
                         if (error) throw error;
 
-
                         closeProfileMenu();
-
                         showSignedOut();
 
                         window.location.href = "./login.html";
-
 
                     } catch (error) {
 
@@ -1819,12 +1608,9 @@ window.setInterval(function () {
                     } finally {
 
                         logoutButton.disabled = false;
-
                     }
-
                 }
             );
-
         }
 
 
@@ -1838,11 +1624,8 @@ window.setInterval(function () {
                 } else {
 
                     showSignedOut();
-
                     closeProfileMenu();
-
                 }
-
             }
         );
 
@@ -1910,16 +1693,13 @@ window.setInterval(function () {
             );
 
             return;
-
         }
 
 
         function closePaymentWindow() {
 
             paymentOverlay.style.display = "none";
-
             paymentOverlay.hidden = true;
-
         }
 
 
@@ -1932,16 +1712,11 @@ window.setInterval(function () {
                 );
 
                 return;
-
             }
 
-
             const subtotal = cart.reduce(function (sum, item) {
-
                 return sum + item.price * item.quantity;
-
             }, 0);
-
 
             const estimatedTotal = subtotal * 1.01;
 
@@ -1954,9 +1729,7 @@ window.setInterval(function () {
             paymentNetwork.value = "";
 
             paymentOverlay.hidden = false;
-
             paymentOverlay.style.display = "flex";
-
         }
 
 
@@ -1965,9 +1738,7 @@ window.setInterval(function () {
             function (event) {
 
                 event.preventDefault();
-
                 openPaymentWindow();
-
             }
         );
 
@@ -1978,7 +1749,6 @@ window.setInterval(function () {
 
                 event.preventDefault();
 
-
                 if (!supabaseClient) {
 
                     alert(
@@ -1986,9 +1756,7 @@ window.setInterval(function () {
                     );
 
                     return;
-
                 }
-
 
                 if (
                     !customerEmail.value.trim() ||
@@ -2003,9 +1771,7 @@ window.setInterval(function () {
                     );
 
                     return;
-
                 }
-
 
                 const network = paymentNetwork.value;
 
@@ -2016,27 +1782,16 @@ window.setInterval(function () {
                     );
 
                     return;
-
                 }
-
 
                 if (cart.length === 0) {
-
                     alert("Your cart is empty.");
-
                     return;
-
                 }
 
-
-                const missingProductId = cart.some(
-                    function (item) {
-
-                        return !item.productId;
-
-                    }
-                );
-
+                const missingProductId = cart.some(function (item) {
+                    return !item.productId;
+                });
 
                 if (missingProductId) {
 
@@ -2049,9 +1804,7 @@ window.setInterval(function () {
                     );
 
                     return;
-
                 }
-
 
                 const originalButtonText =
                     confirmButton.textContent;
@@ -2061,22 +1814,17 @@ window.setInterval(function () {
                 confirmButton.textContent =
                     "Connecting to Paystack...";
 
-
                 try {
 
-                    // Send only product IDs and quantities.
-                    // The server must calculate the correct prices.
+                    // Send product IDs and quantities only.
+                    // The server must calculate the final prices.
 
                     const items = cart.map(function (item) {
 
                         return {
-
                             productId: item.productId,
-
                             quantity: Number(item.quantity)
-
                         };
-
                     });
 
 
@@ -2099,7 +1847,6 @@ window.setInterval(function () {
                                     network: network,
 
                                     items: items
-
                                 }
                             }
                         );
@@ -2111,7 +1858,6 @@ window.setInterval(function () {
                             "Checkout function error:",
                             error
                         );
-
 
                         if (error.context) {
 
@@ -2128,17 +1874,13 @@ window.setInterval(function () {
                                     "Could not read server response:",
                                     readError
                                 );
-
                             }
-
                         }
-
 
                         throw new Error(
                             data?.error ||
                             "Payment could not be initialized. Please check the payment server logs."
                         );
-
                     }
 
 
@@ -2148,7 +1890,6 @@ window.setInterval(function () {
                             data?.error ||
                             "Paystack did not return a payment link."
                         );
-
                     }
 
 
@@ -2160,11 +1901,8 @@ window.setInterval(function () {
                         throw new Error(
                             "Payment started without notification access details. Please contact the store."
                         );
-
                     }
 
-
-                    // Save the private notification token.
 
                     const notificationStorageKey =
                         "sweet_order_notification_" + data.reference;
@@ -2181,7 +1919,6 @@ window.setInterval(function () {
                                 token: data.notification_token,
 
                                 savedAt: new Date().toISOString()
-
                             })
                         );
 
@@ -2195,13 +1932,11 @@ window.setInterval(function () {
                         throw new Error(
                             "Your order notification access could not be saved. Please enable browser storage and try again."
                         );
-
                     }
 
 
                     paymentReference.textContent =
                         data.reference;
-
 
                     console.log(
                         "Payment initialized successfully.",
@@ -2212,10 +1947,8 @@ window.setInterval(function () {
                         "Private order notification access saved."
                     );
 
-
                     window.location.href =
                         data.authorization_url;
-
 
                 } catch (error) {
 
@@ -2233,46 +1966,34 @@ window.setInterval(function () {
 
                     confirmButton.textContent =
                         originalButtonText;
-
                 }
-
             }
         );
 
 
         if (closePayment) {
-
             closePayment.addEventListener(
                 "click",
                 closePaymentWindow
             );
-
         }
 
-
         if (closePaymentBottom) {
-
             closePaymentBottom.addEventListener(
                 "click",
                 closePaymentWindow
             );
-
         }
-
 
         paymentOverlay.addEventListener(
             "click",
             function (event) {
 
                 if (event.target === paymentOverlay) {
-
                     closePaymentWindow();
-
                 }
-
             }
         );
-
 
         closePaymentWindow();
 
@@ -2282,7 +2003,7 @@ window.setInterval(function () {
 
 
     /* =================================================
-       15. MY ORDERS + COMPLETE NOTIFICATION SYSTEM
+       15. MY ORDERS + NOTIFICATION SYSTEM
     ================================================= */
 
     const myOrdersMenuLink =
@@ -2291,8 +2012,6 @@ window.setInterval(function () {
     const myOrdersSectionElement =
         document.getElementById("myOrders");
 
-
-    // Notification bell elements.
 
     const notificationButton =
         document.getElementById("notificationButton");
@@ -2312,8 +2031,6 @@ window.setInterval(function () {
     const clearNotifications =
         document.getElementById("clearNotifications");
 
-
-    // Browser storage keys.
 
     const SWEET_NOTIFICATIONS_KEY =
         "sweet_customer_notifications";
@@ -2343,22 +2060,16 @@ window.setInterval(function () {
             localStorage.getItem(SWEET_ORDER_STATUS_KEY) || "{}"
         );
 
-
         if (!Array.isArray(customerNotifications)) {
-
             customerNotifications = [];
-
         }
-
 
         if (
             !orderStatusSnapshots ||
             typeof orderStatusSnapshots !== "object" ||
             Array.isArray(orderStatusSnapshots)
         ) {
-
             orderStatusSnapshots = {};
-
         }
 
     } catch (error) {
@@ -2369,9 +2080,7 @@ window.setInterval(function () {
         );
 
         customerNotifications = [];
-
         orderStatusSnapshots = {};
-
     }
 
 
@@ -2394,9 +2103,7 @@ window.setInterval(function () {
                 "Could not save notifications:",
                 error
             );
-
         }
-
     }
 
 
@@ -2415,9 +2122,7 @@ window.setInterval(function () {
                 "Could not save order status:",
                 error
             );
-
         }
-
     }
 
 
@@ -2443,27 +2148,20 @@ window.setInterval(function () {
                     !key ||
                     !key.startsWith("sweet_order_notification_")
                 ) {
-
                     continue;
-
                 }
-
 
                 const savedData = JSON.parse(
                     localStorage.getItem(key)
                 );
-
 
                 if (
                     savedData &&
                     savedData.reference &&
                     savedData.token
                 ) {
-
                     savedOrders.push(savedData);
-
                 }
-
             }
 
         } catch (error) {
@@ -2472,11 +2170,9 @@ window.setInterval(function () {
                 "Could not read saved order notifications:",
                 error
             );
-
         }
 
         return savedOrders;
-
     }
 
 
@@ -2488,18 +2184,15 @@ window.setInterval(function () {
 
         if (!notificationCount) return;
 
-
         const unreadCount =
             customerNotifications.filter(
                 item => !item.read
             ).length;
 
-
         notificationCount.textContent = unreadCount;
 
         notificationCount.hidden =
             unreadCount === 0;
-
 
         if (notificationButton) {
 
@@ -2509,9 +2202,7 @@ window.setInterval(function () {
                     ? `${unreadCount} unread notifications`
                     : "Notifications"
             );
-
         }
-
     }
 
 
@@ -2524,7 +2215,6 @@ window.setInterval(function () {
         if (!notificationList) return;
 
         notificationList.innerHTML = "";
-
 
         if (customerNotifications.length === 0) {
 
@@ -2542,9 +2232,7 @@ window.setInterval(function () {
             updateNotificationCount();
 
             return;
-
         }
-
 
         customerNotifications.forEach(function (item) {
 
@@ -2554,13 +2242,9 @@ window.setInterval(function () {
             notificationItem.className =
                 "notification-item";
 
-
             if (!item.read) {
-
                 notificationItem.classList.add("unread");
-
             }
-
 
             const icon =
                 document.createElement("span");
@@ -2601,14 +2285,10 @@ window.setInterval(function () {
 
 
             content.appendChild(title);
-
             content.appendChild(message);
-
             content.appendChild(date);
 
-
             notificationItem.appendChild(icon);
-
             notificationItem.appendChild(content);
 
 
@@ -2621,17 +2301,12 @@ window.setInterval(function () {
                     "notification-unread-dot";
 
                 notificationItem.appendChild(unreadDot);
-
             }
 
-
             notificationList.appendChild(notificationItem);
-
         });
 
-
         updateNotificationCount();
-
     }
 
 
@@ -2658,26 +2333,21 @@ window.setInterval(function () {
             createdAt: new Date().toISOString(),
 
             read: false
-
         };
-
 
         customerNotifications.unshift(notification);
 
         customerNotifications =
             customerNotifications.slice(0, 100);
 
-
         saveCustomerNotifications();
 
         renderCustomerNotifications();
-
 
         console.log(
             "Customer notification created:",
             notification
         );
-
     }
 
 
@@ -2696,15 +2366,12 @@ window.setInterval(function () {
             "false"
         );
 
-
         notificationButton.addEventListener(
             "click",
             function (event) {
 
                 event.preventDefault();
-
                 event.stopPropagation();
-
 
                 const shouldOpen =
                     notificationMenu.hidden;
@@ -2712,22 +2379,16 @@ window.setInterval(function () {
                 notificationMenu.hidden =
                     !shouldOpen;
 
-
                 notificationButton.setAttribute(
                     "aria-expanded",
                     String(shouldOpen)
                 );
 
-
                 if (shouldOpen) {
-
                     renderCustomerNotifications();
-
                 }
-
             }
         );
-
 
         document.addEventListener(
             "click",
@@ -2744,19 +2405,15 @@ window.setInterval(function () {
                         "aria-expanded",
                         "false"
                     );
-
                 }
-
             }
         );
-
 
     } else {
 
         console.warn(
             "Notification bell HTML is incomplete. Check notificationButton, notificationMenu and notificationList."
         );
-
     }
 
 
@@ -2772,21 +2429,14 @@ window.setInterval(function () {
 
                 event.preventDefault();
 
-
                 customerNotifications.forEach(function (item) {
-
                     item.read = true;
-
                 });
 
-
                 saveCustomerNotifications();
-
                 renderCustomerNotifications();
-
             }
         );
-
     }
 
 
@@ -2802,29 +2452,22 @@ window.setInterval(function () {
 
                 event.preventDefault();
 
-
                 if (customerNotifications.length === 0) {
                     return;
                 }
-
 
                 const confirmed = confirm(
                     "Are you sure you want to clear all notifications?"
                 );
 
-
                 if (!confirmed) return;
-
 
                 customerNotifications = [];
 
                 saveCustomerNotifications();
-
                 renderCustomerNotifications();
-
             }
         );
-
     }
 
 
@@ -2836,11 +2479,9 @@ window.setInterval(function () {
 
         if (!myOrdersSectionElement) return null;
 
-
         let container = document.getElementById(
             "orderNotificationContainer"
         );
-
 
         if (!container) {
 
@@ -2874,19 +2515,13 @@ window.setInterval(function () {
 
 
             container.appendChild(heading);
-
             container.appendChild(description);
-
             container.appendChild(list);
 
-
             myOrdersSectionElement.appendChild(container);
-
         }
 
-
         return container;
-
     }
 
 
@@ -2902,15 +2537,12 @@ window.setInterval(function () {
 
         if (!list) return;
 
-
         const safeReference =
             String(order.reference);
-
 
         let card = document.getElementById(
             "notification-" + safeReference
         );
-
 
         if (!card) {
 
@@ -2952,43 +2584,33 @@ window.setInterval(function () {
 
 
             card.appendChild(reference);
-
             card.appendChild(payment);
-
             card.appendChild(status);
-
             card.appendChild(updated);
 
-
             list.appendChild(card);
-
         }
-
 
         card.querySelector(
             ".notification-reference"
         ).textContent =
             "Order reference: " + notification.reference;
 
-
         card.querySelector(
             ".notification-payment"
         ).textContent =
             "Payment: " + notification.payment_status;
-
 
         card.querySelector(
             ".notification-status"
         ).textContent =
             "Delivery status: " + notification.order_status;
 
-
         card.querySelector(
             ".notification-updated"
         ).textContent =
             "Last updated: " +
             new Date(notification.updated_at).toLocaleString();
-
     }
 
 
@@ -3002,15 +2624,11 @@ window.setInterval(function () {
             !supabaseClient ||
             notificationCheckInProgress
         ) {
-
             return;
-
         }
-
 
         const savedOrders =
             getSavedOrderNotifications();
-
 
         if (savedOrders.length === 0) {
 
@@ -3018,21 +2636,16 @@ window.setInterval(function () {
                 "orderNotificationList"
             );
 
-
             if (list) {
 
                 list.textContent =
                     "No saved orders yet. Your orders will appear here after checkout.";
-
             }
 
             return;
-
         }
 
-
         notificationCheckInProgress = true;
-
 
         try {
 
@@ -3045,7 +2658,6 @@ window.setInterval(function () {
                         order.reference
                     );
 
-
                     const { data, error } =
                         await supabaseClient.functions.invoke(
                             "get-order-notifications",
@@ -3055,11 +2667,9 @@ window.setInterval(function () {
                                     reference: order.reference,
 
                                     notification_token: order.token
-
                                 }
                             }
                         );
-
 
                     if (error) {
 
@@ -3069,15 +2679,12 @@ window.setInterval(function () {
                         );
 
                         continue;
-
                     }
-
 
                     console.log(
                         "NOTIFICATION SERVER RESPONSE:",
                         data
                     );
-
 
                     if (
                         !data ||
@@ -3091,21 +2698,15 @@ window.setInterval(function () {
                         );
 
                         continue;
-
                     }
-
 
                     const notification =
                         data.notification;
-
-
-                    // Display latest status under My Orders.
 
                     displayOrderNotification(
                         order,
                         notification
                     );
-
 
                     if (
                         notification.payment_status == null ||
@@ -3118,9 +2719,7 @@ window.setInterval(function () {
                         );
 
                         continue;
-
                     }
-
 
                     const currentStatus = {
 
@@ -3129,23 +2728,18 @@ window.setInterval(function () {
 
                         order_status:
                             notification.order_status
-
                     };
-
 
                     const previousStatus =
                         orderStatusSnapshots[order.reference];
 
-
                     // First successful check establishes a baseline.
-
                     if (!previousStatus) {
 
                         orderStatusSnapshots[order.reference] =
                             currentStatus;
 
                         saveOrderStatusSnapshots();
-
 
                         console.log(
                             "Initial order status saved:",
@@ -3154,28 +2748,19 @@ window.setInterval(function () {
                         );
 
                         continue;
-
                     }
-
-
-                    // Detect payment status changes.
 
                     const paymentChanged =
                         previousStatus.payment_status !==
                         currentStatus.payment_status;
 
-
-                    // Detect delivery status changes.
-
                     const orderChanged =
                         previousStatus.order_status !==
                         currentStatus.order_status;
 
-
                     if (paymentChanged || orderChanged) {
 
                         const changes = [];
-
 
                         if (paymentChanged) {
 
@@ -3183,9 +2768,7 @@ window.setInterval(function () {
                                 "Payment status: " +
                                 currentStatus.payment_status
                             );
-
                         }
-
 
                         if (orderChanged) {
 
@@ -3193,9 +2776,7 @@ window.setInterval(function () {
                                 "Delivery status: " +
                                 currentStatus.order_status
                             );
-
                         }
-
 
                         addCustomerNotification(
                             "Your order has been updated",
@@ -3206,17 +2787,12 @@ window.setInterval(function () {
 
                             order.reference
                         );
-
                     }
-
-
-                    // Save the latest status for next comparison.
 
                     orderStatusSnapshots[order.reference] =
                         currentStatus;
 
                     saveOrderStatusSnapshots();
-
 
                 } catch (error) {
 
@@ -3225,17 +2801,13 @@ window.setInterval(function () {
                         order.reference,
                         error
                     );
-
                 }
-
             }
 
         } finally {
 
             notificationCheckInProgress = false;
-
         }
-
     }
 
 
@@ -3245,11 +2817,8 @@ window.setInterval(function () {
 
     renderCustomerNotifications();
 
-
     if (myOrdersSectionElement) {
-
         createOrderNotificationContainer();
-
     }
 
 
@@ -3273,21 +2842,14 @@ window.setInterval(function () {
                 myOrdersSectionElement.style.display =
                     "block";
 
-
                 myOrdersSectionElement.scrollIntoView({
-
                     behavior: "smooth",
-
                     block: "start"
-
                 });
 
-
                 checkOrderNotifications();
-
             }
         );
-
     }
 
 
@@ -3305,9 +2867,7 @@ window.setInterval(function () {
     window.setInterval(function () {
 
         if (!document.hidden) {
-
             checkOrderNotifications();
-
         }
 
     }, 15000);
@@ -3320,7 +2880,6 @@ window.setInterval(function () {
     console.log(
         "SWEET's KITCHEN & COLLECTIONS website initialized successfully."
     );
-
 }
 
 
@@ -3339,5 +2898,4 @@ if (document.readyState === "loading") {
 } else {
 
     initializeSweetWebsite();
-
 }
