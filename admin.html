@@ -520,19 +520,22 @@
                 <input
                     type="file"
                     id="productImageFile"
-                    accept="image/*"
-                    >
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                >
+                
                 <img
                     id="productImagePreview"
                     alt="Product image preview"
                     hidden
-                    >
+                >
+                
                 <label for="productImage">Or Enter Product Image URL</label>
                 <input
                     type="text"
                     id="productImage"
-                    placeholder="./images/ProductName.jpeg"
-                    >
+                    placeholder="Enter image URL (optional)"
+                >
+
                 <label class="checkbox-row">
                     <input type="checkbox" id="productActive" checked>
                     Display this product in the store
