@@ -516,9 +516,23 @@
                 <label for="productStock">Available Stock</label>
                 <input type="number" id="productStock" min="0" step="1" value="0" required>
 
-                <label for="productImage">Product Image URL</label>
-                <input type="text" id="productImage" placeholder="./images/ProductName.jpeg">
-
+                <label for="productImageFile">Upload Product Image</label>
+                <input
+                    type="file"
+                    id="productImageFile"
+                    accept="image/*"
+                    >
+                <img
+                    id="productImagePreview"
+                    alt="Product image preview"
+                    hidden
+                    >
+                <label for="productImage">Or Enter Product Image URL</label>
+                <input
+                    type="text"
+                    id="productImage"
+                    placeholder="./images/ProductName.jpeg"
+                    >
                 <label class="checkbox-row">
                     <input type="checkbox" id="productActive" checked>
                     Display this product in the store
