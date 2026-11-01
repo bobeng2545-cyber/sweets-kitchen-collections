@@ -3200,3 +3200,27 @@ body.dark-mode .flash-sale-original {
 body.dark-mode .flash-sale-message {
     color: #d1d5db !important;
 }
+
+/* Original price beside discounted price */
+.product-card-original-price {
+    display: inline-block;
+    margin-left: 8px;
+    text-decoration: line-through;
+    color: #888;
+    font-size: 0.85em;
+    font-weight: normal;
+}
+
+/* Discount badge on existing product cards */
+.product-card-sale-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 5;
+    background: #e53935;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: bold;
+}
