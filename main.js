@@ -84,6 +84,7 @@ function initializeSweetWebsite() {
     ================================================= */
 
     
+
 async function connectStoreProductIds() {
     if (!supabaseClient) {
         console.error("Supabase connection is unavailable.");
@@ -107,13 +108,25 @@ async function connectStoreProductIds() {
         return;
     }
 
+    const products = data || [];
+
     function normalize(value) {
         return String(value || "")
             .toLowerCase()
             .replace(/[^a-z0-9]/g, "");
     }
 
-    // Remove previously generated database cards
+    // Permanent connections for the six existing HTML product cards.
+    const PRODUCT_CARD_IDS = {
+        airfryer: "7ae8e8dd-00f5-48e5-94ce-d0c495996168",
+        blender: "bba08aa0-d7b7-4678-bf70-3b8e6631b8cf",
+        kettle: "3c7c050f-7108-43d4-bf8c-a0445c973a8f",
+        cutleryset: "6996946d-e1ef-4983-ae59-59d84b9e1385",
+        bowls: "cdac8cef-49c4-460b-b2a0-c5260607b704",
+        juicermixer: "7e34ba9a-ebdf-461d-87db-429e9c37be77"
+    };
+
+    // Remove previously generated database cards before reloading.
     productsGrid
         .querySelectorAll(".database-product-card")
         .forEach(card => card.remove());
@@ -126,57 +139,113 @@ async function connectStoreProductIds() {
 
     const usedProductIds = new Set();
 
-    // Connect database products to the six existing HTML cards
+    // Update the six existing product cards from Supabase.
     existingCards.forEach(card => {
         const button = card.querySelector(".add-to-cart");
+
         if (!button) return;
 
-        const cardName =
+        // Use the original HTML name to identify its permanent database ID.
+        const originalName =
             button.dataset.name ||
             card.dataset.name ||
             card.querySelector("h3")?.textContent ||
             "";
 
-        const cardCategory = card.dataset.category || "";
+        const productId =
+            card.dataset.productId ||
+            PRODUCT_CARD_IDS[normalize(originalName)];
 
-        const product = data.find(item => {
-            return (
-                !usedProductIds.has(item.id) &&
-                normalize(item.name) === normalize(cardName) &&
-                normalize(item.category) === normalize(cardCategory)
-            );
-        }) || data.find(item => {
-            return (
-                !usedProductIds.has(item.id) &&
-                normalize(item.name) === normalize(cardName) &&
-                Number(item.price) === Number(button.dataset.price)
-            );
-        });
+        if (!productId) return;
 
-        if (product) {
-            button.dataset.productId = product.id;
-            button.dataset.originalPrice = String(Number(product.price));
+        const product = products.find(
+            item => String(item.id) === String(productId)
+        );
 
-            usedProductIds.add(product.id);
-
-            if (
-                product.stock !== null &&
-                product.stock !== undefined &&
-                Number(product.stock) <= 0
-            ) {
-                button.disabled = true;
-                button.textContent = "Out of Stock";
-            }
+        if (!product) {
+            console.warn("Product not found in Supabase:", originalName);
+            return;
         }
+
+        usedProductIds.add(product.id);
+
+        // Keep the card connected to its permanent database ID.
+        card.dataset.productId = product.id;
+        card.dataset.name = product.name || "";
+        card.dataset.category = product.category || "";
+
+        button.dataset.productId = product.id;
+        button.dataset.name = product.name || "";
+        button.dataset.price = String(Number(product.price || 0));
+        button.dataset.originalPrice = String(Number(product.price || 0));
+
+        // Update product name.
+        const heading = card.querySelector("h3");
+
+        if (heading) {
+            heading.textContent = product.name || "Unnamed product";
+        }
+
+        // Update product description.
+        const description = card.querySelector(".product-description");
+
+        if (description) {
+            description.textContent = product.description || "";
+        }
+
+        // Update product category.
+        const category = card.querySelector(".products-category");
+
+        if (category) {
+            category.textContent = product.category || "Other";
+        }
+
+        // Update product image.
+        const imageContainer = card.querySelector(".product-image");
+
+        if (imageContainer && product.image_url) {
+            let image = imageContainer.querySelector("img");
+
+            if (!image) {
+                image = document.createElement("img");
+                imageContainer.prepend(image);
+            }
+
+            image.src = product.image_url;
+            image.alt = product.name || "Product image";
+        }
+
+        // Update displayed price.
+        const price = card.querySelector(
+            ".product-buttom strong, .product-bottom strong"
+        );
+
+        if (price) {
+            price.textContent =
+                `GH₵${Number(product.price || 0).toLocaleString("en-GH")}`;
+        }
+
+        // Update stock status.
+        const isOutOfStock =
+            product.stock !== null &&
+            product.stock !== undefined &&
+            Number(product.stock) <= 0;
+
+        button.dataset.databaseOutOfStock = String(isOutOfStock);
+        button.disabled = isOutOfStock;
+        button.textContent = isOutOfStock
+            ? "Out of Stock"
+            : "Add to cart";
     });
 
-    // Add every remaining database product to the storefront
-    data.forEach(product => {
+    // Add any additional products created through the admin dashboard.
+    products.forEach(product => {
         if (usedProductIds.has(product.id)) return;
 
         const card = document.createElement("article");
         card.className = "product-card database-product-card";
 
+        card.dataset.productId = product.id;
         card.dataset.category = product.category || "";
         card.dataset.name = product.name || "";
 
@@ -234,17 +303,19 @@ async function connectStoreProductIds() {
         addButton.dataset.productId = product.id;
         addButton.dataset.originalPrice = String(Number(product.price || 0));
 
-        if (
+        const isOutOfStock =
             product.stock !== null &&
             product.stock !== undefined &&
-            Number(product.stock) <= 0
-        ) {
+            Number(product.stock) <= 0;
+
+        addButton.dataset.databaseOutOfStock = String(isOutOfStock);
+
+        if (isOutOfStock) {
             addButton.disabled = true;
             addButton.textContent = "Out of Stock";
         }
 
         productBottom.append(price, addButton);
-
         card.append(imageContainer, productInfo, productBottom);
 
         productsGrid.appendChild(card);
@@ -252,9 +323,10 @@ async function connectStoreProductIds() {
 
     console.log(
         "Store products loaded successfully:",
-        data.length
+        products.length
     );
 }
+
 
 
     // IMPORTANT: Flash Sales will wait for this promise.
