@@ -780,16 +780,19 @@ async function loadProducts() {
     const { data, error } = await supabase
         .from("store_products")
         .select(`
-            id,
-            name,
-            description,
-            price,
-            category,
-            image_url,
-            stock,
-            is_active,
-            created_at
-        `)
+    id,
+    order_reference,
+    user_id,
+    total_amount,
+    payment_status,
+    order_status,
+    customer_name,
+    customer_email,
+    customer_phone,
+    delivery_address,
+    items,
+    created_at
+`)
         .order("created_at", { ascending: false });
 
     if (error) throw error;
