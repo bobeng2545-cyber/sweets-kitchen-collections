@@ -1,4 +1,3 @@
-
 /* =====================================================
    SWEET's KITCHEN & COLLECTIONS
    COMPLETE MAIN WEBSITE JAVASCRIPT
@@ -16,7 +15,6 @@
    10. Secure notification token storage
    11. My Orders navigation
    12. Separate Flash Sale section
-   13. Product stock display
 ===================================================== */
 
 
@@ -61,174 +59,6 @@ function initializeSweetWebsite() {
 
     const supabaseClient = window.sweetSupabase;
 
-   
-    /* =================================================
-       2A. AUTOMATIC CUSTOMER LOGOUT AFTER 5 MINUTES
-    ================================================= */
-
-    (function setupAutomaticLogout() {
-
-        if (!supabaseClient) {
-            console.warn("Automatic logout unavailable: Supabase not connected.");
-            return;
-        }
-
-        const TIMEOUT_DURATION = 5 * 60 * 1000;
-        const AWAY_STORAGE_KEY = "sweetLastAwayTime";
-
-        let logoutTimer = null;
-        let isLoggingOut = false;
-        let isAuthenticated = false;
-
-        function clearLogoutTimer() {
-            clearTimeout(logoutTimer);
-            logoutTimer = null;
-        }
-
-        async function automaticLogout() {
-
-            if (!isAuthenticated || isLoggingOut) return;
-
-            isLoggingOut = true;
-            clearLogoutTimer();
-
-            localStorage.removeItem(AWAY_STORAGE_KEY);
-
-            const { error } = await supabaseClient.auth.signOut();
-
-            if (error) {
-                console.error("Automatic logout failed:", error);
-                isLoggingOut = false;
-                return;
-            }
-
-            alert("Your session has expired. Please log in again.");
-
-            window.location.replace("./login.html");
-        }
-
-        function startLogoutTimer() {
-
-            clearLogoutTimer();
-
-            if (!isAuthenticated || document.hidden || isLoggingOut) {
-                return;
-            }
-
-            logoutTimer = setTimeout(
-                automaticLogout,
-                TIMEOUT_DURATION
-            );
-        }
-
-        function checkAwayTime() {
-
-            const lastAwayTime = Number(
-                localStorage.getItem(AWAY_STORAGE_KEY)
-            );
-
-            if (
-                lastAwayTime &&
-                Date.now() - lastAwayTime >= TIMEOUT_DURATION
-            ) {
-                automaticLogout();
-                return;
-            }
-
-            localStorage.removeItem(AWAY_STORAGE_KEY);
-
-            startLogoutTimer();
-        }
-
-        // Detect when the customer leaves the website tab.
-        document.addEventListener("visibilitychange", function () {
-
-            if (!isAuthenticated) return;
-
-            if (document.hidden) {
-
-                clearLogoutTimer();
-
-                localStorage.setItem(
-                    AWAY_STORAGE_KEY,
-                    String(Date.now())
-                );
-
-            } else {
-
-                checkAwayTime();
-            }
-        });
-
-        // Detect when the customer closes or leaves the page.
-        window.addEventListener("pagehide", function () {
-
-            if (isAuthenticated) {
-                localStorage.setItem(
-                    AWAY_STORAGE_KEY,
-                    String(Date.now())
-                );
-            }
-        });
-
-        // Reset the inactivity timer when the customer interacts.
-        [
-            "click",
-            "mousemove",
-            "keydown",
-            "scroll",
-            "touchstart"
-        ].forEach(function (eventName) {
-
-            document.addEventListener(eventName, function () {
-
-                if (isAuthenticated && !document.hidden) {
-
-                    localStorage.removeItem(AWAY_STORAGE_KEY);
-
-                    startLogoutTimer();
-                }
-
-            }, { passive: true });
-        });
-
-        // Check whether a customer is already logged in.
-        supabaseClient.auth.getSession().then(function ({ data, error }) {
-
-            if (error) {
-                console.error("Could not check login session:", error);
-                return;
-            }
-
-            isAuthenticated = Boolean(data.session?.user);
-
-            if (isAuthenticated) {
-                checkAwayTime();
-            }
-        });
-
-        // Start or stop the timer when authentication changes.
-        supabaseClient.auth.onAuthStateChange(function (_event, session) {
-
-            isAuthenticated = Boolean(session?.user);
-
-            if (isAuthenticated) {
-
-                isLoggingOut = false;
-                checkAwayTime();
-
-            } else {
-
-                clearLogoutTimer();
-                localStorage.removeItem(AWAY_STORAGE_KEY);
-            }
-        });
-
-        console.log("Automatic customer logout system initialized.");
-
-    })();
-
-
 
     /* =================================================
        3. CURRENCY FORMATTER
@@ -250,355 +80,253 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
-       3A. PRODUCT STOCK DISPLAY
-    ================================================= */
-
-    function createStockDisplay(stock) {
-
-        const stockElement = document.createElement("p");
-
-        stockElement.className = "product-stock-status";
-
-        if (
-            stock === null ||
-            stock === undefined ||
-            stock === ""
-        ) {
-
-            stockElement.textContent = "Stock unavailable";
-
-            stockElement.classList.add("stock-unavailable");
-
-            return stockElement;
-        }
-
-        const quantity = Number(stock);
-
-        if (!Number.isFinite(quantity)) {
-
-            stockElement.textContent = "Stock unavailable";
-
-            stockElement.classList.add("stock-unavailable");
-
-            return stockElement;
-        }
-
-        if (quantity <= 0) {
-
-            stockElement.textContent = "Out of stock";
-
-            stockElement.classList.add("out-of-stock");
-
-        } else if (quantity <= 5) {
-
-            stockElement.textContent = `Only ${quantity} left`;
-
-            stockElement.classList.add("low-stock");
-
-        } else {
-
-            stockElement.textContent = `${quantity} available`;
-
-            stockElement.classList.add("in-stock");
-        }
-
-        return stockElement;
-    }
-
-
-    /* =================================================
        4. CONNECT SUPABASE PRODUCT IDS
     ================================================= */
 
-    async function connectStoreProductIds() {
+    
 
-        if (!supabaseClient) {
-            console.error("Supabase connection is unavailable.");
-            return;
-        }
+async function connectStoreProductIds() {
+    if (!supabaseClient) {
+        console.error("Supabase connection is unavailable.");
+        return;
+    }
 
-        const { data, error } = await supabaseClient
-            .from("store_products")
-            .select("id, name, description, price, category, image_url, stock")
-            .eq("is_active", true);
+    const { data, error } = await supabaseClient
+        .from("store_products")
+        .select("id, name, description, price, category, image_url, stock")
+        .eq("is_active", true);
 
-        if (error) {
-            console.error("Could not load store products:", error);
-            throw error;
-        }
+    if (error) {
+        console.error("Could not load store products:", error);
+        throw error;
+    }
 
-        const productsGrid = document.getElementById("productsGrid");
+    const productsGrid = document.getElementById("productsGrid");
 
-        if (!productsGrid) {
-            console.error("Products grid was not found.");
-            return;
-        }
+    if (!productsGrid) {
+        console.error("Products grid was not found.");
+        return;
+    }
 
-        const products = data || [];
+    const products = data || [];
 
-        function normalize(value) {
-            return String(value || "")
-                .toLowerCase()
-                .replace(/[^a-z0-9]/g, "");
-        }
+    function normalize(value) {
+        return String(value || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+    }
 
-        // Permanent connections for the six existing HTML product cards.
-        const PRODUCT_CARD_IDS = {
-            airfryer: "7ae8e8dd-00f5-48e5-94ce-d0c495996168",
-            blender: "bba08aa0-d7b7-4678-bf70-3b8e6631b8cf",
-            kettle: "3c7c050f-7108-43d4-bf8c-a0445c973a8f",
-            cutleryset: "6996946d-e1ef-4983-ae59-59d84b9e1385",
-            bowls: "cdac8cef-49c4-460b-b2a0-c5260607b704",
-            juicermixer: "7e34ba9a-ebdf-461d-87db-429e9c37be77"
-        };
+    // Permanent connections for the six existing HTML product cards.
+    const PRODUCT_CARD_IDS = {
+        airfryer: "7ae8e8dd-00f5-48e5-94ce-d0c495996168",
+        blender: "bba08aa0-d7b7-4678-bf70-3b8e6631b8cf",
+        kettle: "3c7c050f-7108-43d4-bf8c-a0445c973a8f",
+        cutleryset: "6996946d-e1ef-4983-ae59-59d84b9e1385",
+        bowls: "cdac8cef-49c4-460b-b2a0-c5260607b704",
+        juicermixer: "7e34ba9a-ebdf-461d-87db-429e9c37be77"
+    };
 
-        // Remove previously generated database cards before reloading.
-        productsGrid
-            .querySelectorAll(".database-product-card")
-            .forEach(card => card.remove());
+    // Remove previously generated database cards before reloading.
+    productsGrid
+        .querySelectorAll(".database-product-card")
+        .forEach(card => card.remove());
 
-        const existingCards = Array.from(
-            productsGrid.querySelectorAll(
-                ".product-card:not(.flash-sale-card):not(.database-product-card)"
-            )
+    const existingCards = Array.from(
+        productsGrid.querySelectorAll(
+            ".product-card:not(.flash-sale-card):not(.database-product-card)"
+        )
+    );
+
+    const usedProductIds = new Set();
+
+    // Update the six existing product cards from Supabase.
+    existingCards.forEach(card => {
+        const button = card.querySelector(".add-to-cart");
+
+        if (!button) return;
+
+        // Use the original HTML name to identify its permanent database ID.
+        const originalName =
+            button.dataset.name ||
+            card.dataset.name ||
+            card.querySelector("h3")?.textContent ||
+            "";
+
+        const productId =
+            card.dataset.productId ||
+            PRODUCT_CARD_IDS[normalize(originalName)];
+
+        if (!productId) return;
+
+        const product = products.find(
+            item => String(item.id) === String(productId)
         );
 
-        const usedProductIds = new Set();
+        if (!product) {
+            console.warn("Product not found in Supabase:", originalName);
+            return;
+        }
 
-        // Update the six existing product cards from Supabase.
-        existingCards.forEach(card => {
+        usedProductIds.add(product.id);
 
-            const button = card.querySelector(".add-to-cart");
+        // Keep the card connected to its permanent database ID.
+        card.dataset.productId = product.id;
+        card.dataset.name = product.name || "";
+        card.dataset.category = product.category || "";
 
-            if (!button) return;
+        button.dataset.productId = product.id;
+        button.dataset.name = product.name || "";
+        button.dataset.price = String(Number(product.price || 0));
+        button.dataset.originalPrice = String(Number(product.price || 0));
 
-            // Use the original HTML name to identify its permanent database ID.
-            const originalName =
-                button.dataset.name ||
-                card.dataset.name ||
-                card.querySelector("h3")?.textContent ||
-                "";
+        // Update product name.
+        const heading = card.querySelector("h3");
 
-            const productId =
-                card.dataset.productId ||
-                PRODUCT_CARD_IDS[normalize(originalName)];
-
-            if (!productId) return;
-
-            const product = products.find(
-                item => String(item.id) === String(productId)
-            );
-
-            if (!product) {
-                console.warn("Product not found in Supabase:", originalName);
-                return;
-            }
-
-            usedProductIds.add(product.id);
-
-            // Keep the card connected to its permanent database ID.
-            card.dataset.productId = product.id;
-            card.dataset.name = product.name || "";
-            card.dataset.category = product.category || "";
-
-            button.dataset.productId = product.id;
-            button.dataset.name = product.name || "";
-            button.dataset.price = String(Number(product.price || 0));
-            button.dataset.originalPrice = String(Number(product.price || 0));
-
-            // Update product name.
-            const heading = card.querySelector("h3");
-
-            if (heading) {
-                heading.textContent = product.name || "Unnamed product";
-            }
-
-            // Update product description.
-            const description = card.querySelector(".product-description");
-
-            if (description) {
-                description.textContent = product.description || "";
-            }
-
-            // Display current stock.
-            card.querySelectorAll(".product-stock-status")
-                .forEach(element => element.remove());
-
-            const stockDisplay = createStockDisplay(product.stock);
-
-            const productInfo = card.querySelector(".product-info");
-
-            if (productInfo) {
-                productInfo.appendChild(stockDisplay);
-            } else {
-                card.appendChild(stockDisplay);
-            }
-
-            // Update product category.
-            const category = card.querySelector(".products-category");
-
-            if (category) {
-                category.textContent = product.category || "Other";
-            }
-
-            // Update product image.
-            const imageContainer = card.querySelector(".product-image");
-
-            if (imageContainer && product.image_url) {
-
-                let image = imageContainer.querySelector("img");
-
-                if (!image) {
-                    image = document.createElement("img");
-                    imageContainer.prepend(image);
-                }
-
-                image.src = product.image_url;
-                image.alt = product.name || "Product image";
-            }
-
-            // Update displayed price.
-            const price = card.querySelector(
-                ".product-buttom strong, .product-bottom strong"
-            );
-
-            if (price) {
-                price.textContent =
-                    `GH₵${Number(product.price || 0).toLocaleString("en-GH")}`;
-            }
-
-            // Update stock availability on the button.
-            const isOutOfStock =
-                product.stock !== null &&
-                product.stock !== undefined &&
-                Number(product.stock) <= 0;
-
-            button.dataset.databaseOutOfStock = String(isOutOfStock);
-
-            button.disabled = isOutOfStock;
-
-            button.textContent = isOutOfStock
-                ? "Out of Stock"
-                : "Add to cart";
-        });
-
-
-        // Add any additional products created through the admin dashboard.
-        products.forEach(product => {
-
-            if (usedProductIds.has(product.id)) return;
-
-            const card = document.createElement("article");
-
-            card.className = "product-card database-product-card";
-
-            card.dataset.productId = product.id;
-            card.dataset.category = product.category || "";
-            card.dataset.name = product.name || "";
-
-            const imageContainer = document.createElement("div");
-
-            imageContainer.className = "product-image";
-
-            if (product.image_url) {
-
-                const image = document.createElement("img");
-
-                image.src = product.image_url;
-                image.alt = product.name || "Product image";
-                image.loading = "lazy";
-
-                imageContainer.appendChild(image);
-            }
-
-            const favouriteButton = document.createElement("button");
-
-            favouriteButton.type = "button";
-            favouriteButton.className = "favourite-button";
-
-            favouriteButton.setAttribute(
-                "aria-label",
-                `Add ${product.name} to favourites`
-            );
-
-            favouriteButton.textContent = "💖";
-
-            imageContainer.appendChild(favouriteButton);
-
-            const productInfo = document.createElement("div");
-
-            productInfo.className = "product-info";
-
-            const category = document.createElement("p");
-
-            category.className = "products-category";
-            category.textContent = product.category || "Other";
-
-            const heading = document.createElement("h3");
-
+        if (heading) {
             heading.textContent = product.name || "Unnamed product";
+        }
 
-            const description = document.createElement("p");
+        // Update product description.
+        const description = card.querySelector(".product-description");
 
-            description.className = "product-description";
+        if (description) {
             description.textContent = product.description || "";
+        }
 
-            // Display stock for additional products.
-            const stockDisplay = createStockDisplay(product.stock);
+        // Update product category.
+        const category = card.querySelector(".products-category");
 
-            productInfo.append(
-                category,
-                heading,
-                description,
-                stockDisplay
-            );
+        if (category) {
+            category.textContent = product.category || "Other";
+        }
 
-            const productBottom = document.createElement("div");
+        // Update product image.
+        const imageContainer = card.querySelector(".product-image");
 
-            productBottom.className = "product-buttom";
+        if (imageContainer && product.image_url) {
+            let image = imageContainer.querySelector("img");
 
-            const price = document.createElement("strong");
+            if (!image) {
+                image = document.createElement("img");
+                imageContainer.prepend(image);
+            }
 
+            image.src = product.image_url;
+            image.alt = product.name || "Product image";
+        }
+
+        // Update displayed price.
+        const price = card.querySelector(
+            ".product-buttom strong, .product-bottom strong"
+        );
+
+        if (price) {
             price.textContent =
                 `GH₵${Number(product.price || 0).toLocaleString("en-GH")}`;
+        }
 
-            const addButton = document.createElement("button");
+        // Update stock status.
+        const isOutOfStock =
+            product.stock !== null &&
+            product.stock !== undefined &&
+            Number(product.stock) <= 0;
 
-            addButton.type = "button";
-            addButton.className = "add-to-cart";
-            addButton.textContent = "Add to cart";
+        button.dataset.databaseOutOfStock = String(isOutOfStock);
+        button.disabled = isOutOfStock;
+        button.textContent = isOutOfStock
+            ? "Out of Stock"
+            : "Add to cart";
+    });
 
-            addButton.dataset.name = product.name || "";
-            addButton.dataset.price = String(Number(product.price || 0));
-            addButton.dataset.productId = product.id;
+    // Add any additional products created through the admin dashboard.
+    products.forEach(product => {
+        if (usedProductIds.has(product.id)) return;
 
-            addButton.dataset.originalPrice =
-                String(Number(product.price || 0));
+        const card = document.createElement("article");
+        card.className = "product-card database-product-card";
 
-            const isOutOfStock =
-                product.stock !== null &&
-                product.stock !== undefined &&
-                Number(product.stock) <= 0;
+        card.dataset.productId = product.id;
+        card.dataset.category = product.category || "";
+        card.dataset.name = product.name || "";
 
-            addButton.dataset.databaseOutOfStock = String(isOutOfStock);
+        const imageContainer = document.createElement("div");
+        imageContainer.className = "product-image";
 
-            if (isOutOfStock) {
-                addButton.disabled = true;
-                addButton.textContent = "Out of Stock";
-            }
+        if (product.image_url) {
+            const image = document.createElement("img");
+            image.src = product.image_url;
+            image.alt = product.name || "Product image";
+            image.loading = "lazy";
+            imageContainer.appendChild(image);
+        }
 
-            productBottom.append(price, addButton);
-
-            card.append(imageContainer, productInfo, productBottom);
-
-            productsGrid.appendChild(card);
-        });
-
-        console.log(
-            "Store products loaded successfully:",
-            products.length
+        const favouriteButton = document.createElement("button");
+        favouriteButton.type = "button";
+        favouriteButton.className = "favourite-button";
+        favouriteButton.setAttribute(
+            "aria-label",
+            `Add ${product.name} to favourites`
         );
-    }
+        favouriteButton.textContent = "💖";
+
+        imageContainer.appendChild(favouriteButton);
+
+        const productInfo = document.createElement("div");
+        productInfo.className = "product-info";
+
+        const category = document.createElement("p");
+        category.className = "products-category";
+        category.textContent = product.category || "Other";
+
+        const heading = document.createElement("h3");
+        heading.textContent = product.name || "Unnamed product";
+
+        const description = document.createElement("p");
+        description.className = "product-description";
+        description.textContent = product.description || "";
+
+        productInfo.append(category, heading, description);
+
+        const productBottom = document.createElement("div");
+        productBottom.className = "product-buttom";
+
+        const price = document.createElement("strong");
+        price.textContent =
+            `GH₵${Number(product.price || 0).toLocaleString("en-GH")}`;
+
+        const addButton = document.createElement("button");
+        addButton.type = "button";
+        addButton.className = "add-to-cart";
+        addButton.textContent = "Add to cart";
+        addButton.dataset.name = product.name || "";
+        addButton.dataset.price = String(Number(product.price || 0));
+        addButton.dataset.productId = product.id;
+        addButton.dataset.originalPrice = String(Number(product.price || 0));
+
+        const isOutOfStock =
+            product.stock !== null &&
+            product.stock !== undefined &&
+            Number(product.stock) <= 0;
+
+        addButton.dataset.databaseOutOfStock = String(isOutOfStock);
+
+        if (isOutOfStock) {
+            addButton.disabled = true;
+            addButton.textContent = "Out of Stock";
+        }
+
+        productBottom.append(price, addButton);
+        card.append(imageContainer, productInfo, productBottom);
+
+        productsGrid.appendChild(card);
+    });
+
+    console.log(
+        "Store products loaded successfully:",
+        products.length
+    );
+}
+
 
 
     // IMPORTANT: Flash Sales will wait for this promise.
@@ -1576,10 +1304,6 @@ function initializeSweetWebsite() {
                 product.description || "";
 
 
-            // Display stock for Flash Sale products.
-            const stockDisplay = createStockDisplay(product.stock);
-
-
             const prices =
                 document.createElement("div");
 
@@ -1637,7 +1361,6 @@ function initializeSweetWebsite() {
 
             details.appendChild(name);
             details.appendChild(description);
-            details.appendChild(stockDisplay);
             details.appendChild(prices);
             details.appendChild(button);
 
@@ -1788,8 +1511,8 @@ function initializeSweetWebsite() {
     }, 60000);
 
 
-        /* =================================================
-       13. CUSTOMER PROFILE + PROFILE PICTURE UPLOAD
+    /* =================================================
+       13. CUSTOMER PROFILE
     ================================================= */
 
     (function setupCustomerProfile() {
@@ -1812,42 +1535,11 @@ function initializeSweetWebsite() {
         const profileEmail =
             document.getElementById("profileEmail");
 
-        const profileIcon =
-            document.getElementById("profileIcon");
-
-        const profilePicture =
-            document.getElementById("profilePicture");
-
-        const profilePicturePreview =
-            document.getElementById("profilePicturePreview");
-
-        const profilePictureInput =
-            document.getElementById("profilePictureInput");
-
-        const removeProfilePicture =
-            document.getElementById("removeProfilePicture");
-
-        const profilePictureMessage =
-            document.getElementById("profilePictureMessage");
-
         const accountLink =
             document.getElementById("accountLink");
 
         const logoutButton =
             document.getElementById("logoutButton");
-
-
-        // This must match the bucket name in Supabase Storage.
-        const PROFILE_BUCKET = "profile-pictures";
-
-        // Maximum permitted image size: 5 MB.
-        const MAX_PROFILE_IMAGE_SIZE = 5 * 1024 * 1024;
-
-        const ALLOWED_PROFILE_TYPES = [
-            "image/jpeg",
-            "image/png",
-            "image/webp"
-        ];
 
 
         if (!supabaseClient) {
@@ -1869,103 +1561,6 @@ function initializeSweetWebsite() {
             return;
         }
 
-
-        /* =============================================
-           13A. DISPLAY PROFILE PICTURE
-        ============================================= */
-
-        function displayProfilePicture(imageUrl) {
-
-            const hasPicture = Boolean(imageUrl);
-
-            if (profilePicture) {
-
-                profilePicture.hidden = !hasPicture;
-
-                if (hasPicture) {
-                    profilePicture.src = imageUrl;
-                } else {
-                    profilePicture.removeAttribute("src");
-                }
-            }
-
-            if (profilePicturePreview) {
-
-                profilePicturePreview.hidden = !hasPicture;
-
-                if (hasPicture) {
-                    profilePicturePreview.src = imageUrl;
-                } else {
-                    profilePicturePreview.removeAttribute("src");
-                }
-            }
-
-            if (profileIcon) {
-                profileIcon.hidden = hasPicture;
-            }
-
-            if (removeProfilePicture) {
-                removeProfilePicture.hidden = !hasPicture;
-            }
-        }
-
-
-        /* =============================================
-           13B. PROFILE PICTURE MESSAGE
-        ============================================= */
-
-        function showProfilePictureMessage(message, isError = false) {
-
-            if (!profilePictureMessage) return;
-
-            profilePictureMessage.textContent = message;
-
-            profilePictureMessage.classList.toggle(
-                "error",
-                isError
-            );
-
-            profilePictureMessage.classList.toggle(
-                "success",
-                !isError && Boolean(message)
-            );
-        }
-
-
-        /* =============================================
-           13C. GET PROFILE PICTURE URL
-        ============================================= */
-
-        function getProfilePictureUrl(user) {
-
-            const avatarPath =
-                user.user_metadata?.avatar_path;
-
-            if (!avatarPath) {
-                return null;
-            }
-
-            const { data } =
-                supabaseClient.storage
-                    .from(PROFILE_BUCKET)
-                    .getPublicUrl(avatarPath);
-
-            if (!data || !data.publicUrl) {
-                return null;
-            }
-
-            // Avoid displaying a cached version after a picture change.
-            return data.publicUrl +
-                "?updated=" +
-                encodeURIComponent(
-                    user.user_metadata?.avatar_updated_at || ""
-                );
-        }
-
-
-        /* =============================================
-           13D. SHOW SIGNED-OUT PROFILE
-        ============================================= */
 
         function showSignedOut() {
 
@@ -1991,16 +1586,8 @@ function initializeSweetWebsite() {
             if (logoutButton) {
                 logoutButton.hidden = true;
             }
-
-            displayProfilePicture(null);
-
-            showProfilePictureMessage("");
         }
 
-
-        /* =============================================
-           13E. SHOW SIGNED-IN PROFILE
-        ============================================= */
 
         function showSignedIn(user) {
 
@@ -2031,16 +1618,8 @@ function initializeSweetWebsite() {
             if (logoutButton) {
                 logoutButton.hidden = false;
             }
-
-            displayProfilePicture(
-                getProfilePictureUrl(user)
-            );
         }
 
-
-        /* =============================================
-           13F. CLOSE PROFILE MENU
-        ============================================= */
 
         function closeProfileMenu() {
 
@@ -2053,10 +1632,7 @@ function initializeSweetWebsite() {
         }
 
 
-        /* =============================================
-           13G. REFRESH CUSTOMER PROFILE
-        ============================================= */
-
+        // Use the locally stored session to load the profile.
         async function refreshProfile() {
 
             try {
@@ -2067,9 +1643,7 @@ function initializeSweetWebsite() {
                 if (error) throw error;
 
                 if (!data.session || !data.session.user) {
-
                     showSignedOut();
-
                     return;
                 }
 
@@ -2087,331 +1661,11 @@ function initializeSweetWebsite() {
         }
 
 
-        /* =============================================
-           13H. UPLOAD PROFILE PICTURE
-        ============================================= */
-
-        async function uploadProfilePicture(file) {
-
-            if (!file) return;
-
-            if (!ALLOWED_PROFILE_TYPES.includes(file.type)) {
-
-                showProfilePictureMessage(
-                    "Please choose a JPG, PNG or WEBP image.",
-                    true
-                );
-
-                return;
-            }
-
-            if (file.size > MAX_PROFILE_IMAGE_SIZE) {
-
-                showProfilePictureMessage(
-                    "Your picture is too large. Maximum size is 5 MB.",
-                    true
-                );
-
-                return;
-            }
-
-            if (profilePictureInput) {
-                profilePictureInput.disabled = true;
-            }
-
-            if (removeProfilePicture) {
-                removeProfilePicture.disabled = true;
-            }
-
-            showProfilePictureMessage("Uploading your picture...");
-
-            let uploadedPath = null;
-
-            try {
-
-                const { data: sessionData, error: sessionError } =
-                    await supabaseClient.auth.getSession();
-
-                if (sessionError) throw sessionError;
-
-                const user = sessionData.session?.user;
-
-                if (!user) {
-
-                    throw new Error(
-                        "Please sign in before uploading a profile picture."
-                    );
-                }
-
-                const oldAvatarPath =
-                    user.user_metadata?.avatar_path || null;
-
-                const fileExtension =
-                    file.type === "image/jpeg"
-                        ? "jpg"
-                        : file.type === "image/png"
-                            ? "png"
-                            : "webp";
-
-                // Each customer gets a folder named after their user ID.
-                const newAvatarPath =
-                    `${user.id}/profile-${Date.now()}.${fileExtension}`;
-
-
-                // Upload the new picture.
-                const { data: uploadData, error: uploadError } =
-                    await supabaseClient.storage
-                        .from(PROFILE_BUCKET)
-                        .upload(
-                            newAvatarPath,
-                            file,
-                            {
-                                contentType: file.type,
-                                cacheControl: "3600",
-                                upsert: false
-                            }
-                        );
-
-                if (uploadError) throw uploadError;
-
-                uploadedPath = uploadData.path;
-
-
-                // Save the picture path in the authenticated user's metadata.
-                const { data: updateData, error: updateError } =
-                    await supabaseClient.auth.updateUser({
-
-                        data: {
-                            avatar_path: uploadedPath,
-                            avatar_updated_at: new Date().toISOString()
-                        }
-
-                    });
-
-                if (updateError) {
-
-                    // Remove the newly uploaded file if metadata update fails.
-                    await supabaseClient.storage
-                        .from(PROFILE_BUCKET)
-                        .remove([uploadedPath]);
-
-                    throw updateError;
-                }
-
-
-                // Update the profile immediately.
-                if (updateData.user) {
-                    showSignedIn(updateData.user);
-                }
-
-                showProfilePictureMessage(
-                    "Your profile picture has been updated."
-                );
-
-
-                // Remove the old picture only after the new picture is saved.
-                if (
-                    oldAvatarPath &&
-                    oldAvatarPath !== uploadedPath &&
-                    oldAvatarPath.startsWith(`${user.id}/`)
-                ) {
-
-                    const { error: deleteOldError } =
-                        await supabaseClient.storage
-                            .from(PROFILE_BUCKET)
-                            .remove([oldAvatarPath]);
-
-                    if (deleteOldError) {
-
-                        console.warn(
-                            "The old profile picture could not be removed:",
-                            deleteOldError
-                        );
-                    }
-                }
-
-                console.log(
-                    "Profile picture uploaded successfully."
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Profile picture upload failed:",
-                    error
-                );
-
-                showProfilePictureMessage(
-                    error.message ||
-                    "Could not upload your profile picture. Please try again.",
-                    true
-                );
-
-            } finally {
-
-                if (profilePictureInput) {
-                    profilePictureInput.disabled = false;
-                    profilePictureInput.value = "";
-                }
-
-                if (removeProfilePicture) {
-                    removeProfilePicture.disabled = false;
-                }
-            }
-        }
-
-
-        /* =============================================
-           13I. REMOVE PROFILE PICTURE
-        ============================================= */
-
-        async function deleteProfilePicture() {
-
-            if (!removeProfilePicture) return;
-
-            const confirmed = confirm(
-                "Are you sure you want to remove your profile picture?"
-            );
-
-            if (!confirmed) return;
-
-            removeProfilePicture.disabled = true;
-
-            if (profilePictureInput) {
-                profilePictureInput.disabled = true;
-            }
-
-            showProfilePictureMessage("Removing your picture...");
-
-            try {
-
-                const { data: sessionData, error: sessionError } =
-                    await supabaseClient.auth.getSession();
-
-                if (sessionError) throw sessionError;
-
-                const user = sessionData.session?.user;
-
-                if (!user) {
-
-                    throw new Error(
-                        "Please sign in to remove your profile picture."
-                    );
-                }
-
-                const avatarPath =
-                    user.user_metadata?.avatar_path || null;
-
-
-                // Only allow deletion of a file in this customer's folder.
-                if (
-                    avatarPath &&
-                    avatarPath.startsWith(`${user.id}/`)
-                ) {
-
-                    const { error: storageError } =
-                        await supabaseClient.storage
-                            .from(PROFILE_BUCKET)
-                            .remove([avatarPath]);
-
-                    if (storageError) throw storageError;
-                }
-
-
-                // Clear the profile picture from customer metadata.
-                const { data: updateData, error: updateError } =
-                    await supabaseClient.auth.updateUser({
-
-                        data: {
-                            avatar_path: null,
-                            avatar_updated_at: null
-                        }
-
-                    });
-
-                if (updateError) throw updateError;
-
-                if (updateData.user) {
-                    showSignedIn(updateData.user);
-                } else {
-                    displayProfilePicture(null);
-                }
-
-                showProfilePictureMessage(
-                    "Your profile picture has been removed."
-                );
-
-                console.log(
-                    "Profile picture removed successfully."
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Profile picture removal failed:",
-                    error
-                );
-
-                showProfilePictureMessage(
-                    error.message ||
-                    "Could not remove your profile picture. Please try again.",
-                    true
-                );
-
-            } finally {
-
-                removeProfilePicture.disabled = false;
-
-                if (profilePictureInput) {
-                    profilePictureInput.disabled = false;
-                }
-            }
-        }
-
-
-        /* =============================================
-           13J. PROFILE PICTURE EVENT LISTENERS
-        ============================================= */
-
-        if (profilePictureInput) {
-
-            profilePictureInput.addEventListener(
-                "change",
-                function () {
-
-                    const file = profilePictureInput.files?.[0];
-
-                    if (file) {
-                        uploadProfilePicture(file);
-                    }
-                }
-            );
-
-        } else {
-
-            console.warn(
-                "Profile picture input was not found."
-            );
-        }
-
-
-        if (removeProfilePicture) {
-
-            removeProfilePicture.addEventListener(
-                "click",
-                deleteProfilePicture
-            );
-        }
-
-
-        /* =============================================
-           13K. PROFILE MENU OPEN AND CLOSE
-        ============================================= */
-
         profileButton.setAttribute(
             "aria-expanded",
             "false"
         );
+
 
         profileButton.addEventListener(
             "click",
@@ -2470,10 +1724,6 @@ function initializeSweetWebsite() {
         });
 
 
-        /* =============================================
-           13L. CUSTOMER LOGOUT
-        ============================================= */
-
         if (logoutButton) {
 
             logoutButton.addEventListener(
@@ -2517,10 +1767,6 @@ function initializeSweetWebsite() {
         }
 
 
-        /* =============================================
-           13M. AUTHENTICATION STATE CHANGES
-        ============================================= */
-
         supabaseClient.auth.onAuthStateChange(
             function (_event, session) {
 
@@ -2537,15 +1783,7 @@ function initializeSweetWebsite() {
         );
 
 
-        /* =============================================
-           13N. INITIAL PROFILE LOAD
-        ============================================= */
-
         refreshProfile();
-
-        console.log(
-            "Customer profile and profile picture system initialized."
-        );
 
     })();
 
@@ -2926,15 +2164,6 @@ function initializeSweetWebsite() {
 
     const myOrdersSectionElement =
         document.getElementById("myOrders");
-
-    const myOrdersList =
-        document.getElementById("myOrdersList");
-
-    const ordersMessage =
-        document.getElementById("ordersMessage");
-
-    const refreshOrdersBtn =
-        document.getElementById("refreshOrdersBtn");
 
 
     const notificationButton =
@@ -3396,235 +2625,150 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
-       15L. DISPLAY CLICKABLE ORDER CARDS
+       15J. CREATE MY ORDERS DISPLAY
     ================================================= */
 
-    function displayCustomerOrder(order) {
+    function createOrderNotificationContainer() {
 
-        if (!myOrdersList || !order) return;
+        if (!myOrdersSectionElement) return null;
 
-        const reference = String(order.reference || "");
-
-        if (!reference) return;
-
-        let card = document.getElementById(
-            "customer-order-" + reference
+        let container = document.getElementById(
+            "orderNotificationContainer"
         );
 
-        // Remember whether the customer has expanded this order.
-        const wasExpanded = card
-            ? card.querySelector(".view-order-products")
-                ?.getAttribute("aria-expanded") === "true"
-            : false;
+        if (!container) {
 
-        if (!card) {
+            container = document.createElement("div");
 
-            card = document.createElement("article");
+            container.id =
+                "orderNotificationContainer";
 
-            card.id = "customer-order-" + reference;
-            card.className = "customer-order-card";
+            container.className =
+                "order-notification-container";
+
+
+            const heading =
+                document.createElement("h3");
+
+            heading.textContent =
+                "My Order Updates";
+
+
+            const description =
+                document.createElement("p");
+
+            description.textContent =
+                "Your payment and delivery updates will appear here.";
+
+
+            const list =
+                document.createElement("div");
+
+            list.id = "orderNotificationList";
+
+
+            container.appendChild(heading);
+            container.appendChild(description);
+            container.appendChild(list);
+
+            myOrdersSectionElement.appendChild(container);
         }
 
-        // Order heading.
-        const heading = document.createElement("h3");
-        heading.textContent = "Order Details";
-
-        // Order reference.
-        const referenceText = document.createElement("p");
-        referenceText.className = "customer-order-reference";
-        referenceText.textContent = "Reference: " + reference;
-
-        // Order date.
-        const dateText = document.createElement("p");
-        dateText.textContent =
-            "Order date: " +
-            (
-                order.created_at
-                    ? new Date(order.created_at).toLocaleString()
-                    : "Not available"
-            );
-
-        // Payment status.
-        const paymentText = document.createElement("p");
-        paymentText.textContent =
-            "Payment: " + (order.payment_status || "Pending");
-
-        // Delivery status.
-        const statusText = document.createElement("p");
-        statusText.textContent =
-            "Delivery status: " + (order.order_status || "Pending");
-
-        // Order subtotal.
-        const subtotalText = document.createElement("p");
-        subtotalText.textContent =
-            "Subtotal: " + formatMoney(order.subtotal);
-
-        // Service charge.
-        const serviceChargeText = document.createElement("p");
-        serviceChargeText.textContent =
-            "Service charge: " + formatMoney(order.service_charge);
-
-        // Total amount.
-        const totalText = document.createElement("strong");
-        totalText.className = "customer-order-total";
-        totalText.textContent =
-            "Total: " + formatMoney(order.total_amount);
-
-        // View products button.
-        const viewButton = document.createElement("button");
-
-        viewButton.type = "button";
-        viewButton.className = "view-order-products";
-        viewButton.textContent = wasExpanded
-            ? "Hide Products"
-            : "View Products";
-
-        viewButton.setAttribute(
-            "aria-expanded",
-            String(wasExpanded)
-        );
-
-        // Products container.
-        const productsContainer = document.createElement("div");
-
-        productsContainer.className = "order-products-list";
-        productsContainer.hidden = !wasExpanded;
-
-        const productsHeading = document.createElement("h4");
-        productsHeading.textContent = "Products Purchased";
-
-        productsContainer.appendChild(productsHeading);
-
-        const items = Array.isArray(order.items)
-            ? order.items
-            : [];
-
-        if (items.length === 0) {
-
-            const emptyProducts = document.createElement("p");
-
-            emptyProducts.textContent =
-                "Product details are not available for this order.";
-
-            productsContainer.appendChild(emptyProducts);
-
-        } else {
-
-            items.forEach(function (item) {
-
-                const productRow = document.createElement("div");
-
-                productRow.className = "order-product-item";
-
-                // Product image.
-                const image = document.createElement("img");
-
-                image.className = "order-product-image";
-                image.alt = item.name || "Purchased product";
-                image.loading = "lazy";
-
-                if (item.image_url) {
-
-                    image.src = item.image_url;
-
-                    image.onerror = function () {
-                        image.style.display = "none";
-                    };
-
-                } else {
-
-                    image.hidden = true;
-                }
-
-                // Product information.
-                const productInfo = document.createElement("div");
-
-                productInfo.className = "order-product-info";
-
-                const productName = document.createElement("h5");
-
-                productName.textContent =
-                    item.name || "Product";
-
-                const quantity = document.createElement("p");
-
-                quantity.textContent =
-                    "Quantity: " + (Number(item.quantity) || 0);
-
-                const unitPrice = document.createElement("p");
-
-                unitPrice.textContent =
-                    "Unit price: " + formatMoney(item.unitPrice);
-
-                const lineTotal = document.createElement("strong");
-
-                lineTotal.textContent =
-                    "Subtotal: " + formatMoney(item.lineTotal);
-
-                productInfo.append(
-                    productName,
-                    quantity,
-                    unitPrice,
-                    lineTotal
-                );
-
-                productRow.append(image, productInfo);
-
-                productsContainer.appendChild(productRow);
-            });
-        }
-
-        // Toggle product details when clicked.
-        viewButton.addEventListener("click", function () {
-
-            const isExpanded =
-                viewButton.getAttribute("aria-expanded") === "true";
-
-            const newExpandedState = !isExpanded;
-
-            viewButton.setAttribute(
-                "aria-expanded",
-                String(newExpandedState)
-            );
-
-            productsContainer.hidden = !newExpandedState;
-
-            viewButton.textContent = newExpandedState
-                ? "Hide Products"
-                : "View Products";
-        });
-
-        card.replaceChildren(
-            heading,
-            referenceText,
-            dateText,
-            paymentText,
-            statusText,
-            subtotalText,
-            serviceChargeText,
-            totalText,
-            viewButton,
-            productsContainer
-        );
-
-        // Keep the existing card in place when refreshing.
-        const existingCard = document.getElementById(
-            "customer-order-" + reference
-        );
-
-        if (existingCard) {
-
-            existingCard.replaceWith(card);
-
-        } else {
-
-            myOrdersList.appendChild(card);
-        }
+        return container;
     }
 
 
     /* =================================================
-       15M. CHECK ORDER STATUS AND RETRIEVE ORDER DETAILS
+       15K. DISPLAY ORDER STATUS UNDER MY ORDERS
+    ================================================= */
+
+    function displayOrderNotification(order, notification) {
+
+        const list = document.getElementById(
+            "orderNotificationList"
+        );
+
+        if (!list) return;
+
+        const safeReference =
+            String(order.reference);
+
+        let card = document.getElementById(
+            "notification-" + safeReference
+        );
+
+        if (!card) {
+
+            card = document.createElement("div");
+
+            card.id =
+                "notification-" + safeReference;
+
+            card.className =
+                "order-notification-card";
+
+
+            const reference =
+                document.createElement("p");
+
+            reference.className =
+                "notification-reference";
+
+
+            const payment =
+                document.createElement("p");
+
+            payment.className =
+                "notification-payment";
+
+
+            const status =
+                document.createElement("p");
+
+            status.className =
+                "notification-status";
+
+
+            const updated =
+                document.createElement("small");
+
+            updated.className =
+                "notification-updated";
+
+
+            card.appendChild(reference);
+            card.appendChild(payment);
+            card.appendChild(status);
+            card.appendChild(updated);
+
+            list.appendChild(card);
+        }
+
+        card.querySelector(
+            ".notification-reference"
+        ).textContent =
+            "Order reference: " + notification.reference;
+
+        card.querySelector(
+            ".notification-payment"
+        ).textContent =
+            "Payment: " + notification.payment_status;
+
+        card.querySelector(
+            ".notification-status"
+        ).textContent =
+            "Delivery status: " + notification.order_status;
+
+        card.querySelector(
+            ".notification-updated"
+        ).textContent =
+            "Last updated: " +
+            new Date(notification.updated_at).toLocaleString();
+    }
+
+
+    /* =================================================
+       15L. CHECK ORDER STATUS FROM SUPABASE
     ================================================= */
 
     async function checkOrderNotifications() {
@@ -3641,23 +2785,14 @@ function initializeSweetWebsite() {
 
         if (savedOrders.length === 0) {
 
-            if (myOrdersList) {
-                myOrdersList.replaceChildren();
-            }
-
-            if (ordersMessage) {
-                ordersMessage.textContent =
-                    "No saved orders yet. Your orders will appear here after checkout.";
-                ordersMessage.hidden = false;
-            }
-
             const list = document.getElementById(
                 "orderNotificationList"
             );
 
             if (list) {
+
                 list.textContent =
-                    "No saved orders yet.";
+                    "No saved orders yet. Your orders will appear here after checkout.";
             }
 
             return;
@@ -3665,31 +2800,25 @@ function initializeSweetWebsite() {
 
         notificationCheckInProgress = true;
 
-        if (ordersMessage) {
-            ordersMessage.textContent =
-                "Loading your orders...";
-            ordersMessage.hidden = false;
-        }
-
-        if (refreshOrdersBtn) {
-            refreshOrdersBtn.disabled = true;
-            refreshOrdersBtn.textContent = "Refreshing...";
-        }
-
-        let successfullyLoaded = 0;
-
         try {
 
             for (const order of savedOrders) {
 
                 try {
 
+                    console.log(
+                        "Checking order notification:",
+                        order.reference
+                    );
+
                     const { data, error } =
                         await supabaseClient.functions.invoke(
                             "get-order-notifications",
                             {
                                 body: {
+
                                     reference: order.reference,
+
                                     notification_token: order.token
                                 }
                             }
@@ -3698,48 +2827,60 @@ function initializeSweetWebsite() {
                     if (error) {
 
                         console.error(
-                            "Order retrieval failed:",
-                            order.reference,
+                            "NOTIFICATION FUNCTION ERROR:",
                             error
                         );
 
                         continue;
                     }
 
+                    console.log(
+                        "NOTIFICATION SERVER RESPONSE:",
+                        data
+                    );
+
                     if (
                         !data ||
                         !data.success ||
-                        !data.notification ||
-                        !data.order
+                        !data.notification
                     ) {
 
                         console.warn(
-                            "Order details were not returned:",
-                            order.reference,
+                            "ORDER NOTIFICATION WAS NOT RETURNED:",
                             data
                         );
 
                         continue;
                     }
 
-                    const notification = data.notification;
-                    const orderDetails = data.order;
+                    const notification =
+                        data.notification;
 
-                    // Display the actual purchased products and images.
-                    displayCustomerOrder(orderDetails);
-
-                    successfullyLoaded++;
+                    displayOrderNotification(
+                        order,
+                        notification
+                    );
 
                     if (
                         notification.payment_status == null ||
                         notification.order_status == null
                     ) {
+
+                        console.warn(
+                            "The server response is missing payment_status or order_status:",
+                            notification
+                        );
+
                         continue;
                     }
 
                     const currentStatus = {
-                        payment_status: notification.payment_status,
-                        order_status: notification.order_status
+
+                        payment_status:
+                            notification.payment_status,
+
+                        order_status:
+                            notification.order_status
                     };
 
                     const previousStatus =
@@ -3752,6 +2893,12 @@ function initializeSweetWebsite() {
                             currentStatus;
 
                         saveOrderStatusSnapshots();
+
+                        console.log(
+                            "Initial order status saved:",
+                            order.reference,
+                            currentStatus
+                        );
 
                         continue;
                     }
@@ -3769,6 +2916,7 @@ function initializeSweetWebsite() {
                         const changes = [];
 
                         if (paymentChanged) {
+
                             changes.push(
                                 "Payment status: " +
                                 currentStatus.payment_status
@@ -3776,6 +2924,7 @@ function initializeSweetWebsite() {
                         }
 
                         if (orderChanged) {
+
                             changes.push(
                                 "Delivery status: " +
                                 currentStatus.order_status
@@ -3784,9 +2933,11 @@ function initializeSweetWebsite() {
 
                         addCustomerNotification(
                             "Your order has been updated",
+
                             changes.join(" | ") +
                             ". Order reference: " +
                             order.reference,
+
                             order.reference
                         );
                     }
@@ -3799,52 +2950,33 @@ function initializeSweetWebsite() {
                 } catch (error) {
 
                     console.error(
-                        "Could not retrieve order:",
+                        "Could not retrieve order update:",
                         order.reference,
                         error
                     );
                 }
             }
 
-            if (ordersMessage) {
-
-                if (successfullyLoaded > 0) {
-
-                    ordersMessage.textContent =
-                        "Your orders are displayed below. Select View Products to see what you purchased.";
-
-                    ordersMessage.hidden = false;
-
-                } else {
-
-                    ordersMessage.textContent =
-                        "We could not load your orders. Please try again.";
-
-                    ordersMessage.hidden = false;
-                }
-            }
-
         } finally {
 
             notificationCheckInProgress = false;
-
-            if (refreshOrdersBtn) {
-                refreshOrdersBtn.disabled = false;
-                refreshOrdersBtn.textContent = "Refresh Orders";
-            }
         }
     }
 
 
     /* =================================================
-       15N. INITIALIZE NOTIFICATIONS
+       15M. INITIALIZE NOTIFICATIONS
     ================================================= */
 
     renderCustomerNotifications();
 
+    if (myOrdersSectionElement) {
+        createOrderNotificationContainer();
+    }
+
 
     /* =================================================
-       15O. OPEN MY ORDERS
+       15N. OPEN MY ORDERS
     ================================================= */
 
     if (
@@ -3860,7 +2992,8 @@ function initializeSweetWebsite() {
 
                 myOrdersSectionElement.hidden = false;
 
-                myOrdersSectionElement.style.display = "block";
+                myOrdersSectionElement.style.display =
+                    "block";
 
                 myOrdersSectionElement.scrollIntoView({
                     behavior: "smooth",
@@ -3874,29 +3007,14 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
-       15P. REFRESH ORDERS
-    ================================================= */
-
-    if (refreshOrdersBtn) {
-
-        refreshOrdersBtn.addEventListener(
-            "click",
-            function () {
-                checkOrderNotifications();
-            }
-        );
-    }
-
-
-    /* =================================================
-       15Q. INITIAL CHECK WHEN WEBSITE LOADS
+       15O. INITIAL CHECK WHEN WEBSITE LOADS
     ================================================= */
 
     checkOrderNotifications();
 
 
     /* =================================================
-       15R. AUTOMATIC CHECK EVERY 15 SECONDS
+       15P. AUTOMATIC CHECK EVERY 15 SECONDS
     ================================================= */
 
     window.setInterval(function () {
