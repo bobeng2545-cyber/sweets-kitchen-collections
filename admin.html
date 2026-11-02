@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -104,7 +104,13 @@
                     Customers
                 </button>
 
+                <!-- STORE CONTROL NAVIGATION -->
                 <p class="nav-heading management-heading">MANAGEMENT</p>
+
+                <button type="button" class="nav-link" data-section="store-control">
+                    <span class="material-symbols-outlined">store</span>
+                    Store Control
+                </button>
 
                 <a href="./index.html" class="nav-link store-link">
                     <span class="material-symbols-outlined">storefront</span>
@@ -174,7 +180,9 @@
             <div id="globalMessage" class="global-message" role="status" aria-live="polite"></div>
 
 
-            <!-- OVERVIEW -->
+            <!-- =========================================
+                 OVERVIEW
+            ========================================== -->
             <section class="dashboard-section active-section" id="section-overview">
 
                 <div class="welcome-row">
@@ -276,7 +284,9 @@
             </section>
 
 
-            <!-- ORDERS -->
+            <!-- =========================================
+                 ORDERS
+            ========================================== -->
             <section class="dashboard-section" id="section-orders">
 
                 <div class="section-heading">
@@ -339,7 +349,9 @@
             </section>
 
 
-            <!-- PRODUCTS -->
+            <!-- =========================================
+                 PRODUCTS
+            ========================================== -->
             <section class="dashboard-section" id="section-products">
 
                 <div class="section-heading">
@@ -397,7 +409,9 @@
             </section>
 
 
-            <!-- FLASH SALES -->
+            <!-- =========================================
+                 FLASH SALES
+            ========================================== -->
             <section class="dashboard-section" id="section-flash-sales">
 
                 <div class="section-heading">
@@ -443,7 +457,9 @@
             </section>
 
 
-            <!-- CUSTOMERS -->
+            <!-- =========================================
+                 CUSTOMERS
+            ========================================== -->
             <section class="dashboard-section" id="section-customers">
 
                 <div class="section-heading">
@@ -466,12 +482,133 @@
 
             </section>
 
+
+            <!-- =========================================
+                 STORE CONTROL
+            ========================================== -->
+            <section class="dashboard-section" id="section-store-control">
+
+                <div class="section-heading">
+                    <div>
+                        <h2>Store Control</h2>
+                        <p>Manage whether customers can place new orders.</p>
+                    </div>
+                </div>
+
+                <div class="content-card store-control-card">
+
+                    <div class="store-control-header">
+                        <div>
+                            <h3>Online Store Availability</h3>
+                            <p>
+                                Control whether customers can place new orders
+                                through your website.
+                            </p>
+                        </div>
+
+                        <span class="material-symbols-outlined store-control-icon">
+                            store
+                        </span>
+                    </div>
+
+                    <div class="store-status-panel">
+
+                        <div>
+                            <span class="store-status-label">
+                                CURRENT STORE STATUS
+                            </span>
+
+                            <strong id="storeStatusText">
+                                Checking...
+                            </strong>
+                        </div>
+
+                        <p id="storeStatusDescription">
+                            Loading your store settings...
+                        </p>
+
+                    </div>
+
+
+                    <div class="store-message-settings">
+
+                        <label for="storeClosedMessage">
+                            Customer Maintenance Message
+                        </label>
+
+                        <p>
+                            This message is intended to be displayed to
+                            customers while your store is closed.
+                        </p>
+
+                        <textarea
+                            id="storeClosedMessage"
+                            rows="4"
+                            maxlength="500"
+                            placeholder="We are currently updating our store. Please check back soon."
+                        ></textarea>
+
+                        <button
+                            type="button"
+                            id="saveStoreMessageButton"
+                            class="secondary-button"
+                        >
+                            <span class="material-symbols-outlined">save</span>
+                            Save Message
+                        </button>
+
+                    </div>
+
+
+                    <div class="store-toggle-area">
+
+                        <div>
+                            <h3>Store Availability</h3>
+                            <p>
+                                Closing the store will block new payment
+                                initialization at the payment server.
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            id="toggleStoreButton"
+                            class="danger-button"
+                            disabled
+                        >
+                            Loading...
+                        </button>
+
+                    </div>
+
+                    <p
+                        id="storeControlMessage"
+                        class="message"
+                        role="status"
+                        aria-live="polite"
+                    ></p>
+
+                    <div class="store-control-note">
+                        <span class="material-symbols-outlined">info</span>
+                        <p>
+                            Your administrator dashboard will remain
+                            accessible when the store is closed.
+                            Existing orders are not deleted.
+                        </p>
+                    </div>
+
+                </div>
+
+            </section>
+
         </main>
 
     </div>
 
 
-    <!-- PRODUCT MODAL -->
+    <!-- =============================================
+         PRODUCT MODAL
+    ============================================== -->
     <div class="modal-backdrop" id="productModal" hidden>
 
         <div class="modal-card">
@@ -522,13 +659,13 @@
                     id="productImageFile"
                     accept="image/jpeg,image/png,image/webp,image/gif"
                 >
-                
+
                 <img
                     id="productImagePreview"
                     alt="Product image preview"
                     hidden
                 >
-                
+
                 <label for="productImage">Or Enter Product Image URL</label>
                 <input
                     type="text"
@@ -554,7 +691,9 @@
     </div>
 
 
-    <!-- FLASH SALE MODAL -->
+    <!-- =============================================
+         FLASH SALE MODAL
+    ============================================== -->
     <div class="modal-backdrop" id="flashSaleModal" hidden>
 
         <div class="modal-card">
@@ -611,3 +750,4 @@
 
 </body>
 </html>
+```
