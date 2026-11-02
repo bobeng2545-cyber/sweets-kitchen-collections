@@ -61,6 +61,174 @@ function initializeSweetWebsite() {
 
     const supabaseClient = window.sweetSupabase;
 
+   
+    /* =================================================
+       2A. AUTOMATIC CUSTOMER LOGOUT AFTER 5 MINUTES
+    ================================================= */
+
+    (function setupAutomaticLogout() {
+
+        if (!supabaseClient) {
+            console.warn("Automatic logout unavailable: Supabase not connected.");
+            return;
+        }
+
+        const TIMEOUT_DURATION = 5 * 60 * 1000;
+        const AWAY_STORAGE_KEY = "sweetLastAwayTime";
+
+        let logoutTimer = null;
+        let isLoggingOut = false;
+        let isAuthenticated = false;
+
+        function clearLogoutTimer() {
+            clearTimeout(logoutTimer);
+            logoutTimer = null;
+        }
+
+        async function automaticLogout() {
+
+            if (!isAuthenticated || isLoggingOut) return;
+
+            isLoggingOut = true;
+            clearLogoutTimer();
+
+            localStorage.removeItem(AWAY_STORAGE_KEY);
+
+            const { error } = await supabaseClient.auth.signOut();
+
+            if (error) {
+                console.error("Automatic logout failed:", error);
+                isLoggingOut = false;
+                return;
+            }
+
+            alert("Your session has expired. Please log in again.");
+
+            window.location.replace("./login.html");
+        }
+
+        function startLogoutTimer() {
+
+            clearLogoutTimer();
+
+            if (!isAuthenticated || document.hidden || isLoggingOut) {
+                return;
+            }
+
+            logoutTimer = setTimeout(
+                automaticLogout,
+                TIMEOUT_DURATION
+            );
+        }
+
+        function checkAwayTime() {
+
+            const lastAwayTime = Number(
+                localStorage.getItem(AWAY_STORAGE_KEY)
+            );
+
+            if (
+                lastAwayTime &&
+                Date.now() - lastAwayTime >= TIMEOUT_DURATION
+            ) {
+                automaticLogout();
+                return;
+            }
+
+            localStorage.removeItem(AWAY_STORAGE_KEY);
+
+            startLogoutTimer();
+        }
+
+        // Detect when the customer leaves the website tab.
+        document.addEventListener("visibilitychange", function () {
+
+            if (!isAuthenticated) return;
+
+            if (document.hidden) {
+
+                clearLogoutTimer();
+
+                localStorage.setItem(
+                    AWAY_STORAGE_KEY,
+                    String(Date.now())
+                );
+
+            } else {
+
+                checkAwayTime();
+            }
+        });
+
+        // Detect when the customer closes or leaves the page.
+        window.addEventListener("pagehide", function () {
+
+            if (isAuthenticated) {
+                localStorage.setItem(
+                    AWAY_STORAGE_KEY,
+                    String(Date.now())
+                );
+            }
+        });
+
+        // Reset the inactivity timer when the customer interacts.
+        [
+            "click",
+            "mousemove",
+            "keydown",
+            "scroll",
+            "touchstart"
+        ].forEach(function (eventName) {
+
+            document.addEventListener(eventName, function () {
+
+                if (isAuthenticated && !document.hidden) {
+
+                    localStorage.removeItem(AWAY_STORAGE_KEY);
+
+                    startLogoutTimer();
+                }
+
+            }, { passive: true });
+        });
+
+        // Check whether a customer is already logged in.
+        supabaseClient.auth.getSession().then(function ({ data, error }) {
+
+            if (error) {
+                console.error("Could not check login session:", error);
+                return;
+            }
+
+            isAuthenticated = Boolean(data.session?.user);
+
+            if (isAuthenticated) {
+                checkAwayTime();
+            }
+        });
+
+        // Start or stop the timer when authentication changes.
+        supabaseClient.auth.onAuthStateChange(function (_event, session) {
+
+            isAuthenticated = Boolean(session?.user);
+
+            if (isAuthenticated) {
+
+                isLoggingOut = false;
+                checkAwayTime();
+
+            } else {
+
+                clearLogoutTimer();
+                localStorage.removeItem(AWAY_STORAGE_KEY);
+            }
+        });
+
+        console.log("Automatic customer logout system initialized.");
+
+    })();
+
+
 
     /* =================================================
        3. CURRENCY FORMATTER
