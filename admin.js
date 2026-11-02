@@ -16,7 +16,13 @@ const SUPABASE_URL =
     "https://vbrlprrbtumonmroybdv.supabase.co";
 
 const SUPABASE_PUBLIC_KEY =
-    "sb_publishable_QN5w738LNyUrYy2X93M1OQ_md6F2xTN";
+    "sb_publishable_jOGj9C6m_fFryLL8yrcQmw_5wyZoidy";
+
+if (!window.supabase) {
+    throw new Error(
+        "Supabase library failed to load. Check your internet connection."
+    );
+}
 
 const supabase = window.supabase.createClient(
     SUPABASE_URL,
@@ -460,7 +466,6 @@ function showLogin() {
     currentAdmin = null;
 }
 
-
 function showDashboard(user) {
     currentAdmin = user;
 
@@ -489,7 +494,6 @@ function showDashboard(user) {
     loadDashboardData();
 }
 
-
 async function verifyAdministrator(user) {
     const { data, error } = await supabase
         .from("store_admins")
@@ -499,7 +503,7 @@ async function verifyAdministrator(user) {
 
     if (error) {
         throw new Error(
-            "Could not verify administrator access: " + error.message
+            "Administrator verification failed: " + error.message
         );
     }
 
@@ -513,38 +517,59 @@ async function verifyAdministrator(user) {
 }
 
 
-adminLoginForm.addEventListener("submit", async event => {
+/* SIGN IN */
+
+adminLoginForm.addEventListener("submit", async function(event) {
     event.preventDefault();
 
     hideMessage(loginMessage);
 
-    setButtonLoading(loginButton, true, "Signing in...");
-
     const email = adminEmail.value.trim();
     const password = adminPassword.value;
 
+    if (!email || !password) {
+        showMessage(
+            loginMessage,
+            "Please enter your email and password.",
+            "error"
+        );
+        return;
+    }
+
+    setButtonLoading(loginButton, true, "Signing in...");
+
     try {
         const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
+            email: email,
+            password: password
         });
 
         if (error) {
             throw error;
         }
 
+        if (!data.user) {
+            throw new Error("Unable to retrieve your account.");
+        }
+
         await verifyAdministrator(data.user);
 
-        showMessage(loginMessage, "Login successful.", "success");
+        showMessage(
+            loginMessage,
+            "Login successful!",
+            "success"
+        );
 
         showDashboard(data.user);
 
     } catch (error) {
+        console.error("ADMIN LOGIN ERROR:", error);
+
         await supabase.auth.signOut();
 
         showMessage(
             loginMessage,
-            error.message || "Login failed.",
+            error.message || "Login failed. Please try again.",
             "error"
         );
 
@@ -554,7 +579,7 @@ adminLoginForm.addEventListener("submit", async event => {
 });
 
 
-/* Restore an existing session */
+/* RESTORE EXISTING SESSION */
 
 async function restoreAdminSession() {
     try {
@@ -574,7 +599,7 @@ async function restoreAdminSession() {
         showDashboard(user);
 
     } catch (error) {
-        console.error("Session restoration:", error);
+        console.error("SESSION RESTORATION ERROR:", error);
 
         await supabase.auth.signOut();
 
@@ -583,9 +608,9 @@ async function restoreAdminSession() {
 }
 
 
-/* Logout */
+/* LOGOUT */
 
-logoutButton.addEventListener("click", async () => {
+logoutButton.addEventListener("click", async function() {
     const confirmed = window.confirm(
         "Are you sure you want to sign out?"
     );
@@ -600,6 +625,7 @@ logoutButton.addEventListener("click", async () => {
     }
 
     closeSidebar();
+
     showLogin();
 
     adminPassword.value = "";
