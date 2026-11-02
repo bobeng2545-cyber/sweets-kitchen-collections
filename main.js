@@ -2155,8 +2155,10 @@ async function connectStoreProductIds() {
     })();
 
 
+    
     /* =================================================
        15. MY ORDERS + NOTIFICATION SYSTEM
+       SINGLE CONSOLIDATED VERSION
     ================================================= */
 
     const myOrdersMenuLink =
@@ -2165,6 +2167,17 @@ async function connectStoreProductIds() {
     const myOrdersSectionElement =
         document.getElementById("myOrders");
 
+    const myOrdersList =
+        document.getElementById("myOrdersList");
+
+    const ordersMessage =
+        document.getElementById("ordersMessage");
+
+    const refreshOrdersBtn =
+        document.getElementById("refreshOrdersBtn");
+
+    const closeOrdersBtn =
+        document.getElementById("closeOrdersBtn");
 
     const notificationButton =
         document.getElementById("notificationButton");
@@ -2184,18 +2197,14 @@ async function connectStoreProductIds() {
     const clearNotifications =
         document.getElementById("clearNotifications");
 
-
     const SWEET_NOTIFICATIONS_KEY =
         "sweet_customer_notifications";
 
     const SWEET_ORDER_STATUS_KEY =
         "sweet_order_status_snapshots";
 
-
     let customerNotifications = [];
-
     let orderStatusSnapshots = {};
-
     let notificationCheckInProgress = false;
 
 
@@ -2204,7 +2213,6 @@ async function connectStoreProductIds() {
     ================================================= */
 
     try {
-
         customerNotifications = JSON.parse(
             localStorage.getItem(SWEET_NOTIFICATIONS_KEY) || "[]"
         );
@@ -2226,12 +2234,7 @@ async function connectStoreProductIds() {
         }
 
     } catch (error) {
-
-        console.error(
-            "Notification storage error:",
-            error
-        );
-
+        console.error("Notification storage error:", error);
         customerNotifications = [];
         orderStatusSnapshots = {};
     }
@@ -2242,39 +2245,24 @@ async function connectStoreProductIds() {
     ================================================= */
 
     function saveCustomerNotifications() {
-
         try {
-
             localStorage.setItem(
                 SWEET_NOTIFICATIONS_KEY,
                 JSON.stringify(customerNotifications)
             );
-
         } catch (error) {
-
-            console.error(
-                "Could not save notifications:",
-                error
-            );
+            console.error("Could not save notifications:", error);
         }
     }
 
-
     function saveOrderStatusSnapshots() {
-
         try {
-
             localStorage.setItem(
                 SWEET_ORDER_STATUS_KEY,
                 JSON.stringify(orderStatusSnapshots)
             );
-
         } catch (error) {
-
-            console.error(
-                "Could not save order status:",
-                error
-            );
+            console.error("Could not save order status:", error);
         }
     }
 
@@ -2284,17 +2272,10 @@ async function connectStoreProductIds() {
     ================================================= */
 
     function getSavedOrderNotifications() {
-
         const savedOrders = [];
 
         try {
-
-            for (
-                let i = 0;
-                i < localStorage.length;
-                i++
-            ) {
-
+            for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
 
                 if (
@@ -2304,21 +2285,27 @@ async function connectStoreProductIds() {
                     continue;
                 }
 
-                const savedData = JSON.parse(
-                    localStorage.getItem(key)
-                );
+                try {
+                    const savedData = JSON.parse(
+                        localStorage.getItem(key)
+                    );
 
-                if (
-                    savedData &&
-                    savedData.reference &&
-                    savedData.token
-                ) {
-                    savedOrders.push(savedData);
+                    if (
+                        savedData &&
+                        savedData.reference &&
+                        savedData.token
+                    ) {
+                        savedOrders.push(savedData);
+                    }
+                } catch (error) {
+                    console.warn(
+                        "Invalid saved order notification:",
+                        key,
+                        error
+                    );
                 }
             }
-
         } catch (error) {
-
             console.error(
                 "Could not read saved order notifications:",
                 error
@@ -2330,25 +2317,71 @@ async function connectStoreProductIds() {
 
 
     /* =================================================
-       15D. UPDATE NOTIFICATION COUNTER
+       15D. GENERAL ORDER ELEMENT HELPER
+    ================================================= */
+
+    function createOrderElement(tag, className, text) {
+        const element = document.createElement(tag);
+
+        if (className) {
+            element.className = className;
+        }
+
+        if (text !== undefined && text !== null) {
+            element.textContent = text;
+        }
+
+        return element;
+    }
+
+
+    function formatOrderDate(dateValue) {
+        if (!dateValue) return "Date unavailable";
+
+        const date = new Date(dateValue);
+
+        if (Number.isNaN(date.getTime())) {
+            return "Date unavailable";
+        }
+
+        return date.toLocaleString("en-GH", {
+            dateStyle: "medium",
+            timeStyle: "short"
+        });
+    }
+
+
+    function createStatusBadge(status) {
+        const displayedStatus = String(status || "Pending")
+            .replace(/_/g, " ");
+
+        const normalizedStatus = displayedStatus
+            .toLowerCase()
+            .replace(/[^a-z0-9-]/g, "-");
+
+        return createOrderElement(
+            "span",
+            `order-status-badge status-${normalizedStatus}`,
+            displayedStatus
+        );
+    }
+
+
+    /* =================================================
+       15E. NOTIFICATION COUNTER
     ================================================= */
 
     function updateNotificationCount() {
-
         if (!notificationCount) return;
 
-        const unreadCount =
-            customerNotifications.filter(
-                item => !item.read
-            ).length;
+        const unreadCount = customerNotifications.filter(
+            item => !item.read
+        ).length;
 
         notificationCount.textContent = unreadCount;
-
-        notificationCount.hidden =
-            unreadCount === 0;
+        notificationCount.hidden = unreadCount === 0;
 
         if (notificationButton) {
-
             notificationButton.setAttribute(
                 "aria-label",
                 unreadCount > 0
@@ -2360,100 +2393,81 @@ async function connectStoreProductIds() {
 
 
     /* =================================================
-       15E. DISPLAY NOTIFICATIONS IN THE BELL
+       15F. DISPLAY NOTIFICATIONS IN THE BELL
     ================================================= */
 
     function renderCustomerNotifications() {
-
         if (!notificationList) return;
 
-        notificationList.innerHTML = "";
+        notificationList.replaceChildren();
 
         if (customerNotifications.length === 0) {
-
-            const emptyMessage =
-                document.createElement("p");
-
-            emptyMessage.className =
-                "empty-notifications";
-
-            emptyMessage.textContent =
-                "No notifications yet.";
-
-            notificationList.appendChild(emptyMessage);
+            notificationList.appendChild(
+                createOrderElement(
+                    "p",
+                    "empty-notifications",
+                    "No notifications yet."
+                )
+            );
 
             updateNotificationCount();
-
             return;
         }
 
-        customerNotifications.forEach(function (item) {
-
-            const notificationItem =
-                document.createElement("div");
-
-            notificationItem.className =
-                "notification-item";
+        customerNotifications.forEach(item => {
+            const notificationItem = createOrderElement(
+                "div",
+                "notification-item"
+            );
 
             if (!item.read) {
                 notificationItem.classList.add("unread");
             }
 
-            const icon =
-                document.createElement("span");
+            const icon = createOrderElement(
+                "span",
+                "notification-item-icon",
+                "📦"
+            );
 
-            icon.className =
-                "notification-item-icon";
+            const content = createOrderElement(
+                "div",
+                "notification-item-content"
+            );
 
-            icon.textContent = "📦";
+            content.appendChild(
+                createOrderElement(
+                    "strong",
+                    "",
+                    item.title || "Order update"
+                )
+            );
 
+            content.appendChild(
+                createOrderElement(
+                    "p",
+                    "",
+                    item.message || ""
+                )
+            );
 
-            const content =
-                document.createElement("div");
+            content.appendChild(
+                createOrderElement(
+                    "small",
+                    "",
+                    formatOrderDate(item.createdAt)
+                )
+            );
 
-            content.className =
-                "notification-item-content";
-
-
-            const title =
-                document.createElement("strong");
-
-            title.textContent =
-                item.title || "Order update";
-
-
-            const message =
-                document.createElement("p");
-
-            message.textContent =
-                item.message || "";
-
-
-            const date =
-                document.createElement("small");
-
-            date.textContent = new Date(
-                item.createdAt
-            ).toLocaleString();
-
-
-            content.appendChild(title);
-            content.appendChild(message);
-            content.appendChild(date);
-
-            notificationItem.appendChild(icon);
-            notificationItem.appendChild(content);
-
+            notificationItem.append(icon, content);
 
             if (!item.read) {
-
-                const unreadDot =
-                    document.createElement("span");
-
-                unreadDot.className =
-                    "notification-unread-dot";
-
-                notificationItem.appendChild(unreadDot);
+                notificationItem.appendChild(
+                    createOrderElement(
+                        "span",
+                        "notification-unread-dot"
+                    )
+                );
             }
 
             notificationList.appendChild(notificationItem);
@@ -2464,7 +2478,7 @@ async function connectStoreProductIds() {
 
 
     /* =================================================
-       15F. CREATE A NEW NOTIFICATION
+       15G. CREATE A NEW CUSTOMER NOTIFICATION
     ================================================= */
 
     function addCustomerNotification(
@@ -2472,19 +2486,12 @@ async function connectStoreProductIds() {
         message,
         reference
     ) {
-
         const notification = {
-
             id: `${reference}-${Date.now()}`,
-
-            title: title,
-
-            message: message,
-
-            reference: reference,
-
+            title,
+            message,
+            reference,
             createdAt: new Date().toISOString(),
-
             read: false
         };
 
@@ -2494,7 +2501,6 @@ async function connectStoreProductIds() {
             customerNotifications.slice(0, 100);
 
         saveCustomerNotifications();
-
         renderCustomerNotifications();
 
         console.log(
@@ -2505,7 +2511,7 @@ async function connectStoreProductIds() {
 
 
     /* =================================================
-       15G. NOTIFICATION BELL OPEN AND CLOSE
+       15H. NOTIFICATION BELL OPEN AND CLOSE
     ================================================= */
 
     if (
@@ -2513,7 +2519,6 @@ async function connectStoreProductIds() {
         notificationMenu &&
         notificationList
     ) {
-
         notificationButton.setAttribute(
             "aria-expanded",
             "false"
@@ -2522,15 +2527,12 @@ async function connectStoreProductIds() {
         notificationButton.addEventListener(
             "click",
             function (event) {
-
                 event.preventDefault();
                 event.stopPropagation();
 
-                const shouldOpen =
-                    notificationMenu.hidden;
+                const shouldOpen = notificationMenu.hidden;
 
-                notificationMenu.hidden =
-                    !shouldOpen;
+                notificationMenu.hidden = !shouldOpen;
 
                 notificationButton.setAttribute(
                     "aria-expanded",
@@ -2543,46 +2545,33 @@ async function connectStoreProductIds() {
             }
         );
 
-        document.addEventListener(
-            "click",
-            function (event) {
+        document.addEventListener("click", function (event) {
+            if (
+                !notificationMenu.contains(event.target) &&
+                !notificationButton.contains(event.target)
+            ) {
+                notificationMenu.hidden = true;
 
-                if (
-                    !notificationMenu.contains(event.target) &&
-                    !notificationButton.contains(event.target)
-                ) {
-
-                    notificationMenu.hidden = true;
-
-                    notificationButton.setAttribute(
-                        "aria-expanded",
-                        "false"
-                    );
-                }
+                notificationButton.setAttribute(
+                    "aria-expanded",
+                    "false"
+                );
             }
-        );
-
-    } else {
-
-        console.warn(
-            "Notification bell HTML is incomplete. Check notificationButton, notificationMenu and notificationList."
-        );
+        });
     }
 
 
     /* =================================================
-       15H. MARK ALL NOTIFICATIONS AS READ
+       15I. MARK ALL NOTIFICATIONS AS READ
     ================================================= */
 
     if (markAllNotificationsRead) {
-
         markAllNotificationsRead.addEventListener(
             "click",
             function (event) {
-
                 event.preventDefault();
 
-                customerNotifications.forEach(function (item) {
+                customerNotifications.forEach(item => {
                     item.read = true;
                 });
 
@@ -2594,26 +2583,24 @@ async function connectStoreProductIds() {
 
 
     /* =================================================
-       15I. CLEAR ALL NOTIFICATIONS
+       15J. CLEAR ALL NOTIFICATIONS
     ================================================= */
 
     if (clearNotifications) {
-
         clearNotifications.addEventListener(
             "click",
             function (event) {
-
                 event.preventDefault();
 
                 if (customerNotifications.length === 0) {
                     return;
                 }
 
-                const confirmed = confirm(
+                if (!confirm(
                     "Are you sure you want to clear all notifications?"
-                );
-
-                if (!confirmed) return;
+                )) {
+                    return;
+                }
 
                 customerNotifications = [];
 
@@ -2623,1746 +2610,501 @@ async function connectStoreProductIds() {
         );
     }
 
-   
-/* =================================================
-   15J. MY ORDERS ELEMENTS
-================================================= */
 
-const myOrdersList =
-    document.getElementById("myOrdersList");
+    /* =================================================
+       15K. ORDER STATUS UPDATE CONTAINER
+    ================================================= */
 
-const ordersMessage =
-    document.getElementById("ordersMessage");
+    function createOrderNotificationContainer() {
+        if (!myOrdersSectionElement) return null;
 
-const refreshOrdersBtn =
-    document.getElementById("refreshOrdersBtn");
-
-
-/* =================================================
-   15K. ORDER DISPLAY HELPERS
-================================================= */
-
-function createOrderElement(tag, className, text) {
-
-    const element = document.createElement(tag);
-
-    if (className) {
-        element.className = className;
-    }
-
-    if (text !== undefined && text !== null) {
-        element.textContent = text;
-    }
-
-    return element;
-}
-
-
-function createStatusBadge(status) {
-
-    const normalizedStatus = String(status || "pending")
-        .toLowerCase()
-        .replace(/[^a-z0-9-]/g, "-");
-
-    const badge = createOrderElement(
-        "span",
-        `order-status-badge status-${normalizedStatus}`,
-        String(status || "Pending").replace(/_/g, " ")
-    );
-
-    return badge;
-}
-
-
-function formatOrderDate(dateValue) {
-
-    if (!dateValue) return "Date unavailable";
-
-    const date = new Date(dateValue);
-
-    if (Number.isNaN(date.getTime())) {
-        return "Date unavailable";
-    }
-
-    return date.toLocaleString("en-GH", {
-        dateStyle: "medium",
-        timeStyle: "short"
-    });
-}
-
-
-/* =================================================
-   15L. RENDER ONE COMPLETE ORDER CARD
-================================================= */
-
-function renderSingleOrder(order) {
-
-    const card = createOrderElement(
-        "article",
-        "customer-order-card"
-    );
-
-    /* ORDER HEADER */
-
-    const header = createOrderElement(
-        "div",
-        "customer-order-header"
-    );
-
-    const referenceArea = createOrderElement(
-        "div",
-        "customer-order-reference"
-    );
-
-    referenceArea.appendChild(
-        createOrderElement(
-            "strong",
-            "",
-            "Order reference"
-        )
-    );
-
-    referenceArea.appendChild(
-        createOrderElement(
-            "p",
-            "",
-            order.reference || "Unavailable"
-        )
-    );
-
-    referenceArea.appendChild(
-        createOrderElement(
-            "small",
-            "",
-            formatOrderDate(order.created_at)
-        )
-    );
-
-    const statusArea = createOrderElement(
-        "div",
-        "customer-order-status"
-    );
-
-    const paymentStatus = createOrderElement(
-        "div",
-        "order-status-row"
-    );
-
-    paymentStatus.appendChild(
-        createOrderElement("span", "", "Payment")
-    );
-
-    paymentStatus.appendChild(
-        createStatusBadge(order.payment_status)
-    );
-
-    const deliveryStatus = createOrderElement(
-        "div",
-        "order-status-row"
-    );
-
-    deliveryStatus.appendChild(
-        createOrderElement("span", "", "Delivery")
-    );
-
-    deliveryStatus.appendChild(
-        createStatusBadge(order.order_status)
-    );
-
-    statusArea.append(paymentStatus, deliveryStatus);
-
-    header.append(referenceArea, statusArea);
-
-    card.appendChild(header);
-
-
-    /* CUSTOMER DETAILS */
-
-    const customer = order.customer || {};
-
-    const customerSection = createOrderElement(
-        "div",
-        "customer-order-details"
-    );
-
-    customerSection.appendChild(
-        createOrderElement("h4", "", "Customer details")
-    );
-
-    customerSection.appendChild(
-        createOrderElement(
-            "p",
-            "",
-            `Name: ${customer.name || "Not available"}`
-        )
-    );
-
-    customerSection.appendChild(
-        createOrderElement(
-            "p",
-            "",
-            `Email: ${customer.email || "Not available"}`
-        )
-    );
-
-    customerSection.appendChild(
-        createOrderElement(
-            "p",
-            "",
-            `Phone: ${customer.phone || "Not available"}`
-        )
-    );
-
-    customerSection.appendChild(
-        createOrderElement(
-            "p",
-            "",
-            `Delivery address: ${order.delivery_address || "Not available"}`
-        )
-    );
-
-    card.appendChild(customerSection);
-
-
-    /* PRODUCT ITEMS */
-
-    const productsSection = createOrderElement(
-        "div",
-        "customer-order-products"
-    );
-
-    productsSection.appendChild(
-        createOrderElement("h4", "", "Products ordered")
-    );
-
-    const items = Array.isArray(order.items)
-        ? order.items
-        : [];
-
-    if (items.length === 0) {
-
-        productsSection.appendChild(
-            createOrderElement(
-                "p",
-                "order-empty-items",
-                "No product details are available for this order."
-            )
+        let container = document.getElementById(
+            "orderNotificationContainer"
         );
 
-    } else {
+        if (!container) {
+            container = document.createElement("div");
 
-        items.forEach(item => {
+            container.id = "orderNotificationContainer";
+            container.className = "order-notification-container";
 
-            const productRow = createOrderElement(
-                "div",
-                "customer-order-product"
-            );
-
-            /* PRODUCT IMAGE */
-
-            const image = document.createElement("img");
-
-            image.className = "customer-order-product-image";
-
-            image.src = item.image_url || "";
-
-            image.alt = item.name || "Product image";
-
-            image.loading = "lazy";
-
-            image.onerror = function () {
-
-                image.onerror = null;
-
-                image.src =
-                    "https://placehold.co/120x120?text=No+Image";
-            };
-
-
-            /* PRODUCT INFORMATION */
-
-            const information = createOrderElement(
-                "div",
-                "customer-order-product-info"
-            );
-
-            information.appendChild(
+            container.appendChild(
                 createOrderElement(
-                    "h5",
+                    "h3",
                     "",
-                    item.name || "Unnamed product"
+                    "My Order Updates"
                 )
             );
 
-            information.appendChild(
+            container.appendChild(
                 createOrderElement(
                     "p",
                     "",
-                    `Quantity: ${Number(item.quantity) || 0}`
+                    "Your payment and delivery updates will appear here."
                 )
             );
 
-            const unitPrice = Number(item.unitPrice) || 0;
+            const list = document.createElement("div");
+            list.id = "orderNotificationList";
 
-            const lineTotal = Number(item.lineTotal) || 0;
+            container.appendChild(list);
 
-            const originalPrice =
-                Number(item.originalUnitPrice) || unitPrice;
-
-            const discount =
-                Number(item.discountPercentage) || 0;
-
-            if (discount > 0 && originalPrice > unitPrice) {
-
-                information.appendChild(
-                    createOrderElement(
-                        "p",
-                        "order-original-price",
-                        `Original price: ${formatMoney(originalPrice)}`
-                    )
-                );
-
-                information.appendChild(
-                    createOrderElement(
-                        "p",
-                        "order-discount",
-                        `${discount}% Flash Sale discount`
-                    )
-                );
-            }
-
-            information.appendChild(
-                createOrderElement(
-                    "p",
-                    "order-unit-price",
-                    `Unit price: ${formatMoney(unitPrice)}`
-                )
+            // Place order updates above the modal footer.
+            const footer = myOrdersSectionElement.querySelector(
+                ".orders-modal-footer"
             );
 
-
-            /* PRODUCT LINE TOTAL */
-
-            const lineTotalElement = createOrderElement(
-                "strong",
-                "customer-order-line-total",
-                formatMoney(lineTotal)
-            );
-
-            productRow.append(
-                image,
-                information,
-                lineTotalElement
-            );
-
-            productsSection.appendChild(productRow);
-        });
-    }
-
-    card.appendChild(productsSection);
-
-
-    /* ORDER PAYMENT SUMMARY */
-
-    const summary = createOrderElement(
-        "div",
-        "customer-order-summary"
-    );
-
-    summary.appendChild(
-        createOrderElement("h4", "", "Payment summary")
-    );
-
-    const subtotal = Number(order.subtotal) || 0;
-
-    const serviceCharge =
-        Number(order.service_charge) || 0;
-
-    const total = Number(order.total_amount) || 0;
-
-
-    function addSummaryRow(label, amount, isTotal = false) {
-
-        const row = createOrderElement(
-            "div",
-            isTotal
-                ? "customer-order-summary-row order-grand-total"
-                : "customer-order-summary-row"
-        );
-
-        row.appendChild(
-            createOrderElement("span", "", label)
-        );
-
-        row.appendChild(
-            createOrderElement(
-                "strong",
-                "",
-                formatMoney(amount)
-            )
-        );
-
-        summary.appendChild(row);
-    }
-
-    addSummaryRow("Subtotal", subtotal);
-
-    addSummaryRow("Service charge", serviceCharge);
-
-    addSummaryRow("Total amount", total, true);
-
-    card.appendChild(summary);
-
-    return card;
-}
-
-
-/* =================================================
-   15M. RENDER ALL CUSTOMER ORDERS
-================================================= */
-
-function renderCustomerOrders(orders) {
-
-    if (!myOrdersList) {
-
-        console.warn(
-            "The myOrdersList HTML element was not found."
-        );
-
-        return;
-    }
-
-    myOrdersList.replaceChildren();
-
-    if (!orders || orders.length === 0) {
-
-        if (ordersMessage) {
-
-            ordersMessage.hidden = false;
-
-            ordersMessage.textContent =
-                "Your orders will appear here after checkout.";
-        }
-
-        return;
-    }
-
-    if (ordersMessage) {
-        ordersMessage.hidden = true;
-    }
-
-    orders.forEach(order => {
-
-        const card = renderSingleOrder(order);
-
-        myOrdersList.appendChild(card);
-    });
-}
-
-
-/* =================================================
-   15N. CREATE ORDER STATUS NOTIFICATION CONTAINER
-================================================= */
-
-function createOrderNotificationContainer() {
-
-    if (!myOrdersSectionElement) return null;
-
-    let container = document.getElementById(
-        "orderNotificationContainer"
-    );
-
-    if (!container) {
-
-        container = document.createElement("div");
-
-        container.id = "orderNotificationContainer";
-
-        container.className =
-            "order-notification-container";
-
-        const heading = createOrderElement(
-            "h3",
-            "",
-            "My Order Updates"
-        );
-
-        const description = createOrderElement(
-            "p",
-            "",
-            "Your payment and delivery updates will appear here."
-        );
-
-        const list = document.createElement("div");
-
-        list.id = "orderNotificationList";
-
-        container.append(heading, description, list);
-
-        myOrdersSectionElement.appendChild(container);
-    }
-
-    return container;
-}
-
-
-/* =================================================
-   15O. DISPLAY ORDER STATUS UPDATES
-================================================= */
-
-function displayOrderNotification(order, notification) {
-
-    const list = document.getElementById(
-        "orderNotificationList"
-    );
-
-    if (!list) return;
-
-    const safeReference = String(order.reference);
-
-    let card = document.getElementById(
-        "notification-" + safeReference
-    );
-
-    if (!card) {
-
-        card = document.createElement("div");
-
-        card.id = "notification-" + safeReference;
-
-        card.className = "order-notification-card";
-
-        const reference = createOrderElement(
-            "p",
-            "notification-reference"
-        );
-
-        const payment = createOrderElement(
-            "p",
-            "notification-payment"
-        );
-
-        const status = createOrderElement(
-            "p",
-            "notification-status"
-        );
-
-        const updated = createOrderElement(
-            "small",
-            "notification-updated"
-        );
-
-        card.append(reference, payment, status, updated);
-
-        list.appendChild(card);
-    }
-
-    card.querySelector(
-        ".notification-reference"
-    ).textContent =
-        "Order reference: " + notification.reference;
-
-    card.querySelector(
-        ".notification-payment"
-    ).textContent =
-        "Payment: " + notification.payment_status;
-
-    card.querySelector(
-        ".notification-status"
-    ).textContent =
-        "Delivery status: " + notification.order_status;
-
-    card.querySelector(
-        ".notification-updated"
-    ).textContent =
-        "Last updated: " +
-        formatOrderDate(notification.updated_at);
-}
-
-
-/* =================================================
-   15P. CHECK AND RETRIEVE COMPLETE ORDERS
-================================================= */
-
-async function checkOrderNotifications() {
-
-    if (
-        !supabaseClient ||
-        notificationCheckInProgress
-    ) {
-        return;
-    }
-
-    const savedOrders = getSavedOrderNotifications();
-
-    if (savedOrders.length === 0) {
-
-        renderCustomerOrders([]);
-
-        const list = document.getElementById(
-            "orderNotificationList"
-        );
-
-        if (list) {
-            list.textContent = "No order updates yet.";
-        }
-
-        return;
-    }
-
-    notificationCheckInProgress = true;
-
-    if (refreshOrdersBtn) {
-        refreshOrdersBtn.disabled = true;
-        refreshOrdersBtn.textContent = "Refreshing...";
-    }
-
-    const retrievedOrders = [];
-
-    try {
-
-        for (const savedOrder of savedOrders) {
-
-            try {
-
-                const { data, error } =
-                    await supabaseClient.functions.invoke(
-                        "get-order-notifications",
-                        {
-                            body: {
-                                reference: savedOrder.reference,
-                                notification_token: savedOrder.token
-                            }
-                        }
-                    );
-
-                if (error) {
-
-                    console.error(
-                        "Order retrieval failed:",
-                        savedOrder.reference,
-                        error
-                    );
-
-                    continue;
-                }
-
-                if (
-                    !data ||
-                    data.success !== true ||
-                    !data.notification ||
-                    !data.order
-                ) {
-
-                    console.warn(
-                        "Incomplete order response:",
-                        data
-                    );
-
-                    continue;
-                }
-
-                const order = data.order;
-
-                const notification = data.notification;
-
-                // Add complete order details to the display list.
-                retrievedOrders.push(order);
-
-                // Keep the existing order update display.
-                displayOrderNotification(
-                    order,
-                    notification
+            if (footer) {
+                myOrdersSectionElement.insertBefore(
+                    container,
+                    footer
                 );
-
-                if (
-                    notification.payment_status == null ||
-                    notification.order_status == null
-                ) {
-                    continue;
-                }
-
-                const currentStatus = {
-                    payment_status: notification.payment_status,
-                    order_status: notification.order_status
-                };
-
-                const previousStatus =
-                    orderStatusSnapshots[savedOrder.reference];
-
-                // The first successful check creates the baseline.
-                if (!previousStatus) {
-
-                    orderStatusSnapshots[savedOrder.reference] =
-                        currentStatus;
-
-                    saveOrderStatusSnapshots();
-
-                    continue;
-                }
-
-                const paymentChanged =
-                    previousStatus.payment_status !==
-                    currentStatus.payment_status;
-
-                const orderChanged =
-                    previousStatus.order_status !==
-                    currentStatus.order_status;
-
-                if (paymentChanged || orderChanged) {
-
-                    const changes = [];
-
-                    if (paymentChanged) {
-                        changes.push(
-                            "Payment status: " +
-                            currentStatus.payment_status
-                        );
-                    }
-
-                    if (orderChanged) {
-                        changes.push(
-                            "Delivery status: " +
-                            currentStatus.order_status
-                        );
-                    }
-
-                    addCustomerNotification(
-                        "Your order has been updated",
-                        changes.join(" | ") +
-                        ". Order reference: " +
-                        savedOrder.reference,
-                        savedOrder.reference
-                    );
-                }
-
-                orderStatusSnapshots[savedOrder.reference] =
-                    currentStatus;
-
-                saveOrderStatusSnapshots();
-
-            } catch (error) {
-
-                console.error(
-                    "Could not retrieve order:",
-                    savedOrder.reference,
-                    error
-                );
+            } else {
+                myOrdersSectionElement.appendChild(container);
             }
         }
 
-        // Display all retrieved orders together.
-        renderCustomerOrders(retrievedOrders);
-
-        if (
-            retrievedOrders.length === 0 &&
-            ordersMessage
-        ) {
-
-            ordersMessage.hidden = false;
-
-            ordersMessage.textContent =
-                "We could not retrieve your orders. Please refresh and try again.";
-        }
-
-    } finally {
-
-        notificationCheckInProgress = false;
-
-        if (refreshOrdersBtn) {
-            refreshOrdersBtn.disabled = false;
-            refreshOrdersBtn.textContent = "Refresh Orders";
-        }
+        return container;
     }
-}
-
-
-/* =================================================
-   15Q. INITIALIZE ORDER NOTIFICATIONS
-================================================= */
-
-renderCustomerNotifications();
-
-if (myOrdersSectionElement) {
-    createOrderNotificationContainer();
-}
-
-
-/* =================================================
-   15R. OPEN MY ORDERS
-================================================= */
-
-if (
-    myOrdersMenuLink &&
-    myOrdersSectionElement
-) {
-
-    myOrdersMenuLink.addEventListener(
-        "click",
-        function (event) {
-
-            event.preventDefault();
-
-            myOrdersSectionElement.hidden = false;
-
-            myOrdersSectionElement.style.display = "block";
-
-            myOrdersSectionElement.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-
-            checkOrderNotifications();
-        }
-    );
-}
-
-
-/* =================================================
-   15S. REFRESH ORDERS BUTTON
-================================================= */
-
-if (refreshOrdersBtn) {
-
-    refreshOrdersBtn.addEventListener(
-        "click",
-        function () {
-            checkOrderNotifications();
-        }
-    );
-}
-
-
-/* =================================================
-   15T. INITIAL ORDER CHECK
-================================================= */
-
-checkOrderNotifications();
-
-
-/* =================================================
-   15U. AUTOMATIC ORDER REFRESH EVERY 15 SECONDS
-================================================= */
-
-window.setInterval(function () {
-
-    if (!document.hidden) {
-        checkOrderNotifications();
-    }
-
-}, 15000);
-
-
-
-/* =================================================
-   15K. ORDER DISPLAY HELPERS
-================================================= */
-
-function createOrderElement(tag, className, text) {
-
-    const element = document.createElement(tag);
-
-    if (className) {
-        element.className = className;
-    }
-
-    if (text !== undefined && text !== null) {
-        element.textContent = text;
-    }
-
-    return element;
-}
-
-
-function createStatusBadge(status) {
-
-    const normalizedStatus = String(status || "pending")
-        .toLowerCase()
-        .replace(/[^a-z0-9-]/g, "-");
-
-    const badge = createOrderElement(
-        "span",
-        `order-status-badge status-${normalizedStatus}`,
-        String(status || "Pending").replace(/_/g, " ")
-    );
-
-    return badge;
-}
-
-
-function formatOrderDate(dateValue) {
-
-    if (!dateValue) return "Date unavailable";
-
-    const date = new Date(dateValue);
-
-    if (Number.isNaN(date.getTime())) {
-        return "Date unavailable";
-    }
-
-    return date.toLocaleString("en-GH", {
-        dateStyle: "medium",
-        timeStyle: "short"
-    });
-}
-
-
-/* =================================================
-   15L. RENDER ONE COMPLETE ORDER CARD
-================================================= */
-
-function renderSingleOrder(order) {
-
-    const card = createOrderElement(
-        "article",
-        "customer-order-card"
-    );
-
-    /* ORDER HEADER */
-
-    const header = createOrderElement(
-        "div",
-        "customer-order-header"
-    );
-
-    const referenceArea = createOrderElement(
-        "div",
-        "customer-order-reference"
-    );
-
-    referenceArea.appendChild(
-        createOrderElement(
-            "strong",
-            "",
-            "Order reference"
-        )
-    );
-
-    referenceArea.appendChild(
-        createOrderElement(
-            "p",
-            "",
-            order.reference || "Unavailable"
-        )
-    );
-
-    referenceArea.appendChild(
-        createOrderElement(
-            "small",
-            "",
-            formatOrderDate(order.created_at)
-        )
-    );
-
-    const statusArea = createOrderElement(
-        "div",
-        "customer-order-status"
-    );
-
-    const paymentStatus = createOrderElement(
-        "div",
-        "order-status-row"
-    );
-
-    paymentStatus.appendChild(
-        createOrderElement("span", "", "Payment")
-    );
-
-    paymentStatus.appendChild(
-        createStatusBadge(order.payment_status)
-    );
-
-    const deliveryStatus = createOrderElement(
-        "div",
-        "order-status-row"
-    );
-
-    deliveryStatus.appendChild(
-        createOrderElement("span", "", "Delivery")
-    );
-
-    deliveryStatus.appendChild(
-        createStatusBadge(order.order_status)
-    );
-
-    statusArea.append(paymentStatus, deliveryStatus);
-
-    header.append(referenceArea, statusArea);
-
-    card.appendChild(header);
-
-
-    /* CUSTOMER DETAILS */
-
-    const customer = order.customer || {};
-
-    const customerSection = createOrderElement(
-        "div",
-        "customer-order-details"
-    );
-
-    customerSection.appendChild(
-        createOrderElement("h4", "", "Customer details")
-    );
-
-    customerSection.appendChild(
-        createOrderElement(
-            "p",
-            "",
-            `Name: ${customer.name || "Not available"}`
-        )
-    );
-
-    customerSection.appendChild(
-        createOrderElement(
-            "p",
-            "",
-            `Email: ${customer.email || "Not available"}`
-        )
-    );
-
-    customerSection.appendChild(
-        createOrderElement(
-            "p",
-            "",
-            `Phone: ${customer.phone || "Not available"}`
-        )
-    );
-
-    customerSection.appendChild(
-        createOrderElement(
-            "p",
-            "",
-            `Delivery address: ${order.delivery_address || "Not available"}`
-        )
-    );
-
-    card.appendChild(customerSection);
-
-
-    /* PRODUCT ITEMS */
-
-    const productsSection = createOrderElement(
-        "div",
-        "customer-order-products"
-    );
-
-    productsSection.appendChild(
-        createOrderElement("h4", "", "Products ordered")
-    );
-
-    const items = Array.isArray(order.items)
-        ? order.items
-        : [];
-
-    if (items.length === 0) {
-
-        productsSection.appendChild(
-            createOrderElement(
-                "p",
-                "order-empty-items",
-                "No product details are available for this order."
-            )
-        );
-
-    } else {
-
-        items.forEach(item => {
-
-            const productRow = createOrderElement(
-                "div",
-                "customer-order-product"
-            );
-
-            /* PRODUCT IMAGE */
-
-            const image = document.createElement("img");
-
-            image.className = "customer-order-product-image";
-
-            image.src = item.image_url || "";
-
-            image.alt = item.name || "Product image";
-
-            image.loading = "lazy";
-
-            image.onerror = function () {
-
-                image.onerror = null;
-
-                image.src =
-                    "https://placehold.co/120x120?text=No+Image";
-            };
-
-
-            /* PRODUCT INFORMATION */
-
-            const information = createOrderElement(
-                "div",
-                "customer-order-product-info"
-            );
-
-            information.appendChild(
-                createOrderElement(
-                    "h5",
-                    "",
-                    item.name || "Unnamed product"
-                )
-            );
-
-            information.appendChild(
-                createOrderElement(
-                    "p",
-                    "",
-                    `Quantity: ${Number(item.quantity) || 0}`
-                )
-            );
-
-            const unitPrice = Number(item.unitPrice) || 0;
-
-            const lineTotal = Number(item.lineTotal) || 0;
-
-            const originalPrice =
-                Number(item.originalUnitPrice) || unitPrice;
-
-            const discount =
-                Number(item.discountPercentage) || 0;
-
-            if (discount > 0 && originalPrice > unitPrice) {
-
-                information.appendChild(
-                    createOrderElement(
-                        "p",
-                        "order-original-price",
-                        `Original price: ${formatMoney(originalPrice)}`
-                    )
-                );
-
-                information.appendChild(
-                    createOrderElement(
-                        "p",
-                        "order-discount",
-                        `${discount}% Flash Sale discount`
-                    )
-                );
-            }
-
-            information.appendChild(
-                createOrderElement(
-                    "p",
-                    "order-unit-price",
-                    `Unit price: ${formatMoney(unitPrice)}`
-                )
-            );
-
-
-            /* PRODUCT LINE TOTAL */
-
-            const lineTotalElement = createOrderElement(
-                "strong",
-                "customer-order-line-total",
-                formatMoney(lineTotal)
-            );
-
-            productRow.append(
-                image,
-                information,
-                lineTotalElement
-            );
-
-            productsSection.appendChild(productRow);
-        });
-    }
-
-    card.appendChild(productsSection);
-
-
-    /* ORDER PAYMENT SUMMARY */
-
-    const summary = createOrderElement(
-        "div",
-        "customer-order-summary"
-    );
-
-    summary.appendChild(
-        createOrderElement("h4", "", "Payment summary")
-    );
-
-    const subtotal = Number(order.subtotal) || 0;
-
-    const serviceCharge =
-        Number(order.service_charge) || 0;
-
-    const total = Number(order.total_amount) || 0;
-
-
-    function addSummaryRow(label, amount, isTotal = false) {
-
-        const row = createOrderElement(
-            "div",
-            isTotal
-                ? "customer-order-summary-row order-grand-total"
-                : "customer-order-summary-row"
-        );
-
-        row.appendChild(
-            createOrderElement("span", "", label)
-        );
-
-        row.appendChild(
-            createOrderElement(
-                "strong",
-                "",
-                formatMoney(amount)
-            )
-        );
-
-        summary.appendChild(row);
-    }
-
-    addSummaryRow("Subtotal", subtotal);
-
-    addSummaryRow("Service charge", serviceCharge);
-
-    addSummaryRow("Total amount", total, true);
-
-    card.appendChild(summary);
-
-    return card;
-}
-
-
-/* =================================================
-   15M. RENDER ALL CUSTOMER ORDERS
-================================================= */
-
-function renderCustomerOrders(orders) {
-
-    if (!myOrdersList) {
-
-        console.warn(
-            "The myOrdersList HTML element was not found."
-        );
-
-        return;
-    }
-
-    myOrdersList.replaceChildren();
-
-    if (!orders || orders.length === 0) {
-
-        if (ordersMessage) {
-
-            ordersMessage.hidden = false;
-
-            ordersMessage.textContent =
-                "Your orders will appear here after checkout.";
-        }
-
-        return;
-    }
-
-    if (ordersMessage) {
-        ordersMessage.hidden = true;
-    }
-
-    orders.forEach(order => {
-
-        const card = renderSingleOrder(order);
-
-        myOrdersList.appendChild(card);
-    });
-}
-
-
-/* =================================================
-   15N. CREATE ORDER STATUS NOTIFICATION CONTAINER
-================================================= */
-
-function createOrderNotificationContainer() {
-
-    if (!myOrdersSectionElement) return null;
-
-    let container = document.getElementById(
-        "orderNotificationContainer"
-    );
-
-    if (!container) {
-
-        container = document.createElement("div");
-
-        container.id = "orderNotificationContainer";
-
-        container.className =
-            "order-notification-container";
-
-        const heading = createOrderElement(
-            "h3",
-            "",
-            "My Order Updates"
-        );
-
-        const description = createOrderElement(
-            "p",
-            "",
-            "Your payment and delivery updates will appear here."
-        );
-
-        const list = document.createElement("div");
-
-        list.id = "orderNotificationList";
-
-        container.append(heading, description, list);
-
-        myOrdersSectionElement.appendChild(container);
-    }
-
-    return container;
-}
-
-
-/* =================================================
-   15O. DISPLAY ORDER STATUS UPDATES
-================================================= */
-
-function displayOrderNotification(order, notification) {
-
-    const list = document.getElementById(
-        "orderNotificationList"
-    );
-
-    if (!list) return;
-
-    const safeReference = String(order.reference);
-
-    let card = document.getElementById(
-        "notification-" + safeReference
-    );
-
-    if (!card) {
-
-        card = document.createElement("div");
-
-        card.id = "notification-" + safeReference;
-
-        card.className = "order-notification-card";
-
-        const reference = createOrderElement(
-            "p",
-            "notification-reference"
-        );
-
-        const payment = createOrderElement(
-            "p",
-            "notification-payment"
-        );
-
-        const status = createOrderElement(
-            "p",
-            "notification-status"
-        );
-
-        const updated = createOrderElement(
-            "small",
-            "notification-updated"
-        );
-
-        card.append(reference, payment, status, updated);
-
-        list.appendChild(card);
-    }
-
-    card.querySelector(
-        ".notification-reference"
-    ).textContent =
-        "Order reference: " + notification.reference;
-
-    card.querySelector(
-        ".notification-payment"
-    ).textContent =
-        "Payment: " + notification.payment_status;
-
-    card.querySelector(
-        ".notification-status"
-    ).textContent =
-        "Delivery status: " + notification.order_status;
-
-    card.querySelector(
-        ".notification-updated"
-    ).textContent =
-        "Last updated: " +
-        formatOrderDate(notification.updated_at);
-}
-
-
-/* =================================================
-   15P. CHECK AND RETRIEVE COMPLETE ORDERS
-================================================= */
-
-async function checkOrderNotifications() {
-
-    if (
-        !supabaseClient ||
-        notificationCheckInProgress
-    ) {
-        return;
-    }
-
-    const savedOrders = getSavedOrderNotifications();
-
-    if (savedOrders.length === 0) {
-
-        renderCustomerOrders([]);
-
-        const list = document.getElementById(
-            "orderNotificationList"
-        );
-
-        if (list) {
-            list.textContent = "No order updates yet.";
-        }
-
-        return;
-    }
-
-    notificationCheckInProgress = true;
-
-    if (refreshOrdersBtn) {
-        refreshOrdersBtn.disabled = true;
-        refreshOrdersBtn.textContent = "Refreshing...";
-    }
-
-    const retrievedOrders = [];
-
-    try {
-
-        for (const savedOrder of savedOrders) {
-
-            try {
-
-                const { data, error } =
-                    await supabaseClient.functions.invoke(
-                        "get-order-notifications",
-                        {
-                            body: {
-                                reference: savedOrder.reference,
-                                notification_token: savedOrder.token
-                            }
-                        }
-                    );
-
-                if (error) {
-
-                    console.error(
-                        "Order retrieval failed:",
-                        savedOrder.reference,
-                        error
-                    );
-
-                    continue;
-                }
-
-                if (
-                    !data ||
-                    data.success !== true ||
-                    !data.notification ||
-                    !data.order
-                ) {
-
-                    console.warn(
-                        "Incomplete order response:",
-                        data
-                    );
-
-                    continue;
-                }
-
-                const order = data.order;
-
-                const notification = data.notification;
-
-                // Add complete order details to the display list.
-                retrievedOrders.push(order);
-
-                // Keep the existing order update display.
-                displayOrderNotification(
-                    order,
-                    notification
-                );
-
-                if (
-                    notification.payment_status == null ||
-                    notification.order_status == null
-                ) {
-                    continue;
-                }
-
-                const currentStatus = {
-                    payment_status: notification.payment_status,
-                    order_status: notification.order_status
-                };
-
-                const previousStatus =
-                    orderStatusSnapshots[savedOrder.reference];
-
-                // The first successful check creates the baseline.
-                if (!previousStatus) {
-
-                    orderStatusSnapshots[savedOrder.reference] =
-                        currentStatus;
-
-                    saveOrderStatusSnapshots();
-
-                    continue;
-                }
-
-                const paymentChanged =
-                    previousStatus.payment_status !==
-                    currentStatus.payment_status;
-
-                const orderChanged =
-                    previousStatus.order_status !==
-                    currentStatus.order_status;
-
-                if (paymentChanged || orderChanged) {
-
-                    const changes = [];
-
-                    if (paymentChanged) {
-                        changes.push(
-                            "Payment status: " +
-                            currentStatus.payment_status
-                        );
-                    }
-
-                    if (orderChanged) {
-                        changes.push(
-                            "Delivery status: " +
-                            currentStatus.order_status
-                        );
-                    }
-
-                    addCustomerNotification(
-                        "Your order has been updated",
-                        changes.join(" | ") +
-                        ". Order reference: " +
-                        savedOrder.reference,
-                        savedOrder.reference
-                    );
-                }
-
-                orderStatusSnapshots[savedOrder.reference] =
-                    currentStatus;
-
-                saveOrderStatusSnapshots();
-
-            } catch (error) {
-
-                console.error(
-                    "Could not retrieve order:",
-                    savedOrder.reference,
-                    error
-                );
-            }
-        }
-
-        // Display all retrieved orders together.
-        renderCustomerOrders(retrievedOrders);
-
-        if (
-            retrievedOrders.length === 0 &&
-            ordersMessage
-        ) {
-
-            ordersMessage.hidden = false;
-
-            ordersMessage.textContent =
-                "We could not retrieve your orders. Please refresh and try again.";
-        }
-
-    } finally {
-
-        notificationCheckInProgress = false;
-
-        if (refreshOrdersBtn) {
-            refreshOrdersBtn.disabled = false;
-            refreshOrdersBtn.textContent = "Refresh Orders";
-        }
-    }
-}
-
-
-/* =================================================
-   15Q. INITIALIZE ORDER NOTIFICATIONS
-================================================= */
-
-renderCustomerNotifications();
-
-if (myOrdersSectionElement) {
-    createOrderNotificationContainer();
-}
-
-
-/* =================================================
-   15R. OPEN MY ORDERS
-================================================= */
-
-if (
-    myOrdersMenuLink &&
-    myOrdersSectionElement
-) {
-
-    myOrdersMenuLink.addEventListener(
-        "click",
-        function (event) {
-
-            event.preventDefault();
-
-            myOrdersSectionElement.hidden = false;
-
-            myOrdersSectionElement.style.display = "block";
-
-            myOrdersSectionElement.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-
-            checkOrderNotifications();
-        }
-    );
-}
-
-
-/* =================================================
-   15S. REFRESH ORDERS BUTTON
-================================================= */
-
-if (refreshOrdersBtn) {
-
-    refreshOrdersBtn.addEventListener(
-        "click",
-        function () {
-            checkOrderNotifications();
-        }
-    );
-}
-
-
-/* =================================================
-   15T. INITIAL ORDER CHECK
-================================================= */
-
-checkOrderNotifications();
-
-
-/* =================================================
-   15U. AUTOMATIC ORDER REFRESH EVERY 15 SECONDS
-================================================= */
-
-window.setInterval(function () {
-
-    if (!document.hidden) {
-        checkOrderNotifications();
-    }
-
-}, 15000);
-
 
 
     /* =================================================
-       15K. DISPLAY ORDER STATUS UNDER MY ORDERS
+       15L. DISPLAY ORDER STATUS UPDATES
     ================================================= */
 
     function displayOrderNotification(order, notification) {
-
         const list = document.getElementById(
             "orderNotificationList"
         );
 
         if (!list) return;
 
-        const safeReference =
-            String(order.reference);
+        const reference = String(
+            notification.reference || order.reference || "unknown"
+        );
+
+        const safeId = reference.replace(
+            /[^a-zA-Z0-9_-]/g,
+            "-"
+        );
 
         let card = document.getElementById(
-            "notification-" + safeReference
+            "notification-" + safeId
         );
 
         if (!card) {
-
             card = document.createElement("div");
 
-            card.id =
-                "notification-" + safeReference;
+            card.id = "notification-" + safeId;
+            card.className = "order-notification-card";
 
-            card.className =
-                "order-notification-card";
-
-
-            const reference =
-                document.createElement("p");
-
-            reference.className =
-                "notification-reference";
-
-
-            const payment =
-                document.createElement("p");
-
-            payment.className =
-                "notification-payment";
-
-
-            const status =
-                document.createElement("p");
-
-            status.className =
-                "notification-status";
-
-
-            const updated =
-                document.createElement("small");
-
-            updated.className =
-                "notification-updated";
-
-
-            card.appendChild(reference);
-            card.appendChild(payment);
-            card.appendChild(status);
-            card.appendChild(updated);
+            card.append(
+                createOrderElement("p", "notification-reference"),
+                createOrderElement("p", "notification-payment"),
+                createOrderElement("p", "notification-status"),
+                createOrderElement("small", "notification-updated")
+            );
 
             list.appendChild(card);
         }
 
         card.querySelector(
             ".notification-reference"
-        ).textContent =
-            "Order reference: " + notification.reference;
+        ).textContent = "Order reference: " + reference;
 
         card.querySelector(
             ".notification-payment"
         ).textContent =
-            "Payment: " + notification.payment_status;
+            "Payment: " + (notification.payment_status || "Pending");
 
         card.querySelector(
             ".notification-status"
         ).textContent =
-            "Delivery status: " + notification.order_status;
+            "Delivery status: " + (notification.order_status || "Pending");
 
         card.querySelector(
             ".notification-updated"
         ).textContent =
-            "Last updated: " +
-            new Date(notification.updated_at).toLocaleString();
+            "Last updated: " + formatOrderDate(notification.updated_at);
     }
 
 
     /* =================================================
-       15L. CHECK ORDER STATUS FROM SUPABASE
+       15M. RENDER ONE COMPLETE ORDER
+    ================================================= */
+
+    function renderSingleOrder(order) {
+        const card = createOrderElement(
+            "article",
+            "customer-order-card"
+        );
+
+        // Order header
+        const header = createOrderElement(
+            "div",
+            "customer-order-header"
+        );
+
+        const referenceArea = createOrderElement(
+            "div",
+            "customer-order-reference"
+        );
+
+        referenceArea.append(
+            createOrderElement("strong", "", "Order reference"),
+            createOrderElement(
+                "p",
+                "",
+                order.reference || "Unavailable"
+            ),
+            createOrderElement(
+                "small",
+                "",
+                formatOrderDate(order.created_at)
+            )
+        );
+
+        const statusArea = createOrderElement(
+            "div",
+            "customer-order-status"
+        );
+
+        const paymentStatus = createOrderElement(
+            "div",
+            "order-status-row"
+        );
+
+        paymentStatus.append(
+            createOrderElement("span", "", "Payment"),
+            createStatusBadge(order.payment_status)
+        );
+
+        const deliveryStatus = createOrderElement(
+            "div",
+            "order-status-row"
+        );
+
+        deliveryStatus.append(
+            createOrderElement("span", "", "Delivery"),
+            createStatusBadge(order.order_status)
+        );
+
+        statusArea.append(paymentStatus, deliveryStatus);
+        header.append(referenceArea, statusArea);
+        card.appendChild(header);
+
+
+        // Customer details
+        const customer = order.customer || {};
+
+        const customerSection = createOrderElement(
+            "div",
+            "customer-order-details"
+        );
+
+        customerSection.append(
+            createOrderElement("h4", "", "Customer details"),
+            createOrderElement(
+                "p",
+                "",
+                `Name: ${customer.name || "Not available"}`
+            ),
+            createOrderElement(
+                "p",
+                "",
+                `Email: ${customer.email || "Not available"}`
+            ),
+            createOrderElement(
+                "p",
+                "",
+                `Phone: ${customer.phone || "Not available"}`
+            ),
+            createOrderElement(
+                "p",
+                "",
+                `Delivery address: ${order.delivery_address || "Not available"}`
+            )
+        );
+
+        card.appendChild(customerSection);
+
+
+        // Products ordered
+        const productsSection = createOrderElement(
+            "div",
+            "customer-order-products"
+        );
+
+        productsSection.appendChild(
+            createOrderElement("h4", "", "Products ordered")
+        );
+
+        const items = Array.isArray(order.items)
+            ? order.items
+            : [];
+
+        if (items.length === 0) {
+            productsSection.appendChild(
+                createOrderElement(
+                    "p",
+                    "order-empty-items",
+                    "No product details are available for this order."
+                )
+            );
+        }
+
+        items.forEach(item => {
+            const productRow = createOrderElement(
+                "div",
+                "customer-order-product"
+            );
+
+            // Product image
+            const image = document.createElement("img");
+
+            image.className = "customer-order-product-image";
+            image.alt = item.name || "Product image";
+            image.loading = "lazy";
+
+            const fallbackImage =
+                "data:image/svg+xml;charset=UTF-8," +
+                encodeURIComponent(
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect width="100%" height="100%" fill="#eeeeee"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" fill="#777777" font-size="12">No image</text></svg>'
+                );
+
+            image.onerror = function () {
+                image.onerror = null;
+                image.src = fallbackImage;
+            };
+
+            image.src = item.image_url || fallbackImage;
+
+
+            // Product information
+            const information = createOrderElement(
+                "div",
+                "customer-order-product-info"
+            );
+
+            const unitPrice = Number(item.unitPrice) || 0;
+            const lineTotal = Number(item.lineTotal) || 0;
+
+            const originalPrice =
+                Number(item.originalUnitPrice) || unitPrice;
+
+            const discount =
+                Number(item.discountPercentage) || 0;
+
+            information.append(
+                createOrderElement(
+                    "h5",
+                    "",
+                    item.name || "Unnamed product"
+                ),
+                createOrderElement(
+                    "p",
+                    "",
+                    `Quantity: ${Number(item.quantity) || 0}`
+                )
+            );
+
+            if (
+                discount > 0 &&
+                originalPrice > unitPrice
+            ) {
+                information.append(
+                    createOrderElement(
+                        "p",
+                        "order-original-price",
+                        `Original price: ${formatMoney(originalPrice)}`
+                    ),
+                    createOrderElement(
+                        "p",
+                        "order-discount",
+                        `${discount}% Flash Sale discount`
+                    )
+                );
+            }
+
+            information.appendChild(
+                createOrderElement(
+                    "p",
+                    "order-unit-price",
+                    `Unit price: ${formatMoney(unitPrice)}`
+                )
+            );
+
+            const lineTotalElement = createOrderElement(
+                "strong",
+                "customer-order-line-total",
+                formatMoney(lineTotal)
+            );
+
+            productRow.append(
+                image,
+                information,
+                lineTotalElement
+            );
+
+            productsSection.appendChild(productRow);
+        });
+
+        card.appendChild(productsSection);
+
+
+        // Payment summary
+        const summary = createOrderElement(
+            "div",
+            "customer-order-summary"
+        );
+
+        summary.appendChild(
+            createOrderElement("h4", "", "Payment summary")
+        );
+
+        const subtotal = Number(order.subtotal) || 0;
+        const serviceCharge = Number(order.service_charge) || 0;
+        const total = Number(order.total_amount) || 0;
+
+        function addSummaryRow(label, amount, isTotal = false) {
+            const row = createOrderElement(
+                "div",
+                isTotal
+                    ? "customer-order-summary-row order-grand-total"
+                    : "customer-order-summary-row"
+            );
+
+            row.append(
+                createOrderElement("span", "", label),
+                createOrderElement(
+                    "strong",
+                    "",
+                    formatMoney(amount)
+                )
+            );
+
+            summary.appendChild(row);
+        }
+
+        addSummaryRow("Subtotal", subtotal);
+        addSummaryRow("Service charge", serviceCharge);
+        addSummaryRow("Total amount", total, true);
+
+        card.appendChild(summary);
+
+        return card;
+    }
+
+
+    /* =================================================
+       15N. RENDER ALL CUSTOMER ORDERS
+    ================================================= */
+
+    function renderCustomerOrders(orders) {
+        if (!myOrdersList) {
+            console.warn("myOrdersList was not found.");
+            return;
+        }
+
+        myOrdersList.replaceChildren();
+
+        if (!orders || orders.length === 0) {
+            if (ordersMessage) {
+                ordersMessage.hidden = false;
+                ordersMessage.textContent =
+                    "Your orders will appear here after checkout.";
+            }
+
+            return;
+        }
+
+        if (ordersMessage) {
+            ordersMessage.hidden = true;
+        }
+
+        orders.forEach(order => {
+            myOrdersList.appendChild(
+                renderSingleOrder(order)
+            );
+        });
+    }
+
+
+    /* =================================================
+       15O. OPEN AND CLOSE MY ORDERS POPUP
+    ================================================= */
+
+    function openMyOrdersPopup() {
+        if (!myOrdersSectionElement) return;
+
+        myOrdersSectionElement.hidden = false;
+
+        document.body.classList.add("orders-popup-open");
+
+        if (ordersMessage) {
+            ordersMessage.hidden = false;
+            ordersMessage.textContent = "Loading your orders...";
+        }
+
+        if (profileMenu) {
+            profileMenu.hidden = true;
+        }
+
+        checkOrderNotifications();
+    }
+
+    function closeMyOrdersPopup() {
+        if (!myOrdersSectionElement) return;
+
+        myOrdersSectionElement.hidden = true;
+
+        document.body.classList.remove("orders-popup-open");
+    }
+
+    if (myOrdersMenuLink && myOrdersSectionElement) {
+        myOrdersMenuLink.addEventListener(
+            "click",
+            function (event) {
+                event.preventDefault();
+                openMyOrdersPopup();
+            }
+        );
+    }
+
+    if (closeOrdersBtn) {
+        closeOrdersBtn.addEventListener(
+            "click",
+            closeMyOrdersPopup
+        );
+    }
+
+    if (myOrdersSectionElement) {
+        myOrdersSectionElement.addEventListener(
+            "click",
+            function (event) {
+                if (event.target === myOrdersSectionElement) {
+                    closeMyOrdersPopup();
+                }
+            }
+        );
+    }
+
+    document.addEventListener("keydown", function (event) {
+        if (
+            event.key === "Escape" &&
+            myOrdersSectionElement &&
+            !myOrdersSectionElement.hidden
+        ) {
+            closeMyOrdersPopup();
+        }
+    });
+
+
+    /* =================================================
+       15P. CHECK AND RETRIEVE COMPLETE ORDERS
     ================================================= */
 
     async function checkOrderNotifications() {
-
         if (
             !supabaseClient ||
             notificationCheckInProgress
@@ -4370,81 +3112,71 @@ window.setInterval(function () {
             return;
         }
 
-        const savedOrders =
-            getSavedOrderNotifications();
-
-        if (savedOrders.length === 0) {
-
-            const list = document.getElementById(
-                "orderNotificationList"
-            );
-
-            if (list) {
-
-                list.textContent =
-                    "No saved orders yet. Your orders will appear here after checkout.";
-            }
-
-            return;
-        }
-
         notificationCheckInProgress = true;
 
+        if (refreshOrdersBtn) {
+            refreshOrdersBtn.disabled = true;
+            refreshOrdersBtn.setAttribute("aria-busy", "true");
+        }
+
+        const savedOrders = getSavedOrderNotifications();
+        const retrievedOrders = [];
+
         try {
+            if (savedOrders.length === 0) {
+                renderCustomerOrders([]);
 
-            for (const order of savedOrders) {
+                const list = document.getElementById(
+                    "orderNotificationList"
+                );
 
+                if (list) {
+                    list.textContent = "No order updates yet.";
+                }
+
+                return;
+            }
+
+            for (const savedOrder of savedOrders) {
                 try {
-
-                    console.log(
-                        "Checking order notification:",
-                        order.reference
-                    );
-
                     const { data, error } =
                         await supabaseClient.functions.invoke(
                             "get-order-notifications",
                             {
                                 body: {
-
-                                    reference: order.reference,
-
-                                    notification_token: order.token
+                                    reference: savedOrder.reference,
+                                    notification_token: savedOrder.token
                                 }
                             }
                         );
 
                     if (error) {
-
                         console.error(
-                            "NOTIFICATION FUNCTION ERROR:",
+                            "Order retrieval failed:",
+                            savedOrder.reference,
                             error
                         );
-
                         continue;
                     }
-
-                    console.log(
-                        "NOTIFICATION SERVER RESPONSE:",
-                        data
-                    );
 
                     if (
                         !data ||
-                        !data.success ||
-                        !data.notification
+                        data.success !== true ||
+                        !data.notification ||
+                        !data.order
                     ) {
-
                         console.warn(
-                            "ORDER NOTIFICATION WAS NOT RETURNED:",
+                            "Incomplete order response:",
+                            savedOrder.reference,
                             data
                         );
-
                         continue;
                     }
 
-                    const notification =
-                        data.notification;
+                    const order = data.order;
+                    const notification = data.notification;
+
+                    retrievedOrders.push(order);
 
                     displayOrderNotification(
                         order,
@@ -4455,41 +3187,23 @@ window.setInterval(function () {
                         notification.payment_status == null ||
                         notification.order_status == null
                     ) {
-
-                        console.warn(
-                            "The server response is missing payment_status or order_status:",
-                            notification
-                        );
-
                         continue;
                     }
 
                     const currentStatus = {
-
-                        payment_status:
-                            notification.payment_status,
-
-                        order_status:
-                            notification.order_status
+                        payment_status: notification.payment_status,
+                        order_status: notification.order_status
                     };
 
                     const previousStatus =
-                        orderStatusSnapshots[order.reference];
+                        orderStatusSnapshots[savedOrder.reference];
 
-                    // First successful check establishes a baseline.
+                    // First successful check establishes the baseline.
                     if (!previousStatus) {
-
-                        orderStatusSnapshots[order.reference] =
+                        orderStatusSnapshots[savedOrder.reference] =
                             currentStatus;
 
                         saveOrderStatusSnapshots();
-
-                        console.log(
-                            "Initial order status saved:",
-                            order.reference,
-                            currentStatus
-                        );
-
                         continue;
                     }
 
@@ -4502,11 +3216,9 @@ window.setInterval(function () {
                         currentStatus.order_status;
 
                     if (paymentChanged || orderChanged) {
-
                         const changes = [];
 
                         if (paymentChanged) {
-
                             changes.push(
                                 "Payment status: " +
                                 currentStatus.payment_status
@@ -4514,7 +3226,6 @@ window.setInterval(function () {
                         }
 
                         if (orderChanged) {
-
                             changes.push(
                                 "Delivery status: " +
                                 currentStatus.order_status
@@ -4523,39 +3234,65 @@ window.setInterval(function () {
 
                         addCustomerNotification(
                             "Your order has been updated",
-
                             changes.join(" | ") +
-                            ". Order reference: " +
-                            order.reference,
-
-                            order.reference
+                                ". Order reference: " +
+                                savedOrder.reference,
+                            savedOrder.reference
                         );
                     }
 
-                    orderStatusSnapshots[order.reference] =
+                    orderStatusSnapshots[savedOrder.reference] =
                         currentStatus;
 
                     saveOrderStatusSnapshots();
 
                 } catch (error) {
-
                     console.error(
-                        "Could not retrieve order update:",
-                        order.reference,
+                        "Could not retrieve order:",
+                        savedOrder.reference,
                         error
                     );
                 }
             }
 
-        } finally {
+            renderCustomerOrders(retrievedOrders);
 
+            if (
+                retrievedOrders.length === 0 &&
+                ordersMessage
+            ) {
+                ordersMessage.hidden = false;
+                ordersMessage.textContent =
+                    "We could not retrieve your orders. Please refresh and try again.";
+            }
+
+        } finally {
             notificationCheckInProgress = false;
+
+            if (refreshOrdersBtn) {
+                refreshOrdersBtn.disabled = false;
+                refreshOrdersBtn.removeAttribute("aria-busy");
+            }
         }
     }
 
 
     /* =================================================
-       15M. INITIALIZE NOTIFICATIONS
+       15Q. REFRESH ORDERS BUTTON
+    ================================================= */
+
+    if (refreshOrdersBtn) {
+        refreshOrdersBtn.addEventListener(
+            "click",
+            function () {
+                checkOrderNotifications();
+            }
+        );
+    }
+
+
+    /* =================================================
+       15R. INITIALIZE NOTIFICATIONS AND ORDER UPDATES
     ================================================= */
 
     renderCustomerNotifications();
@@ -4564,55 +3301,19 @@ window.setInterval(function () {
         createOrderNotificationContainer();
     }
 
-
-    /* =================================================
-       15N. OPEN MY ORDERS
-    ================================================= */
-
-    if (
-        myOrdersMenuLink &&
-        myOrdersSectionElement
-    ) {
-
-        myOrdersMenuLink.addEventListener(
-            "click",
-            function (event) {
-
-                event.preventDefault();
-
-                myOrdersSectionElement.hidden = false;
-
-                myOrdersSectionElement.style.display =
-                    "block";
-
-                myOrdersSectionElement.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-
-                checkOrderNotifications();
-            }
-        );
-    }
-
-
-    /* =================================================
-       15O. INITIAL CHECK WHEN WEBSITE LOADS
-    ================================================= */
-
+    // Initial check when the website loads.
     checkOrderNotifications();
 
 
     /* =================================================
-       15P. AUTOMATIC CHECK EVERY 15 SECONDS
+       15S. AUTOMATIC ORDER REFRESH
+       Only ONE interval is created.
     ================================================= */
 
     window.setInterval(function () {
-
         if (!document.hidden) {
             checkOrderNotifications();
         }
-
     }, 15000);
 
 
