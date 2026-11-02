@@ -4199,3 +4199,234 @@ body.dark-mode .customer-order-reference small {
         font-size: 14px;
     }
 }
+
+
+/* =========================================
+   CUSTOMER MY ORDERS POPUP
+========================================= */
+
+.orders-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.orders-overlay[hidden] {
+    display: none !important;
+}
+
+.orders-modal {
+    width: 100%;
+    max-width: 850px;
+    max-height: 88vh;
+    overflow-y: auto;
+    background: var(--surface-color, #ffffff);
+    color: var(--text-color, #222222);
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    animation: ordersPopupIn 0.25s ease;
+}
+
+@keyframes ordersPopupIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* HEADER */
+
+.orders-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 22px;
+    background: var(--surface-color, #ffffff);
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.orders-heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.orders-heading-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: #fff0e6;
+    color: #e66b20;
+    font-size: 26px;
+}
+
+.orders-heading h2 {
+    margin: 0 0 5px;
+    font-size: 22px;
+}
+
+.orders-heading p {
+    margin: 0;
+    color: #888;
+    font-size: 13px;
+}
+
+.orders-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.refresh-orders-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 13px;
+    border: 1px solid #e5e5e5;
+    border-radius: 9px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+}
+
+.refresh-orders-btn:hover {
+    background: #f4f4f4;
+}
+
+.close-orders-btn {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: #f1f1f1;
+    color: #333;
+    font-size: 27px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.close-orders-btn:hover {
+    background: #ffe4e4;
+    color: #d62828;
+}
+
+/* ORDER CONTENT */
+
+.orders-message {
+    margin: 20px 22px;
+    color: #777;
+    font-size: 14px;
+}
+
+.my-orders-list {
+    display: grid;
+    gap: 16px;
+    padding: 0 22px 22px;
+}
+
+/* FOOTER */
+
+.orders-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 15px;
+    border-top: 1px solid #e8e8e8;
+    color: #777;
+    font-size: 12px;
+}
+
+.orders-modal-footer p {
+    margin: 0;
+}
+
+.orders-modal-footer .material-symbols-outlined {
+    color: #269b65;
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+    .orders-overlay {
+        padding: 8px;
+        align-items: center;
+    }
+
+    .orders-modal {
+        max-height: 94vh;
+        border-radius: 14px;
+    }
+
+    .orders-header {
+        padding: 15px;
+        gap: 8px;
+    }
+
+    .orders-heading {
+        gap: 9px;
+    }
+
+    .orders-heading-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 22px;
+    }
+
+    .orders-heading h2 {
+        font-size: 18px;
+    }
+
+    .orders-heading p {
+        font-size: 11px;
+    }
+
+    .orders-header-actions {
+        gap: 6px;
+    }
+
+    .refresh-orders-btn {
+        padding: 8px;
+    }
+
+    .refresh-orders-btn span:last-child {
+        display: none;
+    }
+
+    .close-orders-btn {
+        width: 34px;
+        height: 34px;
+    }
+
+    .orders-message {
+        margin: 15px;
+    }
+
+    .my-orders-list {
+        padding: 0 12px 15px;
+    }
+}
+
+/* Prevent background scrolling while popup is open */
+body.orders-popup-open {
+    overflow: hidden;
+}
