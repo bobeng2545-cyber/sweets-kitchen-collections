@@ -3441,3 +3441,96 @@ body.dark-mode #myOrders #refreshOrdersBtn:hover {
 #myOrdersList * {
     color: #000000 !important;
 }
+
+/* =========================================
+   CUSTOMER MY ORDERS
+========================================= */
+
+.customer-order-card {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 18px;
+    margin: 15px 0;
+}
+
+.customer-order-card h3 {
+    margin-top: 0;
+}
+
+.customer-order-reference {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.customer-order-total {
+    display: block;
+    margin: 15px 0;
+    font-size: 18px;
+}
+
+.view-order-products {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    background: #f2b705;
+    color: #222222;
+    font-weight: 600;
+}
+
+.order-products-list {
+    margin-top: 18px;
+    border-top: 1px solid #e5e5e5;
+    padding-top: 15px;
+}
+
+.order-products-list[hidden] {
+    display: none;
+}
+
+.order-product-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.order-product-image {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.order-product-info h5 {
+    margin: 0 0 8px;
+    font-size: 16px;
+}
+
+.order-product-info p {
+    margin: 5px 0;
+}
+
+.order-product-info strong {
+    display: block;
+    margin-top: 7px;
+}
+
+@media (max-width: 480px) {
+
+    .customer-order-card {
+        padding: 13px;
+    }
+
+    .order-product-image {
+        width: 70px;
+        height: 70px;
+    }
+
+    .order-product-item {
+        gap: 10px;
+    }
+}
