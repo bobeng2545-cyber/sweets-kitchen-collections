@@ -2957,12 +2957,6 @@ async function connectStoreProductIds() {
                     // Display the actual purchased products and images.
                     displayCustomerOrder(orderDetails);
 
-                    // Keep the existing order status updates.
-                    displayOrderNotification(
-                        order,
-                        notification
-                    );
-
                     successfullyLoaded++;
 
                     if (
