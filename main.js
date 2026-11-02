@@ -116,6 +116,68 @@ async function connectStoreProductIds() {
             .replace(/[^a-z0-9]/g, "");
     }
 
+   // ======================================
+// DISPLAY PRODUCT STOCK QUANTITY
+// ======================================
+
+function createStockDisplay(stock) {
+    const stockElement = document.createElement("p");
+    stockElement.className = "product-stock";
+
+    if (stock === null || stock === undefined || stock === "") {
+        stockElement.textContent = "Stock information unavailable";
+        stockElement.classList.add("stock-unavailable");
+        return stockElement;
+    }
+
+    const quantity = Number(stock);
+
+    if (!Number.isFinite(quantity) || quantity < 0) {
+        stockElement.textContent = "Stock information unavailable";
+        stockElement.classList.add("stock-unavailable");
+    } else if (quantity === 0) {
+        stockElement.textContent = "Out of stock";
+        stockElement.classList.add("out-of-stock");
+    } else if (quantity <= 5) {
+        stockElement.textContent = `Low stock: ${quantity} left`;
+        stockElement.classList.add("low-stock");
+    } else {
+        stockElement.textContent = `Available: ${quantity}`;
+        stockElement.classList.add("in-stock");
+    }
+
+    return stockElement;
+}
+
+// Add or update stock information on a product card.
+function updateProductStock(card, stock) {
+    let stockElement = card.querySelector(".product-stock");
+
+    if (!stockElement) {
+        stockElement = document.createElement("p");
+        stockElement.className = "product-stock";
+
+        const description = card.querySelector(".product-description");
+        const productInfo = card.querySelector(".product-info");
+
+       // Display actual stock quantity.
+       updateProductStock(card, product.stock);
+
+        if (description) {
+            description.insertAdjacentElement("afterend", stockElement);
+        } else if (productInfo) {
+            productInfo.appendChild(stockElement);
+        } else {
+            card.appendChild(stockElement);
+        }
+    }
+
+    const updatedStock = createStockDisplay(stock);
+
+    stockElement.textContent = updatedStock.textContent;
+    stockElement.className = updatedStock.className;
+}
+
     // Permanent connections for the six existing HTML product cards.
     const PRODUCT_CARD_IDS = {
         airfryer: "7ae8e8dd-00f5-48e5-94ce-d0c495996168",
@@ -285,7 +347,14 @@ async function connectStoreProductIds() {
         description.className = "product-description";
         description.textContent = product.description || "";
 
-        productInfo.append(category, heading, description);
+        const stockDisplay = createStockDisplay(product.stock);
+       
+       productInfo.append(
+          category,
+          heading,
+          description,
+          stockDisplay
+       );
 
         const productBottom = document.createElement("div");
         productBottom.className = "product-buttom";
@@ -1359,10 +1428,13 @@ async function connectStoreProductIds() {
             }
 
 
-            details.appendChild(name);
-            details.appendChild(description);
-            details.appendChild(prices);
-            details.appendChild(button);
+            const stockDisplay = createStockDisplay(product.stock);
+           
+           details.appendChild(name);
+           details.appendChild(description);
+           details.appendChild(stockDisplay);
+           details.appendChild(prices);
+           details.appendChild(button);
 
             card.appendChild(badge);
             card.appendChild(image);
