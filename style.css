@@ -271,16 +271,67 @@ img {
     overflow-wrap: anywhere;
 }
 
+/* =========================================
+   CUSTOMER PROFILE MENU - EQUAL SPACING
+========================================= */
+
 .profile-menu a,
 .profile-menu button {
-    display: block;
+    display: flex;
+    align-items: center;
     width: 100%;
-    padding: 9px 10px;
-    border: 0;
-    border-radius: 7px;
-    font-size: 13px;
+    min-height: 60px;
+    padding: 14px 16px;
+    border: none;
+    border-radius: 12px;
+    box-sizing: border-box;
+    font-size: 15px;
+    font-weight: 600;
     text-align: left;
+    text-decoration: none;
     cursor: pointer;
+}
+
+/* MY ACCOUNT */
+
+.profile-menu a#accountLink {
+    margin: 0 0 14px 0 !important;
+    background: #fff7e0;
+    color: #805600;
+}
+
+/* MY ORDERS */
+
+.profile-menu a#myOrdersLink {
+    margin: 0 0 14px 0 !important;
+    background: #fff7e0;
+    color: #805600;
+}
+
+/* LOGOUT */
+
+.profile-menu button#logoutButton {
+    margin: 0 !important;
+    background: #dc2626;
+    color: #ffffff;
+}
+
+/* Hover effects */
+
+.profile-menu a#accountLink:hover,
+.profile-menu a#myOrdersLink:hover {
+    background: #ffedb5;
+}
+
+.profile-menu button#logoutButton:hover {
+    background: #b91c1c;
+}
+
+/* Disabled logout */
+
+.profile-menu button:disabled {
+    opacity: 0.6;
+    cursor: wait;
 }
 
 .profile-menu a {
