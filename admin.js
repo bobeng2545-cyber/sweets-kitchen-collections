@@ -770,6 +770,7 @@ function updateDashboardStatistics() {
 }
 
 
+
 /* =========================================================
    9. PRODUCTS
 ========================================================= */
@@ -780,22 +781,23 @@ async function loadProducts() {
     const { data, error } = await supabase
         .from("store_products")
         .select(`
-    id,
-    order_reference,
-    user_id,
-    total_amount,
-    payment_status,
-    order_status,
-    customer_name,
-    customer_email,
-    customer_phone,
-    delivery_address,
-    items,
-    created_at
-`)
+            id,
+            name,
+            description,
+            price,
+            category,
+            image_url,
+            stock,
+            is_active,
+            created_at,
+            updated_at
+        `)
         .order("created_at", { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+        console.error("PRODUCT LOADING ERROR:", error);
+        throw error;
+    }
 
     allProducts = data || [];
 
@@ -805,6 +807,7 @@ async function loadProducts() {
 
     updateFlashSaleProductOptions();
 }
+
 
 
 function renderProducts() {
