@@ -3534,3 +3534,28 @@ body.dark-mode #myOrders #refreshOrdersBtn:hover {
         gap: 10px;
     }
 }
+
+
+/* PRODUCT STOCK STATUS */
+
+.product-stock-status {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 8px 0;
+}
+
+.product-stock-status.in-stock {
+    color: #16803c;
+}
+
+.product-stock-status.low-stock {
+    color: #d97706;
+}
+
+.product-stock-status.out-of-stock {
+    color: #dc2626;
+}
+
+.product-stock-status.stock-unavailable {
+    color: #777;
+}
