@@ -1087,3 +1087,33 @@ td {
         align-items: flex-start;
     }
 }
+
+/* Product images in admin table */
+
+.table-product {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 200px;
+}
+
+.admin-product-image {
+    width: 65px;
+    height: 65px;
+    min-width: 65px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #e5e5e5;
+    background: #f5f5f5;
+    display: block;
+}
+
+.table-product strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.table-product small {
+    display: block;
+    color: #888;
+}
