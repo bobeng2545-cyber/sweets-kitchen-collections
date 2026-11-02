@@ -1511,281 +1511,404 @@ async function connectStoreProductIds() {
     }, 60000);
 
 
-    /* =================================================
-       13. CUSTOMER PROFILE
-    ================================================= */
+    
+// ==========================================
+// 13. CUSTOMER PROFILE
+// PROFILE PICTURE UPLOAD + DISPLAY + REMOVE
+// ==========================================
 
-    (function setupCustomerProfile() {
+(() => {
+    const client = window.sweetSupabase;
 
-        const profileButton =
-            document.getElementById("profileButton");
+    if (!client) {
+        console.error("Supabase client not found.");
+        return;
+    }
 
-        const profileArea =
-            document.getElementById("profileArea");
+    // HTML ELEMENTS
+    const profileButton = document.getElementById("profileButton");
+    const profileArea = document.getElementById("profileArea");
+    const profileMenu = document.getElementById("profileMenu");
 
-        const profileMenu =
-            document.getElementById("profileMenu");
+    const profileName = document.getElementById("profileName");
+    const profileNameDisplay = document.getElementById("profileNameDisplay");
+    const profileEmail = document.getElementById("profileEmail");
 
-        const profileName =
-            document.getElementById("profileName");
+    const profilePicture = document.getElementById("profilePicture");
+    const profilePicturePreview = document.getElementById("profilePicturePreview");
+    const profileIcon = document.getElementById("profileIcon");
 
-        const profileNameDisplay =
-            document.getElementById("profileNameDisplay");
+    const profilePictureInput = document.getElementById("profilePictureInput");
+    const removeProfilePicture = document.getElementById("removeProfilePicture");
+    const profilePictureMessage = document.getElementById("profilePictureMessage");
 
-        const profileEmail =
-            document.getElementById("profileEmail");
+    const logoutButton = document.getElementById("logoutButton");
 
-        const accountLink =
-            document.getElementById("accountLink");
+    const BUCKET_NAME = "profile-pictures";
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-        const logoutButton =
-            document.getElementById("logoutButton");
+    let currentUser = null;
 
+    // ======================================
+    // DISPLAY PROFILE PICTURE
+    // ======================================
 
-        if (!supabaseClient) {
+    function displayProfilePicture(url) {
+        if (url) {
+            profilePicture.src = url;
+            profilePicturePreview.src = url;
 
-            console.warn(
-                "Supabase is unavailable. Customer profile is disabled."
-            );
+            profilePicture.hidden = false;
+            profilePicturePreview.hidden = false;
 
-            return;
-        }
-
-
-        if (!profileButton || !profileArea || !profileMenu) {
-
-            console.warn(
-                "Customer profile HTML elements were not found."
-            );
-
-            return;
-        }
-
-
-        function showSignedOut() {
-
-            if (profileName) {
-                profileName.textContent = "Sign in";
+            if (profileIcon) {
+                profileIcon.hidden = true;
             }
 
-            if (profileNameDisplay) {
-                profileNameDisplay.textContent = "My Account";
+            if (removeProfilePicture) {
+                removeProfilePicture.hidden = false;
             }
 
-            if (profileEmail) {
-                profileEmail.textContent = "";
+        } else {
+            profilePicture.removeAttribute("src");
+            profilePicturePreview.removeAttribute("src");
+
+            profilePicture.hidden = true;
+            profilePicturePreview.hidden = true;
+
+            if (profileIcon) {
+                profileIcon.hidden = false;
             }
 
-            if (accountLink) {
-
-                accountLink.hidden = false;
-                accountLink.textContent = "My Account";
-                accountLink.href = "./account.html";
-            }
-
-            if (logoutButton) {
-                logoutButton.hidden = true;
+            if (removeProfilePicture) {
+                removeProfilePicture.hidden = true;
             }
         }
+    }
 
+    // ======================================
+    // SHOW MESSAGE
+    // ======================================
 
-        function showSignedIn(user) {
+    function showProfileMessage(message, isError = false) {
+        if (!profilePictureMessage) return;
 
-            const fullName =
-                user.user_metadata?.full_name || "";
+        profilePictureMessage.textContent = message;
+        profilePictureMessage.style.color = isError ? "red" : "green";
+    }
 
-            const firstName =
-                fullName.trim().split(/\s+/)[0] ||
-                user.email?.split("@")[0] ||
-                "Customer";
+    // ======================================
+    // SIGNED OUT DISPLAY
+    // ======================================
 
-            if (profileName) {
-                profileName.textContent = firstName;
-            }
+    function showSignedOut() {
+        currentUser = null;
 
-            if (profileNameDisplay) {
-                profileNameDisplay.textContent = firstName;
-            }
+        if (profileName) profileName.textContent = "Sign in";
 
-            if (profileEmail) {
-                profileEmail.textContent = user.email || "";
-            }
-
-            if (accountLink) {
-                accountLink.hidden = true;
-            }
-
-            if (logoutButton) {
-                logoutButton.hidden = false;
-            }
+        if (profileNameDisplay) {
+            profileNameDisplay.textContent = "My Account";
         }
 
+        if (profileEmail) profileEmail.textContent = "";
 
-        function closeProfileMenu() {
+        if (logoutButton) logoutButton.hidden = true;
 
-            profileMenu.hidden = true;
+        displayProfilePicture(null);
+
+        if (profileMenu) profileMenu.hidden = true;
+
+        if (profileButton) {
+            profileButton.setAttribute("aria-expanded", "false");
+        }
+    }
+
+    // ======================================
+    // SIGNED IN DISPLAY
+    // ======================================
+
+    function showSignedIn(user) {
+        currentUser = user;
+
+        const userName =
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            user.email?.split("@")[0] ||
+            "Customer";
+
+        if (profileName) {
+            profileName.textContent = userName;
+        }
+
+        if (profileNameDisplay) {
+            profileNameDisplay.textContent = userName;
+        }
+
+        if (profileEmail) {
+            profileEmail.textContent = user.email || "";
+        }
+
+        if (logoutButton) {
+            logoutButton.hidden = false;
+        }
+
+        const avatarUrl = user.user_metadata?.avatar_url || null;
+
+        displayProfilePicture(avatarUrl);
+
+        if (profilePictureMessage) {
+            profilePictureMessage.textContent = "";
+        }
+    }
+
+    // ======================================
+    // PROFILE MENU TOGGLE
+    // ======================================
+
+    if (profileButton && profileMenu) {
+        profileButton.addEventListener("click", () => {
+            const isOpen = !profileMenu.hidden;
+
+            profileMenu.hidden = isOpen;
 
             profileButton.setAttribute(
                 "aria-expanded",
-                "false"
+                String(!isOpen)
             );
+        });
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener("click", (event) => {
+        if (
+            profileArea &&
+            !profileArea.contains(event.target) &&
+            profileMenu
+        ) {
+            profileMenu.hidden = true;
+
+            if (profileButton) {
+                profileButton.setAttribute("aria-expanded", "false");
+            }
         }
+    });
 
+    // ======================================
+    // UPLOAD PROFILE PICTURE
+    // ======================================
 
-        // Use the locally stored session to load the profile.
-        async function refreshProfile() {
+    if (profilePictureInput) {
+        profilePictureInput.addEventListener("change", async () => {
+            const file = profilePictureInput.files[0];
+
+            if (!file) return;
 
             try {
+                if (!currentUser) {
+                    throw new Error("Please sign in before uploading a picture.");
+                }
 
-                const { data, error } =
-                    await supabaseClient.auth.getSession();
+                const allowedTypes = [
+                    "image/jpeg",
+                    "image/png",
+                    "image/webp"
+                ];
+
+                if (!allowedTypes.includes(file.type)) {
+                    throw new Error("Please select a JPG, PNG, or WEBP image.");
+                }
+
+                if (file.size > MAX_FILE_SIZE) {
+                    throw new Error("Image must not exceed 5MB.");
+                }
+
+                showProfileMessage("Uploading picture...");
+
+                const extension = {
+                    "image/jpeg": "jpg",
+                    "image/png": "png",
+                    "image/webp": "webp"
+                }[file.type];
+
+                const userId = currentUser.id;
+
+                // Each customer has their own folder.
+                const filePath =
+                    `${userId}/avatar-${Date.now()}.${extension}`;
+
+                const oldPath = currentUser.user_metadata?.avatar_path;
+
+                // Upload to Supabase Storage
+                const { error: uploadError } = await client.storage
+                    .from(BUCKET_NAME)
+                    .upload(filePath, file, {
+                        cacheControl: "3600",
+                        upsert: false,
+                        contentType: file.type
+                    });
+
+                if (uploadError) {
+                    throw uploadError;
+                }
+
+                // Get public image URL
+                const { data: publicData } = client.storage
+                    .from(BUCKET_NAME)
+                    .getPublicUrl(filePath);
+
+                const avatarUrl = publicData.publicUrl;
+
+                // Save picture information in user metadata
+                const { data: updateData, error: updateError } =
+                    await client.auth.updateUser({
+                        data: {
+                            avatar_url: avatarUrl,
+                            avatar_path: filePath
+                        }
+                    });
+
+                if (updateError) {
+                    // Remove newly uploaded file if metadata update fails
+                    await client.storage
+                        .from(BUCKET_NAME)
+                        .remove([filePath]);
+
+                    throw updateError;
+                }
+
+                // Update current user information
+                currentUser = updateData.user;
+
+                showSignedIn(currentUser);
+
+                // Remove previous picture after successful update
+                if (oldPath && oldPath !== filePath) {
+                    await client.storage
+                        .from(BUCKET_NAME)
+                        .remove([oldPath]);
+                }
+
+                showProfileMessage("Profile picture updated successfully!");
+
+            } catch (error) {
+                console.error("Profile picture upload error:", error);
+
+                showProfileMessage(
+                    error.message || "Could not upload profile picture.",
+                    true
+                );
+
+            } finally {
+                profilePictureInput.value = "";
+            }
+        });
+    }
+
+    // ======================================
+    // REMOVE PROFILE PICTURE
+    // ======================================
+
+    if (removeProfilePicture) {
+        removeProfilePicture.addEventListener("click", async () => {
+            if (!currentUser) return;
+
+            try {
+                showProfileMessage("Removing picture...");
+
+                const oldPath = currentUser.user_metadata?.avatar_path;
+
+                // Clear saved avatar information
+                const { data, error } = await client.auth.updateUser({
+                    data: {
+                        avatar_url: null,
+                        avatar_path: null
+                    }
+                });
 
                 if (error) throw error;
 
-                if (!data.session || !data.session.user) {
-                    showSignedOut();
-                    return;
+                currentUser = data.user;
+
+                displayProfilePicture(null);
+
+                if (oldPath) {
+                    const { error: deleteError } = await client.storage
+                        .from(BUCKET_NAME)
+                        .remove([oldPath]);
+
+                    if (deleteError) {
+                        console.error(
+                            "Could not delete old image:",
+                            deleteError
+                        );
+                    }
                 }
 
-                showSignedIn(data.session.user);
+                showProfileMessage("Profile picture removed.");
 
             } catch (error) {
+                console.error("Remove picture error:", error);
 
-                console.error(
-                    "Profile session loading failed:",
-                    error
+                showProfileMessage(
+                    error.message || "Could not remove picture.",
+                    true
                 );
-
-                showSignedOut();
-            }
-        }
-
-
-        profileButton.setAttribute(
-            "aria-expanded",
-            "false"
-        );
-
-
-        profileButton.addEventListener(
-            "click",
-            async function (event) {
-
-                event.preventDefault();
-                event.stopPropagation();
-
-                try {
-
-                    const { data, error } =
-                        await supabaseClient.auth.getSession();
-
-                    if (error) throw error;
-
-                    const session = data.session;
-
-                    if (!session || !session.user) {
-
-                        window.location.href = "./login.html";
-
-                        return;
-                    }
-
-                    showSignedIn(session.user);
-
-                    const shouldOpen = profileMenu.hidden;
-
-                    profileMenu.hidden = !shouldOpen;
-
-                    profileButton.setAttribute(
-                        "aria-expanded",
-                        String(shouldOpen)
-                    );
-
-                } catch (error) {
-
-                    console.error(
-                        "Could not check customer login:",
-                        error
-                    );
-
-                    alert(
-                        "Unable to check your account. Please refresh and try again."
-                    );
-                }
-            }
-        );
-
-
-        document.addEventListener("click", function (event) {
-
-            if (!profileArea.contains(event.target)) {
-                closeProfileMenu();
             }
         });
+    }
 
+    // ======================================
+    // LOG OUT
+    // ======================================
 
-        if (logoutButton) {
+    if (logoutButton) {
+        logoutButton.addEventListener("click", async () => {
+            const { error } = await client.auth.signOut();
 
-            logoutButton.addEventListener(
-                "click",
-                async function (event) {
+            if (error) {
+                console.error("Logout error:", error);
+                return;
+            }
 
-                    event.preventDefault();
-                    event.stopPropagation();
+            showSignedOut();
+            window.location.href = "./login.html";
+        });
+    }
 
-                    logoutButton.disabled = true;
+    // ======================================
+    // CHECK EXISTING LOGIN SESSION
+    // ======================================
 
-                    try {
+    async function refreshProfile() {
+        const { data, error } = await client.auth.getSession();
 
-                        const { error } =
-                            await supabaseClient.auth.signOut();
-
-                        if (error) throw error;
-
-                        closeProfileMenu();
-                        showSignedOut();
-
-                        window.location.href = "./login.html";
-
-                    } catch (error) {
-
-                        console.error(
-                            "Logout failed:",
-                            error
-                        );
-
-                        alert(
-                            "Unable to log out. Please try again."
-                        );
-
-                    } finally {
-
-                        logoutButton.disabled = false;
-                    }
-                }
-            );
+        if (error) {
+            console.error("Session error:", error);
+            showSignedOut();
+            return;
         }
 
+        if (data.session?.user) {
+            showSignedIn(data.session.user);
+        } else {
+            showSignedOut();
+        }
+    }
 
-        supabaseClient.auth.onAuthStateChange(
-            function (_event, session) {
+    // Listen for login/logout changes
+    client.auth.onAuthStateChange((event, session) => {
+        if (session?.user) {
+            showSignedIn(session.user);
+        } else {
+            showSignedOut();
+        }
+    });
 
-                if (session?.user) {
+    // Load profile when page opens
+    refreshProfile();
 
-                    showSignedIn(session.user);
+})();
 
-                } else {
-
-                    showSignedOut();
-                    closeProfileMenu();
-                }
-            }
-        );
-
-
-        refreshProfile();
-
-    })();
 
 
     /* =================================================
