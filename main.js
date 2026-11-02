@@ -1620,8 +1620,8 @@ function initializeSweetWebsite() {
     }, 60000);
 
 
-    /* =================================================
-       13. CUSTOMER PROFILE
+        /* =================================================
+       13. CUSTOMER PROFILE + PROFILE PICTURE UPLOAD
     ================================================= */
 
     (function setupCustomerProfile() {
@@ -1644,11 +1644,42 @@ function initializeSweetWebsite() {
         const profileEmail =
             document.getElementById("profileEmail");
 
+        const profileIcon =
+            document.getElementById("profileIcon");
+
+        const profilePicture =
+            document.getElementById("profilePicture");
+
+        const profilePicturePreview =
+            document.getElementById("profilePicturePreview");
+
+        const profilePictureInput =
+            document.getElementById("profilePictureInput");
+
+        const removeProfilePicture =
+            document.getElementById("removeProfilePicture");
+
+        const profilePictureMessage =
+            document.getElementById("profilePictureMessage");
+
         const accountLink =
             document.getElementById("accountLink");
 
         const logoutButton =
             document.getElementById("logoutButton");
+
+
+        // This must match the bucket name in Supabase Storage.
+        const PROFILE_BUCKET = "profile-pictures";
+
+        // Maximum permitted image size: 5 MB.
+        const MAX_PROFILE_IMAGE_SIZE = 5 * 1024 * 1024;
+
+        const ALLOWED_PROFILE_TYPES = [
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        ];
 
 
         if (!supabaseClient) {
@@ -1670,6 +1701,103 @@ function initializeSweetWebsite() {
             return;
         }
 
+
+        /* =============================================
+           13A. DISPLAY PROFILE PICTURE
+        ============================================= */
+
+        function displayProfilePicture(imageUrl) {
+
+            const hasPicture = Boolean(imageUrl);
+
+            if (profilePicture) {
+
+                profilePicture.hidden = !hasPicture;
+
+                if (hasPicture) {
+                    profilePicture.src = imageUrl;
+                } else {
+                    profilePicture.removeAttribute("src");
+                }
+            }
+
+            if (profilePicturePreview) {
+
+                profilePicturePreview.hidden = !hasPicture;
+
+                if (hasPicture) {
+                    profilePicturePreview.src = imageUrl;
+                } else {
+                    profilePicturePreview.removeAttribute("src");
+                }
+            }
+
+            if (profileIcon) {
+                profileIcon.hidden = hasPicture;
+            }
+
+            if (removeProfilePicture) {
+                removeProfilePicture.hidden = !hasPicture;
+            }
+        }
+
+
+        /* =============================================
+           13B. PROFILE PICTURE MESSAGE
+        ============================================= */
+
+        function showProfilePictureMessage(message, isError = false) {
+
+            if (!profilePictureMessage) return;
+
+            profilePictureMessage.textContent = message;
+
+            profilePictureMessage.classList.toggle(
+                "error",
+                isError
+            );
+
+            profilePictureMessage.classList.toggle(
+                "success",
+                !isError && Boolean(message)
+            );
+        }
+
+
+        /* =============================================
+           13C. GET PROFILE PICTURE URL
+        ============================================= */
+
+        function getProfilePictureUrl(user) {
+
+            const avatarPath =
+                user.user_metadata?.avatar_path;
+
+            if (!avatarPath) {
+                return null;
+            }
+
+            const { data } =
+                supabaseClient.storage
+                    .from(PROFILE_BUCKET)
+                    .getPublicUrl(avatarPath);
+
+            if (!data || !data.publicUrl) {
+                return null;
+            }
+
+            // Avoid displaying a cached version after a picture change.
+            return data.publicUrl +
+                "?updated=" +
+                encodeURIComponent(
+                    user.user_metadata?.avatar_updated_at || ""
+                );
+        }
+
+
+        /* =============================================
+           13D. SHOW SIGNED-OUT PROFILE
+        ============================================= */
 
         function showSignedOut() {
 
@@ -1695,8 +1823,16 @@ function initializeSweetWebsite() {
             if (logoutButton) {
                 logoutButton.hidden = true;
             }
+
+            displayProfilePicture(null);
+
+            showProfilePictureMessage("");
         }
 
+
+        /* =============================================
+           13E. SHOW SIGNED-IN PROFILE
+        ============================================= */
 
         function showSignedIn(user) {
 
@@ -1727,8 +1863,16 @@ function initializeSweetWebsite() {
             if (logoutButton) {
                 logoutButton.hidden = false;
             }
+
+            displayProfilePicture(
+                getProfilePictureUrl(user)
+            );
         }
 
+
+        /* =============================================
+           13F. CLOSE PROFILE MENU
+        ============================================= */
 
         function closeProfileMenu() {
 
@@ -1741,7 +1885,10 @@ function initializeSweetWebsite() {
         }
 
 
-        // Use the locally stored session to load the profile.
+        /* =============================================
+           13G. REFRESH CUSTOMER PROFILE
+        ============================================= */
+
         async function refreshProfile() {
 
             try {
@@ -1752,7 +1899,9 @@ function initializeSweetWebsite() {
                 if (error) throw error;
 
                 if (!data.session || !data.session.user) {
+
                     showSignedOut();
+
                     return;
                 }
 
@@ -1770,11 +1919,331 @@ function initializeSweetWebsite() {
         }
 
 
+        /* =============================================
+           13H. UPLOAD PROFILE PICTURE
+        ============================================= */
+
+        async function uploadProfilePicture(file) {
+
+            if (!file) return;
+
+            if (!ALLOWED_PROFILE_TYPES.includes(file.type)) {
+
+                showProfilePictureMessage(
+                    "Please choose a JPG, PNG or WEBP image.",
+                    true
+                );
+
+                return;
+            }
+
+            if (file.size > MAX_PROFILE_IMAGE_SIZE) {
+
+                showProfilePictureMessage(
+                    "Your picture is too large. Maximum size is 5 MB.",
+                    true
+                );
+
+                return;
+            }
+
+            if (profilePictureInput) {
+                profilePictureInput.disabled = true;
+            }
+
+            if (removeProfilePicture) {
+                removeProfilePicture.disabled = true;
+            }
+
+            showProfilePictureMessage("Uploading your picture...");
+
+            let uploadedPath = null;
+
+            try {
+
+                const { data: sessionData, error: sessionError } =
+                    await supabaseClient.auth.getSession();
+
+                if (sessionError) throw sessionError;
+
+                const user = sessionData.session?.user;
+
+                if (!user) {
+
+                    throw new Error(
+                        "Please sign in before uploading a profile picture."
+                    );
+                }
+
+                const oldAvatarPath =
+                    user.user_metadata?.avatar_path || null;
+
+                const fileExtension =
+                    file.type === "image/jpeg"
+                        ? "jpg"
+                        : file.type === "image/png"
+                            ? "png"
+                            : "webp";
+
+                // Each customer gets a folder named after their user ID.
+                const newAvatarPath =
+                    `${user.id}/profile-${Date.now()}.${fileExtension}`;
+
+
+                // Upload the new picture.
+                const { data: uploadData, error: uploadError } =
+                    await supabaseClient.storage
+                        .from(PROFILE_BUCKET)
+                        .upload(
+                            newAvatarPath,
+                            file,
+                            {
+                                contentType: file.type,
+                                cacheControl: "3600",
+                                upsert: false
+                            }
+                        );
+
+                if (uploadError) throw uploadError;
+
+                uploadedPath = uploadData.path;
+
+
+                // Save the picture path in the authenticated user's metadata.
+                const { data: updateData, error: updateError } =
+                    await supabaseClient.auth.updateUser({
+
+                        data: {
+                            avatar_path: uploadedPath,
+                            avatar_updated_at: new Date().toISOString()
+                        }
+
+                    });
+
+                if (updateError) {
+
+                    // Remove the newly uploaded file if metadata update fails.
+                    await supabaseClient.storage
+                        .from(PROFILE_BUCKET)
+                        .remove([uploadedPath]);
+
+                    throw updateError;
+                }
+
+
+                // Update the profile immediately.
+                if (updateData.user) {
+                    showSignedIn(updateData.user);
+                }
+
+                showProfilePictureMessage(
+                    "Your profile picture has been updated."
+                );
+
+
+                // Remove the old picture only after the new picture is saved.
+                if (
+                    oldAvatarPath &&
+                    oldAvatarPath !== uploadedPath &&
+                    oldAvatarPath.startsWith(`${user.id}/`)
+                ) {
+
+                    const { error: deleteOldError } =
+                        await supabaseClient.storage
+                            .from(PROFILE_BUCKET)
+                            .remove([oldAvatarPath]);
+
+                    if (deleteOldError) {
+
+                        console.warn(
+                            "The old profile picture could not be removed:",
+                            deleteOldError
+                        );
+                    }
+                }
+
+                console.log(
+                    "Profile picture uploaded successfully."
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Profile picture upload failed:",
+                    error
+                );
+
+                showProfilePictureMessage(
+                    error.message ||
+                    "Could not upload your profile picture. Please try again.",
+                    true
+                );
+
+            } finally {
+
+                if (profilePictureInput) {
+                    profilePictureInput.disabled = false;
+                    profilePictureInput.value = "";
+                }
+
+                if (removeProfilePicture) {
+                    removeProfilePicture.disabled = false;
+                }
+            }
+        }
+
+
+        /* =============================================
+           13I. REMOVE PROFILE PICTURE
+        ============================================= */
+
+        async function deleteProfilePicture() {
+
+            if (!removeProfilePicture) return;
+
+            const confirmed = confirm(
+                "Are you sure you want to remove your profile picture?"
+            );
+
+            if (!confirmed) return;
+
+            removeProfilePicture.disabled = true;
+
+            if (profilePictureInput) {
+                profilePictureInput.disabled = true;
+            }
+
+            showProfilePictureMessage("Removing your picture...");
+
+            try {
+
+                const { data: sessionData, error: sessionError } =
+                    await supabaseClient.auth.getSession();
+
+                if (sessionError) throw sessionError;
+
+                const user = sessionData.session?.user;
+
+                if (!user) {
+
+                    throw new Error(
+                        "Please sign in to remove your profile picture."
+                    );
+                }
+
+                const avatarPath =
+                    user.user_metadata?.avatar_path || null;
+
+
+                // Only allow deletion of a file in this customer's folder.
+                if (
+                    avatarPath &&
+                    avatarPath.startsWith(`${user.id}/`)
+                ) {
+
+                    const { error: storageError } =
+                        await supabaseClient.storage
+                            .from(PROFILE_BUCKET)
+                            .remove([avatarPath]);
+
+                    if (storageError) throw storageError;
+                }
+
+
+                // Clear the profile picture from customer metadata.
+                const { data: updateData, error: updateError } =
+                    await supabaseClient.auth.updateUser({
+
+                        data: {
+                            avatar_path: null,
+                            avatar_updated_at: null
+                        }
+
+                    });
+
+                if (updateError) throw updateError;
+
+                if (updateData.user) {
+                    showSignedIn(updateData.user);
+                } else {
+                    displayProfilePicture(null);
+                }
+
+                showProfilePictureMessage(
+                    "Your profile picture has been removed."
+                );
+
+                console.log(
+                    "Profile picture removed successfully."
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Profile picture removal failed:",
+                    error
+                );
+
+                showProfilePictureMessage(
+                    error.message ||
+                    "Could not remove your profile picture. Please try again.",
+                    true
+                );
+
+            } finally {
+
+                removeProfilePicture.disabled = false;
+
+                if (profilePictureInput) {
+                    profilePictureInput.disabled = false;
+                }
+            }
+        }
+
+
+        /* =============================================
+           13J. PROFILE PICTURE EVENT LISTENERS
+        ============================================= */
+
+        if (profilePictureInput) {
+
+            profilePictureInput.addEventListener(
+                "change",
+                function () {
+
+                    const file = profilePictureInput.files?.[0];
+
+                    if (file) {
+                        uploadProfilePicture(file);
+                    }
+                }
+            );
+
+        } else {
+
+            console.warn(
+                "Profile picture input was not found."
+            );
+        }
+
+
+        if (removeProfilePicture) {
+
+            removeProfilePicture.addEventListener(
+                "click",
+                deleteProfilePicture
+            );
+        }
+
+
+        /* =============================================
+           13K. PROFILE MENU OPEN AND CLOSE
+        ============================================= */
+
         profileButton.setAttribute(
             "aria-expanded",
             "false"
         );
-
 
         profileButton.addEventListener(
             "click",
@@ -1833,6 +2302,10 @@ function initializeSweetWebsite() {
         });
 
 
+        /* =============================================
+           13L. CUSTOMER LOGOUT
+        ============================================= */
+
         if (logoutButton) {
 
             logoutButton.addEventListener(
@@ -1876,6 +2349,10 @@ function initializeSweetWebsite() {
         }
 
 
+        /* =============================================
+           13M. AUTHENTICATION STATE CHANGES
+        ============================================= */
+
         supabaseClient.auth.onAuthStateChange(
             function (_event, session) {
 
@@ -1892,7 +2369,15 @@ function initializeSweetWebsite() {
         );
 
 
+        /* =============================================
+           13N. INITIAL PROFILE LOAD
+        ============================================= */
+
         refreshProfile();
+
+        console.log(
+            "Customer profile and profile picture system initialized."
+        );
 
     })();
 
