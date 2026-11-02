@@ -849,12 +849,20 @@ function renderProducts() {
 
         const image = document.createElement("img");
 
-        image.src = product.image_url || "";
-        image.alt = product.name || "Product";
+image.className = "admin-product-image";
+image.alt = product.name || "Product";
+image.loading = "lazy";
 
-        image.onerror = () => {
-            image.style.display = "none";
-        };
+if (product.image_url) {
+    image.src = product.image_url;
+
+    image.onerror = () => {
+        image.src = "images/no-image.png";
+        image.onerror = null;
+    };
+} else {
+    image.src = "images/no-image.png";
+}
 
         const productDetails = document.createElement("div");
 
