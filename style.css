@@ -465,7 +465,11 @@ img {
 }
 
 
+/* =========================================
+   PRODUCT GRID - HORIZONTAL SWIPING
+========================================= */
 
+/* Desktop: 7 products across */
 .products-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -473,21 +477,39 @@ img {
     width: 100%;
 }
 
-/* Tablet view */
+/* Tablet: swipe horizontally */
 @media (max-width: 1024px) {
     .products-grid {
-        grid-template-columns: repeat(7, minmax(0, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(7, 180px);
+        gap: 12px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        width: 100%;
+        padding: 5px 0 15px;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .products-grid .product-card {
+        min-width: 0;
+        scroll-snap-align: start;
     }
 }
 
-/* Mobile phone view */
+/* Mobile: swipe horizontally */
 @media (max-width: 650px) {
     .products-grid {
-        grid-template-columns: repeat(7, minmax(0, 1fr));
-        gap: 8px;
+        grid-template-columns: repeat(7, 160px);
+        gap: 10px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        width: 100%;
+        padding: 5px 0 15px;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
     }
 }
+
 
 
 .products-grid .product-card {
