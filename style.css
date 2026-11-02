@@ -3966,3 +3966,242 @@ body.dark-mode #myOrders #refreshOrdersBtn:hover {
         height: 32px;
     }
 }
+
+
+/* =========================================
+   CUSTOMER MY ORDERS
+========================================= */
+
+.customer-order-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.customer-order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.customer-order-reference p {
+    font-weight: 700;
+    overflow-wrap: anywhere;
+    margin: 6px 0;
+}
+
+.customer-order-reference small {
+    color: #777;
+}
+
+.customer-order-status {
+    display: grid;
+    gap: 8px;
+}
+
+.order-status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.order-status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: capitalize;
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.status-paid,
+.status-success,
+.status-delivered,
+.status-completed {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-pending,
+.status-processing,
+.status-awaiting-payment {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-failed,
+.status-cancelled,
+.status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-shipped,
+.status-dispatched,
+.status-out-for-delivery {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.customer-order-details,
+.customer-order-products,
+.customer-order-summary {
+    padding: 16px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.customer-order-details h4,
+.customer-order-products h4,
+.customer-order-summary h4 {
+    margin: 0 0 12px;
+}
+
+.customer-order-details p {
+    margin: 7px 0;
+    overflow-wrap: anywhere;
+}
+
+.customer-order-product {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.customer-order-product:last-child {
+    border-bottom: none;
+}
+
+.customer-order-product-image {
+    width: 85px;
+    height: 85px;
+    object-fit: cover;
+    border-radius: 9px;
+    background: #f3f4f6;
+    flex-shrink: 0;
+}
+
+.customer-order-product-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.customer-order-product-info h5 {
+    margin: 0 0 7px;
+    font-size: 15px;
+}
+
+.customer-order-product-info p {
+    margin: 5px 0;
+    font-size: 13px;
+}
+
+.order-original-price {
+    text-decoration: line-through;
+    color: #888;
+}
+
+.order-discount {
+    color: #16803c;
+    font-weight: 700;
+}
+
+.customer-order-line-total {
+    white-space: nowrap;
+    font-size: 14px;
+}
+
+.customer-order-summary-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 9px 0;
+}
+
+.order-grand-total {
+    margin-top: 8px;
+    padding-top: 15px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.order-empty-items {
+    color: #777;
+}
+
+#refreshOrdersBtn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+#refreshOrdersBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* DARK MODE */
+
+body.dark-mode .customer-order-card {
+    background: #1f2937;
+    color: #f9fafb;
+    border-color: #374151;
+}
+
+body.dark-mode .customer-order-header,
+body.dark-mode .customer-order-details,
+body.dark-mode .customer-order-products,
+body.dark-mode .customer-order-summary,
+body.dark-mode .customer-order-product,
+body.dark-mode .order-grand-total {
+    border-color: #374151;
+}
+
+body.dark-mode .customer-order-reference small {
+    color: #cbd5e1;
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+    .customer-order-card {
+        padding: 14px;
+    }
+
+    .customer-order-header {
+        flex-direction: column;
+    }
+
+    .customer-order-product {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .customer-order-product-image {
+        width: 70px;
+        height: 70px;
+    }
+
+    .customer-order-line-total {
+        margin-left: 84px;
+    }
+
+    .customer-order-summary-row {
+        font-size: 14px;
+    }
+}
