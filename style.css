@@ -4430,3 +4430,18 @@ body.dark-mode .customer-order-reference small {
 body.orders-popup-open {
     overflow: hidden;
 }
+
+/* REMOVE OLD MY ORDERS OUTER BOX STYLING */
+#myOrders.orders-overlay {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+}
+
+/* KEEP ONLY THE MAIN POPUP BOX */
+#myOrders .orders-modal {
+    border: none;
+    outline: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
