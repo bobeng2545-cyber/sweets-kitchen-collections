@@ -3914,3 +3914,55 @@ body.dark-mode #myOrders #refreshOrdersBtn:hover {
         max-width: calc(100vw - 10px) !important;
     }
 }
+
+/* =====================================
+   FLOATING WHATSAPP BUTTON
+===================================== */
+
+.whatsapp-float {
+    position: fixed;
+    right: 22px;
+    bottom: 25px;
+    z-index: 99999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 60px;
+    height: 60px;
+
+    border-radius: 50%;
+    background: #25D366;
+    color: #ffffff;
+
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.25);
+
+    transition: transform 0.3s ease,
+                box-shadow 0.3s ease;
+}
+
+.whatsapp-float svg {
+    width: 35px;
+    height: 35px;
+    fill: currentColor;
+}
+
+.whatsapp-float:hover {
+    transform: scale(1.12);
+    box-shadow: 0 7px 22px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 600px) {
+    .whatsapp-float {
+        width: 55px;
+        height: 55px;
+        right: 15px;
+        bottom: 18px;
+    }
+
+    .whatsapp-float svg {
+        width: 32px;
+        height: 32px;
+    }
+}
