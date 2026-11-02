@@ -464,46 +464,6 @@ img {
     text-align: center;
 }
 
-
-
-/* =========================================
-   PRODUCT DISPLAY AND SIDEWAYS MOVEMENT
-========================================= */
-
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 15px;
-    width: 100%;
-}
-
-
-@media (max-width: 1024px) {
-    .products-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 160px);
-        grid-auto-flow: row;
-        gap: 12px;
-        width: 100%;
-        max-width: 100%;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding: 10px 5px 18px;
-        box-sizing: border-box;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x proximity;
-    }
-
-    .products-grid .product-card {
-        position: relative;
-        width: 160px;
-        min-width: 0;
-        max-width: 160px;
-        box-sizing: border-box;
-        scroll-snap-align: start;
-    }
-}
-
 .products-grid .product-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.13);
@@ -3815,5 +3775,59 @@ body.dark-mode #myOrders #refreshOrdersBtn:hover {
 
     .checkout-section-heading h3 {
         font-size: 16px;
+    }
+}
+
+
+/* =========================================
+   SWEET'S PRODUCT GRID
+   7 PRODUCTS PER ROW
+========================================= */
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-auto-flow: row;
+    gap: 15px;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: stretch;
+}
+
+.products-grid .product-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* TABLET AND MOBILE */
+@media (max-width: 1024px) {
+    .products-grid {
+        grid-template-columns: repeat(7, 160px);
+        grid-auto-flow: row;
+        gap: 12px;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 10px 5px 18px;
+        box-sizing: border-box;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+    }
+
+    .products-grid .product-card {
+        width: 160px;
+        min-width: 160px;
+        max-width: 160px;
+        scroll-snap-align: start;
     }
 }
