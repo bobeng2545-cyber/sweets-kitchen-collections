@@ -130,64 +130,97 @@
             aria-expanded="false"
             aria-controls="profileMenu">
 
-        <img src=""
-             alt="Customer profile picture"
-             class="profile-picture"
-             id="profilePicture"
-             hidden>
-
         <span class="profile-icon" id="profileIcon">♙</span>
 
-        <span class="profile-name" id="profileName">Sign in</span>
+        <span class="profile-name" id="profileName">
+            Sign in
+        </span>
+
+        <span class="material-symbols-outlined profile-arrow">
+            expand_more
+        </span>
+
     </button>
 
+
+    <!-- PREMIUM CUSTOMER PROFILE MENU -->
     <div class="profile-menu" id="profileMenu" hidden>
 
-        <div class="profile-picture-section">
+        <div class="profile-menu-top">
 
-            <img src=""
-                 alt="Your profile picture"
-                 class="profile-picture-preview"
-                 id="profilePicturePreview"
-                 hidden>
+            <div class="profile-large-picture"
+                 id="profileLargePicture">
 
-            <p class="profile-menu-title" id="profileNameDisplay">
+                <span class="material-symbols-outlined">
+                    person
+                </span>
+
+            </div>
+
+            <h3 class="profile-menu-title"
+                id="profileNameDisplay">
                 My Account
-            </p>
+            </h3>
 
-            <label for="profilePictureInput" class="upload-picture-button">
-                <span class="material-symbols-outlined">photo_camera</span>
-                Upload Profile Picture
-            </label>
-
-            <input type="file"
-                   id="profilePictureInput"
-                   accept="image/png, image/jpeg, image/webp"
-                   hidden>
-
-            <button type="button"
-                    id="removeProfilePicture"
-                    hidden>
-                Remove Picture
-            </button>
-
-            <p id="profilePictureMessage" role="status" aria-live="polite"></p>
+            <p class="profile-email"
+               id="profileEmail"></p>
 
         </div>
 
-        <p class="profile-email" id="profileEmail"></p>
 
-        <a href="./account.html" id="accountLink">My Account</a>
+        <div class="profile-menu-links">
 
-        <a href="#myOrders" id="myOrdersLink">
-            <span aria-hidden="true">📦</span> My Orders
-        </a>
+            <a href="./account.html"
+               class="profile-menu-link"
+               id="accountLink">
 
-        <button type="button" id="logoutButton" hidden>
-            Log out
+                <span class="material-symbols-outlined">
+                    person
+                </span>
+
+                <span>My Account</span>
+
+                <span class="material-symbols-outlined link-arrow">
+                    chevron_right
+                </span>
+
+            </a>
+
+
+            <a href="#myOrders"
+               class="profile-menu-link"
+               id="myOrdersLink">
+
+                <span class="material-symbols-outlined">
+                    inventory_2
+                </span>
+
+                <span>My Orders</span>
+
+                <span class="material-symbols-outlined link-arrow">
+                    chevron_right
+                </span>
+
+            </a>
+
+        </div>
+
+
+        <button type="button"
+                class="profile-logout-button"
+                id="logoutButton"
+                hidden>
+
+            <span class="material-symbols-outlined">
+                logout
+            </span>
+
+            <span>Logout</span>
+
         </button>
 
     </div>
+
 </div>
 
 
