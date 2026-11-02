@@ -119,40 +119,77 @@
 
         </div>
 
-        <!-- CUSTOMER PROFILE -->
-        <div class="profile-area" id="profileArea">
+        
+<!-- CUSTOMER PROFILE -->
+<div class="profile-area" id="profileArea">
+
+    <button type="button"
+            class="profile-button"
+            id="profileButton"
+            aria-label="Customer profile"
+            aria-expanded="false"
+            aria-controls="profileMenu">
+
+        <img src=""
+             alt="Customer profile picture"
+             class="profile-picture"
+             id="profilePicture"
+             hidden>
+
+        <span class="profile-icon" id="profileIcon">♙</span>
+
+        <span class="profile-name" id="profileName">Sign in</span>
+    </button>
+
+    <div class="profile-menu" id="profileMenu" hidden>
+
+        <div class="profile-picture-section">
+
+            <img src=""
+                 alt="Your profile picture"
+                 class="profile-picture-preview"
+                 id="profilePicturePreview"
+                 hidden>
+
+            <p class="profile-menu-title" id="profileNameDisplay">
+                My Account
+            </p>
+
+            <label for="profilePictureInput" class="upload-picture-button">
+                <span class="material-symbols-outlined">photo_camera</span>
+                Upload Profile Picture
+            </label>
+
+            <input type="file"
+                   id="profilePictureInput"
+                   accept="image/png, image/jpeg, image/webp"
+                   hidden>
 
             <button type="button"
-                    class="profile-button"
-                    id="profileButton"
-                    aria-label="Customer profile"
-                    aria-expanded="false"
-                    aria-controls="profileMenu">
-
-                <span class="profile-icon" id="profileIcon">♙</span>
-                <span class="profile-name" id="profileName">Sign in</span>
+                    id="removeProfilePicture"
+                    hidden>
+                Remove Picture
             </button>
 
-            <div class="profile-menu" id="profileMenu" hidden>
+            <p id="profilePictureMessage" role="status" aria-live="polite"></p>
 
-                <p class="profile-menu-title" id="profileNameDisplay">
-                    My Account
-                </p>
-
-                <p class="profile-email" id="profileEmail"></p>
-
-                <a href="./account.html" id="accountLink">My Account</a>
-
-                <a href="#myOrders" id="myOrdersLink">
-                    <span aria-hidden="true">📦</span> My Orders
-                </a>
-
-                <button type="button" id="logoutButton" hidden>
-                    Log out
-                </button>
-
-            </div>
         </div>
+
+        <p class="profile-email" id="profileEmail"></p>
+
+        <a href="./account.html" id="accountLink">My Account</a>
+
+        <a href="#myOrders" id="myOrdersLink">
+            <span aria-hidden="true">📦</span> My Orders
+        </a>
+
+        <button type="button" id="logoutButton" hidden>
+            Log out
+        </button>
+
+    </div>
+</div>
+
 
         <!-- MOBILE MENU -->
         <button type="button"
