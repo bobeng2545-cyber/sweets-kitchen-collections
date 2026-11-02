@@ -38,10 +38,10 @@
 
     // Store control settings
     let storeSettings = {
-        id: 1,
-        is_open: true,
-        closed_message: "Our store is temporarily closed. Please check back soon."
-    };
+    id: true,
+    is_open: true,
+    closed_message: "Our store is temporarily closed. Please check back soon."
+};
 
     const CURRENCY = new Intl.NumberFormat("en-GH", {
         style: "currency",
@@ -205,28 +205,25 @@
     const flashSalesTableBody =
         document.getElementById("flashSalesTableBody");
 
-    /* Store control */
+        /* Store control — IDs matching admin.html */
 
-    const storeStatusBadge =
-        document.getElementById("storeStatusBadge");
+    const storeStatusText =
+        document.getElementById("storeStatusText");
 
     const storeStatusDescription =
         document.getElementById("storeStatusDescription");
 
-    const storeToggle =
-        document.getElementById("storeToggle");
-
     const storeClosedMessage =
         document.getElementById("storeClosedMessage");
 
-    const saveStoreSettingsButton =
-        document.getElementById("saveStoreSettingsButton");
+    const saveStoreMessageButton =
+        document.getElementById("saveStoreMessageButton");
 
-    const refreshStoreSettingsButton =
-        document.getElementById("refreshStoreSettingsButton");
+    const toggleStoreButton =
+        document.getElementById("toggleStoreButton");
 
-    const storeSettingsMessage =
-        document.getElementById("storeSettingsMessage");
+    const storeControlMessage =
+        document.getElementById("storeControlMessage");
 
 
     /* =========================================================
@@ -1906,65 +1903,82 @@
     }
 
 
-    /* =========================================================
+        /* =========================================================
        12. STORE CONTROL
        Table: store_settings
-       Row: id = 1
+       BOOLEAN id = true
        Columns: is_open, closed_message, updated_at
     ========================================================= */
 
     function renderStoreSettings() {
-        if (storeToggle) {
-            storeToggle.checked = storeSettings.is_open === true;
+        const isOpen = storeSettings.is_open === true;
+
+        // Display current store status
+        if (storeStatusText) {
+            storeStatusText.textContent =
+                isOpen ? "STORE OPEN" : "STORE CLOSED";
+
+            storeStatusText.className =
+                isOpen ? "store-open" : "store-closed";
         }
 
+        // Display status explanation
+        if (storeStatusDescription) {
+            storeStatusDescription.textContent = isOpen
+                ? "Your store is currently open. Customers can browse products and place orders."
+                : "Your store is currently closed. New payment initialization is blocked.";
+        }
+
+        // Display saved customer message
         if (storeClosedMessage) {
             storeClosedMessage.value =
                 storeSettings.closed_message || "";
         }
 
-        if (storeStatusBadge) {
-            storeStatusBadge.textContent =
-                storeSettings.is_open ? "STORE OPEN" : "STORE CLOSED";
+        // Update toggle button
+        if (toggleStoreButton) {
+            toggleStoreButton.disabled = false;
 
-            storeStatusBadge.className =
-                storeSettings.is_open
-                    ? "status-badge active"
-                    : "status-badge inactive";
-        }
+            toggleStoreButton.textContent =
+                isOpen ? "CLOSE STORE" : "OPEN STORE";
 
-        if (storeStatusDescription) {
-            storeStatusDescription.textContent =
-                storeSettings.is_open
-                    ? "Your store is currently open. Customers can browse products and place orders."
-                    : "Your store is currently closed. Customers should see your maintenance message and new checkout requests must be blocked.";
+            toggleStoreButton.className =
+                isOpen ? "danger-button" : "primary-button";
         }
     }
 
-    async function loadStoreSettings() {
-        if (!storeSettingsMessage) return;
 
-        hideMessage(storeSettingsMessage);
+    // Load settings from Supabase
+    async function loadStoreSettings() {
+        if (!storeControlMessage) return;
+
+        hideMessage(storeControlMessage);
+
+        if (toggleStoreButton) {
+            toggleStoreButton.disabled = true;
+            toggleStoreButton.textContent = "Loading...";
+        }
 
         try {
             const { data, error } = await supabase
                 .from("store_settings")
                 .select("id, is_open, closed_message, updated_at")
-                .eq("id", 1)
+                .eq("id", true)
                 .maybeSingle();
 
             if (error) throw error;
 
             if (!data) {
                 throw new Error(
-                    "Store settings row was not found. Create the row with id = 1 in Supabase first."
+                    "Store settings record was not found. Check that the record with id = true exists in Supabase."
                 );
             }
 
             storeSettings = {
                 id: data.id,
                 is_open: data.is_open === true,
-                closed_message: data.closed_message || ""
+                closed_message: data.closed_message || "",
+                updated_at: data.updated_at
             };
 
             renderStoreSettings();
@@ -1972,79 +1986,77 @@
         } catch (error) {
             console.error("Store settings loading error:", error);
 
+            if (storeStatusText) {
+                storeStatusText.textContent = "STATUS UNAVAILABLE";
+            }
+
+            if (storeStatusDescription) {
+                storeStatusDescription.textContent =
+                    "The store status could not be verified. Please check your database connection.";
+            }
+
+            if (toggleStoreButton) {
+                toggleStoreButton.disabled = true;
+                toggleStoreButton.textContent = "Unavailable";
+            }
+
             showMessage(
-                storeSettingsMessage,
+                storeControlMessage,
                 "Unable to load store settings: " + error.message,
                 "error"
             );
         }
     }
 
-    if (storeToggle) {
-        storeToggle.addEventListener("change", () => {
-            if (storeStatusDescription) {
-                storeStatusDescription.textContent =
-                    storeToggle.checked
-                        ? "You are preparing to open the store. Save your changes to apply them."
-                        : "You are preparing to close the store. Save your changes to apply them.";
-            }
-        });
-    }
 
-    if (saveStoreSettingsButton) {
-        saveStoreSettingsButton.addEventListener("click", async () => {
-            hideMessage(storeSettingsMessage);
+    // Save only the customer maintenance message
+    if (saveStoreMessageButton) {
+        saveStoreMessageButton.addEventListener("click", async () => {
+            hideMessage(storeControlMessage);
 
             if (!currentAdmin) {
                 showMessage(
-                    storeSettingsMessage,
-                    "You must be signed in as an administrator.",
+                    storeControlMessage,
+                    "Please sign in as an administrator.",
                     "error"
                 );
                 return;
             }
 
-            const newIsOpen = storeToggle.checked;
-            const newClosedMessage =
-                storeClosedMessage.value.trim();
+            const message = storeClosedMessage.value.trim();
 
-            if (!newIsOpen && !newClosedMessage) {
+            if (!message) {
                 showMessage(
-                    storeSettingsMessage,
-                    "Enter the message customers should see while the store is closed.",
+                    storeControlMessage,
+                    "Please enter a maintenance message.",
                     "error"
                 );
                 return;
             }
 
-            const confirmed = window.confirm(
-                newIsOpen
-                    ? "Are you sure you want to OPEN the store?"
-                    : "Are you sure you want to CLOSE the store?"
-            );
-
-            if (!confirmed) {
-                renderStoreSettings();
+            if (message.length > 500) {
+                showMessage(
+                    storeControlMessage,
+                    "The maintenance message cannot exceed 500 characters.",
+                    "error"
+                );
                 return;
             }
 
             setButtonLoading(
-                saveStoreSettingsButton,
+                saveStoreMessageButton,
                 true,
-                "Saving settings..."
+                "Saving message..."
             );
 
             try {
-                const settingsData = {
-                    is_open: newIsOpen,
-                    closed_message: newClosedMessage,
-                    updated_at: new Date().toISOString()
-                };
-
                 const { data, error } = await supabase
                     .from("store_settings")
-                    .update(settingsData)
-                    .eq("id", 1)
+                    .update({
+                        closed_message: message,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq("id", true)
                     .select("id, is_open, closed_message, updated_at")
                     .single();
 
@@ -2053,31 +2065,107 @@
                 storeSettings = {
                     id: data.id,
                     is_open: data.is_open === true,
-                    closed_message: data.closed_message || ""
+                    closed_message: data.closed_message || "",
+                    updated_at: data.updated_at
                 };
 
                 renderStoreSettings();
 
                 showMessage(
-                    storeSettingsMessage,
-                    storeSettings.is_open
-                        ? "Your store is now OPEN. Customers can place orders."
-                        : "Your store is now CLOSED. The saved maintenance message will be shown to customers.",
+                    storeControlMessage,
+                    "Customer maintenance message saved successfully.",
                     "success"
                 );
 
-                showGlobalMessage(
-                    storeSettings.is_open
-                        ? "Store opened successfully."
-                        : "Store closed successfully."
-                );
-
             } catch (error) {
-                console.error("Store settings save error:", error);
+                console.error("Saving maintenance message:", error);
 
                 showMessage(
-                    storeSettingsMessage,
-                    "Unable to save store settings: " + error.message,
+                    storeControlMessage,
+                    "Unable to save the message: " + error.message,
+                    "error"
+                );
+
+            } finally {
+                setButtonLoading(
+                    saveStoreMessageButton,
+                    false
+                );
+            }
+        });
+    }
+
+
+    // Open or close the store
+    if (toggleStoreButton) {
+        toggleStoreButton.addEventListener("click", async () => {
+            hideMessage(storeControlMessage);
+
+            if (!currentAdmin) {
+                showMessage(
+                    storeControlMessage,
+                    "Please sign in as an administrator.",
+                    "error"
+                );
+                return;
+            }
+
+            const newStatus = !storeSettings.is_open;
+
+            const confirmation = window.confirm(
+                newStatus
+                    ? "Are you sure you want to OPEN your online store? Customers will be able to place new orders."
+                    : "Are you sure you want to CLOSE your online store? Customers will no longer be able to initialize new payments."
+            );
+
+            if (!confirmation) return;
+
+            setButtonLoading(
+                toggleStoreButton,
+                true,
+                "Updating store..."
+            );
+
+            try {
+                const { data, error } = await supabase
+                    .from("store_settings")
+                    .update({
+                        is_open: newStatus,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq("id", true)
+                    .select("id, is_open, closed_message, updated_at")
+                    .single();
+
+                if (error) throw error;
+
+                storeSettings = {
+                    id: data.id,
+                    is_open: data.is_open === true,
+                    closed_message: data.closed_message || "",
+                    updated_at: data.updated_at
+                };
+
+                renderStoreSettings();
+
+                const successMessage = storeSettings.is_open
+                    ? "Your store is now OPEN. Customers can place new orders."
+                    : "Your store is now CLOSED. New payment initialization is blocked.";
+
+                showMessage(
+                    storeControlMessage,
+                    successMessage,
+                    "success"
+                );
+
+                showGlobalMessage(successMessage);
+
+            } catch (error) {
+                console.error("Store status update error:", error);
+
+                showMessage(
+                    storeControlMessage,
+                    "Unable to change store status: " + error.message,
                     "error"
                 );
 
@@ -2085,33 +2173,11 @@
 
             } finally {
                 setButtonLoading(
-                    saveStoreSettingsButton,
+                    toggleStoreButton,
                     false
                 );
             }
         });
-    }
-
-    if (refreshStoreSettingsButton) {
-        refreshStoreSettingsButton.addEventListener(
-            "click",
-            async () => {
-                setButtonLoading(
-                    refreshStoreSettingsButton,
-                    true,
-                    "Refreshing..."
-                );
-
-                try {
-                    await loadStoreSettings();
-                } finally {
-                    setButtonLoading(
-                        refreshStoreSettingsButton,
-                        false
-                    );
-                }
-            }
-        );
     }
 
 
