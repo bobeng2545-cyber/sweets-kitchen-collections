@@ -464,22 +464,29 @@ img {
     text-align: center;
 }
 
+
 .products-grid {
-    display: flex;
-    align-items: stretch;
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 20px;
     width: 100%;
-    min-width: 0;
-    padding: 15px 20px 25px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-behavior: smooth;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: #d69e2e #f1f1f1;
 }
+
+/* Tablets */
+@media (max-width: 1100px) {
+    .products-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* Mobile */
+@media (max-width: 650px) {
+    .products-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+}
+
 
 .products-grid .product-card {
     display: flex;
