@@ -2624,9 +2624,19 @@ async function connectStoreProductIds() {
     }
 
 
-    /* =================================================
+        /* =================================================
        15J. CREATE MY ORDERS DISPLAY
     ================================================= */
+
+    const myOrdersList =
+        document.getElementById("myOrdersList");
+
+    const ordersMessage =
+        document.getElementById("ordersMessage");
+
+    const refreshOrdersBtn =
+        document.getElementById("refreshOrdersBtn");
+
 
     function createOrderNotificationContainer() {
 
@@ -2640,36 +2650,20 @@ async function connectStoreProductIds() {
 
             container = document.createElement("div");
 
-            container.id =
-                "orderNotificationContainer";
+            container.id = "orderNotificationContainer";
+            container.className = "order-notification-container";
 
-            container.className =
-                "order-notification-container";
+            const heading = document.createElement("h3");
+            heading.textContent = "My Order Updates";
 
-
-            const heading =
-                document.createElement("h3");
-
-            heading.textContent =
-                "My Order Updates";
-
-
-            const description =
-                document.createElement("p");
-
+            const description = document.createElement("p");
             description.textContent =
                 "Your payment and delivery updates will appear here.";
 
-
-            const list =
-                document.createElement("div");
-
+            const list = document.createElement("div");
             list.id = "orderNotificationList";
 
-
-            container.appendChild(heading);
-            container.appendChild(description);
-            container.appendChild(list);
+            container.append(heading, description, list);
 
             myOrdersSectionElement.appendChild(container);
         }
@@ -2679,7 +2673,7 @@ async function connectStoreProductIds() {
 
 
     /* =================================================
-       15K. DISPLAY ORDER STATUS UNDER MY ORDERS
+       15K. DISPLAY ORDER STATUS
     ================================================= */
 
     function displayOrderNotification(order, notification) {
@@ -2690,8 +2684,7 @@ async function connectStoreProductIds() {
 
         if (!list) return;
 
-        const safeReference =
-            String(order.reference);
+        const safeReference = String(order.reference);
 
         let card = document.getElementById(
             "notification-" + safeReference
@@ -2701,74 +2694,271 @@ async function connectStoreProductIds() {
 
             card = document.createElement("div");
 
-            card.id =
-                "notification-" + safeReference;
+            card.id = "notification-" + safeReference;
+            card.className = "order-notification-card";
 
-            card.className =
-                "order-notification-card";
+            const reference = document.createElement("p");
+            reference.className = "notification-reference";
 
+            const payment = document.createElement("p");
+            payment.className = "notification-payment";
 
-            const reference =
-                document.createElement("p");
+            const status = document.createElement("p");
+            status.className = "notification-status";
 
-            reference.className =
-                "notification-reference";
+            const updated = document.createElement("small");
+            updated.className = "notification-updated";
 
-
-            const payment =
-                document.createElement("p");
-
-            payment.className =
-                "notification-payment";
-
-
-            const status =
-                document.createElement("p");
-
-            status.className =
-                "notification-status";
-
-
-            const updated =
-                document.createElement("small");
-
-            updated.className =
-                "notification-updated";
-
-
-            card.appendChild(reference);
-            card.appendChild(payment);
-            card.appendChild(status);
-            card.appendChild(updated);
+            card.append(reference, payment, status, updated);
 
             list.appendChild(card);
         }
 
-        card.querySelector(
-            ".notification-reference"
-        ).textContent =
+        card.querySelector(".notification-reference").textContent =
             "Order reference: " + notification.reference;
 
-        card.querySelector(
-            ".notification-payment"
-        ).textContent =
+        card.querySelector(".notification-payment").textContent =
             "Payment: " + notification.payment_status;
 
-        card.querySelector(
-            ".notification-status"
-        ).textContent =
+        card.querySelector(".notification-status").textContent =
             "Delivery status: " + notification.order_status;
 
-        card.querySelector(
-            ".notification-updated"
-        ).textContent =
+        card.querySelector(".notification-updated").textContent =
             "Last updated: " +
             new Date(notification.updated_at).toLocaleString();
     }
 
 
     /* =================================================
-       15L. CHECK ORDER STATUS FROM SUPABASE
+       15L. DISPLAY CLICKABLE ORDER CARDS
+    ================================================= */
+
+    function displayCustomerOrder(order) {
+
+        if (!myOrdersList || !order) return;
+
+        const reference = String(order.reference || "");
+
+        if (!reference) return;
+
+        let card = document.getElementById(
+            "customer-order-" + reference
+        );
+
+        // Remember whether the customer has expanded this order.
+        const wasExpanded = card
+            ? card.querySelector(".view-order-products")
+                ?.getAttribute("aria-expanded") === "true"
+            : false;
+
+        if (!card) {
+
+            card = document.createElement("article");
+
+            card.id = "customer-order-" + reference;
+            card.className = "customer-order-card";
+        }
+
+        // Order heading.
+        const heading = document.createElement("h3");
+        heading.textContent = "Order Details";
+
+        // Order reference.
+        const referenceText = document.createElement("p");
+        referenceText.className = "customer-order-reference";
+        referenceText.textContent = "Reference: " + reference;
+
+        // Order date.
+        const dateText = document.createElement("p");
+        dateText.textContent =
+            "Order date: " +
+            (
+                order.created_at
+                    ? new Date(order.created_at).toLocaleString()
+                    : "Not available"
+            );
+
+        // Payment status.
+        const paymentText = document.createElement("p");
+        paymentText.textContent =
+            "Payment: " + (order.payment_status || "Pending");
+
+        // Delivery status.
+        const statusText = document.createElement("p");
+        statusText.textContent =
+            "Delivery status: " + (order.order_status || "Pending");
+
+        // Order subtotal.
+        const subtotalText = document.createElement("p");
+        subtotalText.textContent =
+            "Subtotal: " + formatMoney(order.subtotal);
+
+        // Service charge.
+        const serviceChargeText = document.createElement("p");
+        serviceChargeText.textContent =
+            "Service charge: " + formatMoney(order.service_charge);
+
+        // Total amount.
+        const totalText = document.createElement("strong");
+        totalText.className = "customer-order-total";
+        totalText.textContent =
+            "Total: " + formatMoney(order.total_amount);
+
+        // View products button.
+        const viewButton = document.createElement("button");
+
+        viewButton.type = "button";
+        viewButton.className = "view-order-products";
+        viewButton.textContent = wasExpanded
+            ? "Hide Products"
+            : "View Products";
+
+        viewButton.setAttribute(
+            "aria-expanded",
+            String(wasExpanded)
+        );
+
+        // Products container.
+        const productsContainer = document.createElement("div");
+
+        productsContainer.className = "order-products-list";
+        productsContainer.hidden = !wasExpanded;
+
+        const productsHeading = document.createElement("h4");
+        productsHeading.textContent = "Products Purchased";
+
+        productsContainer.appendChild(productsHeading);
+
+        const items = Array.isArray(order.items)
+            ? order.items
+            : [];
+
+        if (items.length === 0) {
+
+            const emptyProducts = document.createElement("p");
+
+            emptyProducts.textContent =
+                "Product details are not available for this order.";
+
+            productsContainer.appendChild(emptyProducts);
+
+        } else {
+
+            items.forEach(function (item) {
+
+                const productRow = document.createElement("div");
+
+                productRow.className = "order-product-item";
+
+                // Product image.
+                const image = document.createElement("img");
+
+                image.className = "order-product-image";
+                image.alt = item.name || "Purchased product";
+                image.loading = "lazy";
+
+                if (item.image_url) {
+
+                    image.src = item.image_url;
+
+                    image.onerror = function () {
+                        image.style.display = "none";
+                    };
+
+                } else {
+
+                    image.hidden = true;
+                }
+
+                // Product information.
+                const productInfo = document.createElement("div");
+
+                productInfo.className = "order-product-info";
+
+                const productName = document.createElement("h5");
+
+                productName.textContent =
+                    item.name || "Product";
+
+                const quantity = document.createElement("p");
+
+                quantity.textContent =
+                    "Quantity: " + (Number(item.quantity) || 0);
+
+                const unitPrice = document.createElement("p");
+
+                unitPrice.textContent =
+                    "Unit price: " + formatMoney(item.unitPrice);
+
+                const lineTotal = document.createElement("strong");
+
+                lineTotal.textContent =
+                    "Subtotal: " + formatMoney(item.lineTotal);
+
+                productInfo.append(
+                    productName,
+                    quantity,
+                    unitPrice,
+                    lineTotal
+                );
+
+                productRow.append(image, productInfo);
+
+                productsContainer.appendChild(productRow);
+            });
+        }
+
+        // Toggle product details when clicked.
+        viewButton.addEventListener("click", function () {
+
+            const isExpanded =
+                viewButton.getAttribute("aria-expanded") === "true";
+
+            const newExpandedState = !isExpanded;
+
+            viewButton.setAttribute(
+                "aria-expanded",
+                String(newExpandedState)
+            );
+
+            productsContainer.hidden = !newExpandedState;
+
+            viewButton.textContent = newExpandedState
+                ? "Hide Products"
+                : "View Products";
+        });
+
+        card.replaceChildren(
+            heading,
+            referenceText,
+            dateText,
+            paymentText,
+            statusText,
+            subtotalText,
+            serviceChargeText,
+            totalText,
+            viewButton,
+            productsContainer
+        );
+
+        // Keep the existing card in place when refreshing.
+        const existingCard = document.getElementById(
+            "customer-order-" + reference
+        );
+
+        if (existingCard) {
+
+            existingCard.replaceWith(card);
+
+        } else {
+
+            myOrdersList.appendChild(card);
+        }
+    }
+
+
+    /* =================================================
+       15M. CHECK ORDER STATUS AND RETRIEVE ORDER DETAILS
     ================================================= */
 
     async function checkOrderNotifications() {
@@ -2785,14 +2975,23 @@ async function connectStoreProductIds() {
 
         if (savedOrders.length === 0) {
 
+            if (myOrdersList) {
+                myOrdersList.replaceChildren();
+            }
+
+            if (ordersMessage) {
+                ordersMessage.textContent =
+                    "No saved orders yet. Your orders will appear here after checkout.";
+                ordersMessage.hidden = false;
+            }
+
             const list = document.getElementById(
                 "orderNotificationList"
             );
 
             if (list) {
-
                 list.textContent =
-                    "No saved orders yet. Your orders will appear here after checkout.";
+                    "No saved orders yet.";
             }
 
             return;
@@ -2800,25 +2999,31 @@ async function connectStoreProductIds() {
 
         notificationCheckInProgress = true;
 
+        if (ordersMessage) {
+            ordersMessage.textContent =
+                "Loading your orders...";
+            ordersMessage.hidden = false;
+        }
+
+        if (refreshOrdersBtn) {
+            refreshOrdersBtn.disabled = true;
+            refreshOrdersBtn.textContent = "Refreshing...";
+        }
+
+        let successfullyLoaded = 0;
+
         try {
 
             for (const order of savedOrders) {
 
                 try {
 
-                    console.log(
-                        "Checking order notification:",
-                        order.reference
-                    );
-
                     const { data, error } =
                         await supabaseClient.functions.invoke(
                             "get-order-notifications",
                             {
                                 body: {
-
                                     reference: order.reference,
-
                                     notification_token: order.token
                                 }
                             }
@@ -2827,60 +3032,54 @@ async function connectStoreProductIds() {
                     if (error) {
 
                         console.error(
-                            "NOTIFICATION FUNCTION ERROR:",
+                            "Order retrieval failed:",
+                            order.reference,
                             error
                         );
 
                         continue;
                     }
 
-                    console.log(
-                        "NOTIFICATION SERVER RESPONSE:",
-                        data
-                    );
-
                     if (
                         !data ||
                         !data.success ||
-                        !data.notification
+                        !data.notification ||
+                        !data.order
                     ) {
 
                         console.warn(
-                            "ORDER NOTIFICATION WAS NOT RETURNED:",
+                            "Order details were not returned:",
+                            order.reference,
                             data
                         );
 
                         continue;
                     }
 
-                    const notification =
-                        data.notification;
+                    const notification = data.notification;
+                    const orderDetails = data.order;
 
+                    // Display the actual purchased products and images.
+                    displayCustomerOrder(orderDetails);
+
+                    // Keep the existing order status updates.
                     displayOrderNotification(
                         order,
                         notification
                     );
 
+                    successfullyLoaded++;
+
                     if (
                         notification.payment_status == null ||
                         notification.order_status == null
                     ) {
-
-                        console.warn(
-                            "The server response is missing payment_status or order_status:",
-                            notification
-                        );
-
                         continue;
                     }
 
                     const currentStatus = {
-
-                        payment_status:
-                            notification.payment_status,
-
-                        order_status:
-                            notification.order_status
+                        payment_status: notification.payment_status,
+                        order_status: notification.order_status
                     };
 
                     const previousStatus =
@@ -2893,12 +3092,6 @@ async function connectStoreProductIds() {
                             currentStatus;
 
                         saveOrderStatusSnapshots();
-
-                        console.log(
-                            "Initial order status saved:",
-                            order.reference,
-                            currentStatus
-                        );
 
                         continue;
                     }
@@ -2916,7 +3109,6 @@ async function connectStoreProductIds() {
                         const changes = [];
 
                         if (paymentChanged) {
-
                             changes.push(
                                 "Payment status: " +
                                 currentStatus.payment_status
@@ -2924,7 +3116,6 @@ async function connectStoreProductIds() {
                         }
 
                         if (orderChanged) {
-
                             changes.push(
                                 "Delivery status: " +
                                 currentStatus.order_status
@@ -2933,11 +3124,9 @@ async function connectStoreProductIds() {
 
                         addCustomerNotification(
                             "Your order has been updated",
-
                             changes.join(" | ") +
                             ". Order reference: " +
                             order.reference,
-
                             order.reference
                         );
                     }
@@ -2950,22 +3139,45 @@ async function connectStoreProductIds() {
                 } catch (error) {
 
                     console.error(
-                        "Could not retrieve order update:",
+                        "Could not retrieve order:",
                         order.reference,
                         error
                     );
                 }
             }
 
+            if (ordersMessage) {
+
+                if (successfullyLoaded > 0) {
+
+                    ordersMessage.textContent =
+                        "Your orders are displayed below. Select View Products to see what you purchased.";
+
+                    ordersMessage.hidden = false;
+
+                } else {
+
+                    ordersMessage.textContent =
+                        "We could not load your orders. Please try again.";
+
+                    ordersMessage.hidden = false;
+                }
+            }
+
         } finally {
 
             notificationCheckInProgress = false;
+
+            if (refreshOrdersBtn) {
+                refreshOrdersBtn.disabled = false;
+                refreshOrdersBtn.textContent = "Refresh Orders";
+            }
         }
     }
 
 
     /* =================================================
-       15M. INITIALIZE NOTIFICATIONS
+       15N. INITIALIZE NOTIFICATIONS
     ================================================= */
 
     renderCustomerNotifications();
@@ -2976,7 +3188,7 @@ async function connectStoreProductIds() {
 
 
     /* =================================================
-       15N. OPEN MY ORDERS
+       15O. OPEN MY ORDERS
     ================================================= */
 
     if (
@@ -2992,8 +3204,7 @@ async function connectStoreProductIds() {
 
                 myOrdersSectionElement.hidden = false;
 
-                myOrdersSectionElement.style.display =
-                    "block";
+                myOrdersSectionElement.style.display = "block";
 
                 myOrdersSectionElement.scrollIntoView({
                     behavior: "smooth",
@@ -3007,14 +3218,29 @@ async function connectStoreProductIds() {
 
 
     /* =================================================
-       15O. INITIAL CHECK WHEN WEBSITE LOADS
+       15P. REFRESH ORDERS
+    ================================================= */
+
+    if (refreshOrdersBtn) {
+
+        refreshOrdersBtn.addEventListener(
+            "click",
+            function () {
+                checkOrderNotifications();
+            }
+        );
+    }
+
+
+    /* =================================================
+       15Q. INITIAL CHECK WHEN WEBSITE LOADS
     ================================================= */
 
     checkOrderNotifications();
 
 
     /* =================================================
-       15P. AUTOMATIC CHECK EVERY 15 SECONDS
+       15R. AUTOMATIC CHECK EVERY 15 SECONDS
     ================================================= */
 
     window.setInterval(function () {
