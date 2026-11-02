@@ -3863,35 +3863,3 @@ body.dark-mode #myOrders #refreshOrdersBtn:hover {
         max-width: calc(100vw - 10px) !important;
     }
 }
-
-/* =====================================
-   EQUAL SPACING IN PROFILE MENU
-===================================== */
-
-.profile-menu-links {
-    display: flex !important;
-    flex-direction: column;
-    gap: 14px !important;
-}
-
-/* My Account and My Orders */
-
-.profile-area .profile-menu .profile-menu-link {
-    margin: 0 !important;
-    min-height: 68px;
-}
-
-/* Logout */
-
-.profile-area .profile-menu .profile-logout-button {
-    margin-top: 14px !important;
-    min-height: 68px;
-}
-
-/* Consistent button shape */
-
-.profile-area .profile-menu .profile-menu-link,
-.profile-area .profile-menu .profile-logout-button {
-    border-radius: 16px;
-    box-sizing: border-box;
-}
