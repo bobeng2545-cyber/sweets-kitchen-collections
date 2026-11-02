@@ -1315,6 +1315,7 @@ async function deleteProduct(id) {
    10. ORDERS
 ========================================================= */
 
+
 async function loadOrders() {
     hideTableMessage(ordersMessage);
 
@@ -1331,6 +1332,7 @@ async function loadOrders() {
             customer_email,
             customer_phone,
             delivery_address,
+            items,
             created_at
         `)
         .order("created_at", { ascending: false });
@@ -1340,9 +1342,9 @@ async function loadOrders() {
     allOrders = data || [];
 
     renderOrders();
-
     updateDashboardStatistics();
 }
+
 
 
 function renderOrders() {
@@ -1561,7 +1563,780 @@ ordersTableBody.addEventListener("change", async event => {
 });
 
 
-/* Order details */
+
+/* =========================================================
+   10. ORDERS
+   ADMIN ORDER MANAGEMENT + PRODUCT DETAILS POPUP
+========================================================= */
+
+
+/* LOAD ORDERS */
+
+async function loadOrders() {
+    hideTableMessage(ordersMessage);
+
+    const { data, error } = await supabase
+        .from("orders")
+        .select(`
+            id,
+            order_reference,
+            user_id,
+            total_amount,
+            payment_status,
+            order_status,
+            customer_name,
+            customer_email,
+            customer_phone,
+            delivery_address,
+            items,
+            created_at
+        `)
+        .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    allOrders = data || [];
+
+    renderOrders();
+    updateDashboardStatistics();
+}
+
+
+/* RENDER ORDERS TABLE */
+
+function renderOrders() {
+    const search = searchOrders.value.trim().toLowerCase();
+    const selectedStatus = orderStatusFilter.value;
+
+    const filteredOrders = allOrders.filter(order => {
+        const reference = String(
+            order.order_reference || ""
+        ).toLowerCase();
+
+        const customer = String(
+            order.customer_name || ""
+        ).toLowerCase();
+
+        const matchesSearch =
+            reference.includes(search) ||
+            customer.includes(search);
+
+        const matchesStatus =
+            !selectedStatus ||
+            order.order_status === selectedStatus;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    ordersTableBody.replaceChildren();
+
+    if (!filteredOrders.length) {
+        showEmptyRow(
+            ordersTableBody,
+            "No orders found.",
+            6
+        );
+        return;
+    }
+
+    filteredOrders.forEach(order => {
+        const row = document.createElement("tr");
+
+        row.appendChild(
+            createCell(order.order_reference || order.id)
+        );
+
+        row.appendChild(
+            createCell(formatDate(order.created_at))
+        );
+
+        row.appendChild(
+            createCell(formatMoney(order.total_amount))
+        );
+
+        const paymentCell = document.createElement("td");
+
+        paymentCell.appendChild(
+            createStatusBadge(order.payment_status)
+        );
+
+        row.appendChild(paymentCell);
+
+        const statusCell = document.createElement("td");
+
+        const statusSelect = document.createElement("select");
+
+        statusSelect.className = "filter-select";
+        statusSelect.dataset.action = "update-order-status";
+        statusSelect.dataset.id = order.id;
+
+        const statuses = [
+            "pending",
+            "preparing",
+            "ready",
+            "delivered",
+            "cancelled"
+        ];
+
+        statuses.forEach(status => {
+            const option = document.createElement("option");
+
+            option.value = status;
+            option.textContent =
+                status.charAt(0).toUpperCase() + status.slice(1);
+
+            option.selected = status === order.order_status;
+
+            statusSelect.appendChild(option);
+        });
+
+        statusCell.appendChild(statusSelect);
+        row.appendChild(statusCell);
+
+        const actionCell = document.createElement("td");
+
+        actionCell.appendChild(
+            createActionButton(
+                "View Details",
+                "view-order",
+                order.id
+            )
+        );
+
+        row.appendChild(actionCell);
+
+        ordersTableBody.appendChild(row);
+    });
+}
+
+
+/* RECENT ORDERS */
+
+function renderRecentOrders() {
+    recentOrdersBody.replaceChildren();
+
+    const recent = allOrders.slice(0, 5);
+
+    if (!recent.length) {
+        showEmptyRow(
+            recentOrdersBody,
+            "No orders have been received yet.",
+            4
+        );
+        return;
+    }
+
+    recent.forEach(order => {
+        const row = document.createElement("tr");
+
+        row.appendChild(
+            createCell(order.order_reference || order.id)
+        );
+
+        row.appendChild(
+            createCell(formatDate(order.created_at))
+        );
+
+        row.appendChild(
+            createCell(formatMoney(order.total_amount))
+        );
+
+        const statusCell = document.createElement("td");
+
+        statusCell.appendChild(
+            createStatusBadge(order.order_status)
+        );
+
+        row.appendChild(statusCell);
+
+        recentOrdersBody.appendChild(row);
+    });
+}
+
+
+/* SEARCH AND FILTER */
+
+searchOrders.addEventListener("input", renderOrders);
+
+orderStatusFilter.addEventListener("change", renderOrders);
+
+
+/* UPDATE ORDER STATUS */
+
+ordersTableBody.addEventListener("change", async event => {
+    const select = event.target.closest(
+        'select[data-action="update-order-status"]'
+    );
+
+    if (!select) return;
+
+    const orderId = select.dataset.id;
+    const newStatus = select.value;
+
+    const confirmed = window.confirm(
+        `Change this order's status to "${newStatus}"?`
+    );
+
+    if (!confirmed) {
+        renderOrders();
+        return;
+    }
+
+    select.disabled = true;
+
+    try {
+        const { error } = await supabase
+            .from("orders")
+            .update({
+                order_status: newStatus
+            })
+            .eq("id", orderId);
+
+        if (error) throw error;
+
+        const order = allOrders.find(
+            item => item.id === orderId
+        );
+
+        if (order) {
+            order.order_status = newStatus;
+        }
+
+        renderOrders();
+        updateDashboardStatistics();
+
+        showGlobalMessage(
+            "Order status updated successfully."
+        );
+
+    } catch (error) {
+        console.error("Order update error:", error);
+
+        showGlobalMessage(
+            "Unable to update order: " + error.message
+        );
+
+        renderOrders();
+    }
+});
+
+
+/* =========================================================
+   ADMIN ORDER DETAILS POPUP
+========================================================= */
+
+
+/* ADD POPUP STYLES */
+
+function addAdminOrderStyles() {
+    if (document.getElementById("adminOrderModalStyles")) {
+        return;
+    }
+
+    const style = document.createElement("style");
+
+    style.id = "adminOrderModalStyles";
+
+    style.textContent = `
+        .admin-order-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 20000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 18px;
+            background: rgba(0,0,0,.65);
+            backdrop-filter: blur(5px);
+        }
+
+        .admin-order-overlay[hidden] {
+            display: none !important;
+        }
+
+        .admin-order-modal {
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #fff;
+            color: #222;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.3);
+        }
+
+        .admin-order-header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 20px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+        }
+
+        .admin-order-header h2 {
+            margin: 0 0 5px;
+            font-size: 21px;
+        }
+
+        .admin-order-header p {
+            margin: 0;
+            color: #777;
+            font-size: 13px;
+            overflow-wrap: anywhere;
+        }
+
+        .admin-order-close {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 50%;
+            background: #f1f1f1;
+            color: #333;
+            font-size: 27px;
+            cursor: pointer;
+        }
+
+        .admin-order-content {
+            padding: 20px;
+        }
+
+        .admin-order-section {
+            margin-bottom: 24px;
+        }
+
+        .admin-order-section h3 {
+            margin: 0 0 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 16px;
+        }
+
+        .admin-order-product {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .admin-order-product img {
+            width: 76px;
+            height: 76px;
+            flex-shrink: 0;
+            object-fit: cover;
+            border-radius: 10px;
+            background: #f5f5f5;
+        }
+
+        .admin-order-product-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .admin-order-product-info strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .admin-order-product-info small {
+            display: block;
+            margin-top: 4px;
+            color: #777;
+        }
+
+        .admin-order-product-price {
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .admin-order-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .admin-order-info-item {
+            min-width: 0;
+            padding: 13px;
+            background: #f7f7f7;
+            border-radius: 9px;
+            overflow-wrap: anywhere;
+        }
+
+        .admin-order-info-item small {
+            display: block;
+            margin-bottom: 6px;
+            color: #777;
+        }
+
+        .admin-order-info-item strong {
+            font-size: 13px;
+        }
+
+        .admin-order-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 18px;
+            background: #fff1e5;
+            border-radius: 10px;
+            font-size: 17px;
+        }
+
+        .admin-order-total strong {
+            color: #e66b20;
+        }
+
+        .admin-order-no-products {
+            padding: 20px;
+            text-align: center;
+            color: #777;
+            background: #f7f7f7;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .admin-order-overlay {
+                padding: 8px;
+            }
+
+            .admin-order-modal {
+                max-height: 95vh;
+            }
+
+            .admin-order-content {
+                padding: 13px;
+            }
+
+            .admin-order-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-order-product img {
+                width: 58px;
+                height: 58px;
+            }
+
+            .admin-order-product {
+                gap: 9px;
+            }
+
+            .admin-order-product-price {
+                font-size: 12px;
+            }
+        }
+    `;
+
+    document.head.appendChild(style);
+}
+
+
+/* CREATE POPUP */
+
+function createAdminOrderModal() {
+    let modal = document.getElementById(
+        "adminOrderDetailsModal"
+    );
+
+    if (modal) return modal;
+
+    modal = document.createElement("div");
+
+    modal.id = "adminOrderDetailsModal";
+    modal.className = "admin-order-overlay";
+    modal.hidden = true;
+
+    const section = document.createElement("section");
+
+    section.className = "admin-order-modal";
+    section.setAttribute("role", "dialog");
+    section.setAttribute("aria-modal", "true");
+    section.setAttribute("aria-labelledby", "adminOrderTitle");
+
+    section.innerHTML = `
+        <header class="admin-order-header">
+            <div>
+                <h2 id="adminOrderTitle">Order Details</h2>
+                <p id="adminOrderReference"></p>
+            </div>
+
+            <button
+                type="button"
+                id="closeAdminOrderModal"
+                class="admin-order-close"
+                aria-label="Close">
+                &times;
+            </button>
+        </header>
+
+        <div class="admin-order-content">
+
+            <div class="admin-order-section">
+                <h3>Products Ordered</h3>
+                <div id="adminOrderProducts"></div>
+            </div>
+
+            <div class="admin-order-section">
+                <h3>Customer Information</h3>
+                <div id="adminOrderCustomer"></div>
+            </div>
+
+            <div class="admin-order-section">
+                <h3>Order Information</h3>
+                <div id="adminOrderInformation"></div>
+            </div>
+
+            <div class="admin-order-total">
+                <span>Total Amount</span>
+                <strong id="adminOrderTotal"></strong>
+            </div>
+
+        </div>
+    `;
+
+    modal.appendChild(section);
+    document.body.appendChild(modal);
+
+    document.getElementById("closeAdminOrderModal")
+        .addEventListener("click", closeAdminOrderModal);
+
+    modal.addEventListener("click", event => {
+        if (event.target === modal) {
+            closeAdminOrderModal();
+        }
+    });
+
+    return modal;
+}
+
+
+/* CLOSE POPUP */
+
+function closeAdminOrderModal() {
+    const modal = document.getElementById(
+        "adminOrderDetailsModal"
+    );
+
+    if (modal) {
+        modal.hidden = true;
+    }
+
+    document.body.style.overflow = "";
+}
+
+
+/* CREATE INFORMATION BOX */
+
+function createOrderInfoItem(label, value) {
+    const item = document.createElement("div");
+
+    item.className = "admin-order-info-item";
+
+    const heading = document.createElement("small");
+    heading.textContent = label;
+
+    const content = document.createElement("strong");
+    content.textContent =
+        value === null || value === undefined || value === ""
+            ? "Not provided"
+            : String(value);
+
+    item.append(heading, content);
+
+    return item;
+}
+
+
+/* DISPLAY ORDER PRODUCTS */
+
+function renderAdminOrderProducts(order) {
+    const container = document.getElementById(
+        "adminOrderProducts"
+    );
+
+    container.replaceChildren();
+
+    const items = Array.isArray(order.items)
+        ? order.items
+        : [];
+
+    if (!items.length) {
+        const empty = document.createElement("div");
+
+        empty.className = "admin-order-no-products";
+
+        empty.textContent =
+            "Product details are not available in this order record.";
+
+        container.appendChild(empty);
+        return;
+    }
+
+    items.forEach(item => {
+        const product = document.createElement("div");
+
+        product.className = "admin-order-product";
+
+        const image = document.createElement("img");
+
+        image.alt = item.name || "Ordered product";
+
+        if (item.image_url) {
+            image.src = item.image_url;
+        } else {
+            image.hidden = true;
+        }
+
+        image.onerror = () => {
+            image.hidden = true;
+        };
+
+        const information = document.createElement("div");
+
+        information.className = "admin-order-product-info";
+
+        const name = document.createElement("strong");
+
+        name.textContent =
+            item.name || "Unnamed product";
+
+        const quantity = document.createElement("small");
+
+        quantity.textContent =
+            `Quantity: ${Number(item.quantity) || 0}`;
+
+        const unitPrice = document.createElement("small");
+
+        unitPrice.textContent =
+            `Unit price: ${formatMoney(
+                item.unitPrice ?? item.originalUnitPrice ?? 0
+            )}`;
+
+        information.append(name, quantity, unitPrice);
+
+        if (Number(item.discountPercentage) > 0) {
+            const discount = document.createElement("small");
+
+            discount.textContent =
+                `Discount: ${item.discountPercentage}%`;
+
+            information.appendChild(discount);
+        }
+
+        const price = document.createElement("div");
+
+        price.className = "admin-order-product-price";
+
+        const lineTotal =
+            item.lineTotal ??
+            (
+                Number(item.unitPrice || 0) *
+                Number(item.quantity || 0)
+            );
+
+        price.textContent = formatMoney(lineTotal);
+
+        product.append(image, information, price);
+
+        container.appendChild(product);
+    });
+}
+
+
+/* OPEN SELECTED ORDER */
+
+function openAdminOrderDetails(order) {
+    addAdminOrderStyles();
+
+    const modal = createAdminOrderModal();
+
+    document.getElementById(
+        "adminOrderReference"
+    ).textContent =
+        order.order_reference || order.id;
+
+    renderAdminOrderProducts(order);
+
+    const customer = document.getElementById(
+        "adminOrderCustomer"
+    );
+
+    customer.replaceChildren();
+
+    const customerGrid = document.createElement("div");
+
+    customerGrid.className = "admin-order-info-grid";
+
+    customerGrid.append(
+        createOrderInfoItem(
+            "Customer Name",
+            order.customer_name
+        ),
+        createOrderInfoItem(
+            "Email Address",
+            order.customer_email
+        ),
+        createOrderInfoItem(
+            "Phone Number",
+            order.customer_phone
+        ),
+        createOrderInfoItem(
+            "Delivery Address",
+            order.delivery_address
+        )
+    );
+
+    customer.appendChild(customerGrid);
+
+    const information = document.getElementById(
+        "adminOrderInformation"
+    );
+
+    information.replaceChildren();
+
+    const infoGrid = document.createElement("div");
+
+    infoGrid.className = "admin-order-info-grid";
+
+    infoGrid.append(
+        createOrderInfoItem(
+            "Order Reference",
+            order.order_reference || order.id
+        ),
+        createOrderInfoItem(
+            "Payment Status",
+            order.payment_status
+        ),
+        createOrderInfoItem(
+            "Order Status",
+            order.order_status
+        ),
+        createOrderInfoItem(
+            "Order Date",
+            formatDate(order.created_at)
+        )
+    );
+
+    information.appendChild(infoGrid);
+
+    document.getElementById(
+        "adminOrderTotal"
+    ).textContent = formatMoney(order.total_amount);
+
+    modal.hidden = false;
+
+    document.body.style.overflow = "hidden";
+}
+
+
+/* VIEW DETAILS BUTTON */
 
 ordersTableBody.addEventListener("click", event => {
     const button = event.target.closest(
@@ -1574,22 +2349,25 @@ ordersTableBody.addEventListener("click", event => {
         item => item.id === button.dataset.id
     );
 
-    if (!order) return;
+    if (!order) {
+        showGlobalMessage(
+            "Unable to find the selected order."
+        );
+        return;
+    }
 
-    const details = [
-        `Order: ${order.order_reference || order.id}`,
-        `Customer: ${order.customer_name || "Not provided"}`,
-        `Email: ${order.customer_email || "Not provided"}`,
-        `Phone: ${order.customer_phone || "Not provided"}`,
-        `Address: ${order.delivery_address || "Not provided"}`,
-        `Amount: ${formatMoney(order.total_amount)}`,
-        `Payment: ${order.payment_status || "Unknown"}`,
-        `Order status: ${order.order_status || "Unknown"}`,
-        `Date: ${formatDate(order.created_at)}`
-    ];
-
-    window.alert(details.join("\n"));
+    openAdminOrderDetails(order);
 });
+
+
+/* ESCAPE KEY CLOSES ORDER POPUP */
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+        closeAdminOrderModal();
+    }
+});
+
 
 
 /* =========================================================
