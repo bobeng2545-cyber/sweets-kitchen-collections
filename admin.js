@@ -1279,6 +1279,7 @@ async function deleteProduct(id) {
 }
 
 
+
 /* =========================================================
    10. ORDERS
 ========================================================= */
@@ -1299,6 +1300,7 @@ async function loadOrders() {
             customer_email,
             customer_phone,
             delivery_address,
+            items,
             created_at
         `)
         .order("created_at", { ascending: false });
@@ -1306,6 +1308,48 @@ async function loadOrders() {
     if (error) throw error;
 
     allOrders = data || [];
+
+    // Retrieve product images for the purchased items.
+    const productIds = [
+        ...new Set(
+            allOrders.flatMap(order =>
+                Array.isArray(order.items)
+                    ? order.items
+                        .map(item => item.productId)
+                        .filter(Boolean)
+                    : []
+            )
+        )
+    ];
+
+    const imageMap = new Map();
+
+    if (productIds.length) {
+        const { data: products, error: imageError } =
+            await supabase
+                .from("store_products")
+                .select("id, image_url")
+                .in("id", productIds);
+
+        if (imageError) throw imageError;
+
+        (products || []).forEach(product => {
+            imageMap.set(product.id, product.image_url);
+        });
+    }
+
+    // Attach the corresponding image URL to each order item.
+    allOrders.forEach(order => {
+        if (!Array.isArray(order.items)) {
+            order.items = [];
+            return;
+        }
+
+        order.items = order.items.map(item => ({
+            ...item,
+            image_url: imageMap.get(item.productId) || ""
+        }));
+    });
 
     renderOrders();
 
@@ -1406,7 +1450,7 @@ function renderOrders() {
         const actionCell = document.createElement("td");
 
         const detailsButton = createActionButton(
-            "Details",
+            "View Products",
             "view-order",
             order.id
         );
@@ -1416,6 +1460,136 @@ function renderOrders() {
         row.appendChild(actionCell);
 
         ordersTableBody.appendChild(row);
+
+        // Expandable order details row.
+        const detailsRow = document.createElement("tr");
+
+        detailsRow.className = "order-details-row";
+        detailsRow.hidden = true;
+        detailsRow.dataset.orderDetails = order.id;
+
+        const detailsCell = document.createElement("td");
+
+        detailsCell.colSpan = 6;
+
+        const detailsContainer = document.createElement("div");
+
+        detailsContainer.className = "order-details-container";
+
+        // Customer information.
+        const customerHeading = document.createElement("h3");
+        customerHeading.textContent = "Customer Information";
+
+        const customerInfo = document.createElement("div");
+        customerInfo.className = "order-customer-info";
+
+        [
+            ["Name", order.customer_name],
+            ["Email", order.customer_email],
+            ["Phone", order.customer_phone],
+            ["Delivery Address", order.delivery_address],
+            ["Payment Status", order.payment_status],
+            ["Order Status", order.order_status],
+            ["Order Date", formatDate(order.created_at)]
+        ].forEach(([label, value]) => {
+            const paragraph = document.createElement("p");
+
+            const strong = document.createElement("strong");
+            strong.textContent = `${label}: `;
+
+            paragraph.append(
+                strong,
+                document.createTextNode(value || "Not provided")
+            );
+
+            customerInfo.appendChild(paragraph);
+        });
+
+        // Purchased products.
+        const productsHeading = document.createElement("h3");
+        productsHeading.textContent = "Products Purchased";
+
+        const productsList = document.createElement("div");
+        productsList.className = "order-products-list";
+
+        if (!order.items || !order.items.length) {
+            const empty = document.createElement("p");
+            empty.textContent = "No product details found for this order.";
+
+            productsList.appendChild(empty);
+
+        } else {
+
+            order.items.forEach(item => {
+                const productCard = document.createElement("div");
+
+                productCard.className = "order-product-item";
+
+                const image = document.createElement("img");
+
+                image.className = "order-item-image";
+                image.src = item.image_url || "";
+                image.alt = item.name || "Purchased product";
+                image.loading = "lazy";
+
+                image.onerror = () => {
+                    image.style.display = "none";
+                };
+
+                const productInfo = document.createElement("div");
+
+                productInfo.className = "order-product-info";
+
+                const productName = document.createElement("h4");
+                productName.textContent = item.name || "Unnamed product";
+
+                const quantity = document.createElement("p");
+                quantity.textContent =
+                    `Quantity: ${Number(item.quantity) || 0}`;
+
+                const unitPrice = document.createElement("p");
+                unitPrice.textContent =
+                    `Unit Price: ${formatMoney(item.unitPrice)}`;
+
+                const lineTotal = document.createElement("strong");
+                lineTotal.textContent =
+                    `Total: ${formatMoney(item.lineTotal)}`;
+
+                productInfo.append(
+                    productName,
+                    quantity,
+                    unitPrice,
+                    lineTotal
+                );
+
+                productCard.append(image, productInfo);
+
+                productsList.appendChild(productCard);
+            });
+        }
+
+        // Order total.
+        const total = document.createElement("p");
+        total.className = "order-details-total";
+
+        const totalLabel = document.createElement("strong");
+        totalLabel.textContent =
+            `Order Total: ${formatMoney(order.total_amount)}`;
+
+        total.appendChild(totalLabel);
+
+        detailsContainer.append(
+            customerHeading,
+            customerInfo,
+            productsHeading,
+            productsList,
+            total
+        );
+
+        detailsCell.appendChild(detailsContainer);
+        detailsRow.appendChild(detailsCell);
+
+        ordersTableBody.appendChild(detailsRow);
     });
 }
 
@@ -1470,6 +1644,33 @@ function renderRecentOrders() {
 searchOrders.addEventListener("input", renderOrders);
 
 orderStatusFilter.addEventListener("change", renderOrders);
+
+
+/* Expand and collapse order details */
+
+ordersTableBody.addEventListener("click", event => {
+    const button = event.target.closest(
+        'button[data-action="view-order"]'
+    );
+
+    if (!button) return;
+
+    const orderId = button.dataset.id;
+
+    const detailsRow = ordersTableBody.querySelector(
+        `tr[data-order-details="${CSS.escape(orderId)}"]`
+    );
+
+    if (!detailsRow) return;
+
+    const isHidden = detailsRow.hidden;
+
+    detailsRow.hidden = !isHidden;
+
+    button.textContent = isHidden
+        ? "Hide Products"
+        : "View Products";
+});
 
 
 /* Order status update */
@@ -1528,36 +1729,6 @@ ordersTableBody.addEventListener("change", async event => {
     }
 });
 
-
-/* Order details */
-
-ordersTableBody.addEventListener("click", event => {
-    const button = event.target.closest(
-        'button[data-action="view-order"]'
-    );
-
-    if (!button) return;
-
-    const order = allOrders.find(
-        item => item.id === button.dataset.id
-    );
-
-    if (!order) return;
-
-    const details = [
-        `Order: ${order.order_reference || order.id}`,
-        `Customer: ${order.customer_name || "Not provided"}`,
-        `Email: ${order.customer_email || "Not provided"}`,
-        `Phone: ${order.customer_phone || "Not provided"}`,
-        `Address: ${order.delivery_address || "Not provided"}`,
-        `Amount: ${formatMoney(order.total_amount)}`,
-        `Payment: ${order.payment_status || "Unknown"}`,
-        `Order status: ${order.order_status || "Unknown"}`,
-        `Date: ${formatDate(order.created_at)}`
-    ];
-
-    window.alert(details.join("\n"));
-});
 
 
 /* =========================================================
