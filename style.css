@@ -3813,28 +3813,18 @@ body.dark-mode #myOrders #refreshOrdersBtn:hover {
 }
 
 
-/* =========================================
-   MOBILE NOTIFICATION DROPDOWN FIX
-========================================= */
-
 @media (max-width: 600px) {
-
-    .notification-area {
-        position: static;
-    }
-
     .notification-menu {
         position: fixed !important;
         top: 75px;
-        right: 10px;
-        left: 10px;
-        width: auto;
-        max-width: 420px;
+        left: 10px !important;
+        right: 10px !important;
+        width: auto !important;
+        max-width: none !important;
         max-height: calc(100dvh - 95px);
         overflow-y: auto;
         box-sizing: border-box;
-        z-index: 9999;
+        z-index: 99999;
         border-radius: 12px;
     }
-
 }
