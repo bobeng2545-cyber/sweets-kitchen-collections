@@ -716,32 +716,76 @@
     </div>
 </div>
 
-    <!-- CUSTOMER ORDER HISTORY -->
-    <section id="myOrders" style="display: none;">
+    
+<!-- CUSTOMER ORDERS POPUP -->
+<div class="orders-overlay"
+     id="myOrders"
+     hidden>
 
-        <div class="orders-container">
+    <section class="orders-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="ordersTitle">
 
-            <div class="orders-header">
+        <!-- POPUP HEADER -->
+        <div class="orders-header">
+
+            <div class="orders-heading">
+                <span class="material-symbols-outlined orders-heading-icon">
+                    inventory_2
+                </span>
 
                 <div>
-                    <h2>My Orders</h2>
-                    <p>Track your purchases and payment status.</p>
+                    <h2 id="ordersTitle">My Orders</h2>
+                    <p>View and track your purchases.</p>
                 </div>
+            </div>
 
-                <button type="button" id="refreshOrdersBtn">
-                    Refresh Orders
+            <div class="orders-header-actions">
+
+                <button type="button"
+                        id="refreshOrdersBtn"
+                        class="refresh-orders-btn"
+                        title="Refresh orders">
+                    <span class="material-symbols-outlined">refresh</span>
+                    <span>Refresh</span>
+                </button>
+
+                <button type="button"
+                        id="closeOrdersBtn"
+                        class="close-orders-btn"
+                        aria-label="Close My Orders">
+                    &times;
                 </button>
 
             </div>
 
-            <p id="ordersMessage" role="status" aria-live="polite">
-                Your orders will appear here.
-            </p>
+        </div>
 
-            <div id="myOrdersList"></div>
+        <!-- ORDER MESSAGE -->
+        <p id="ordersMessage"
+           class="orders-message"
+           role="status"
+           aria-live="polite">
+            Loading your orders...
+        </p>
+
+        <!-- ORDERS WILL BE DISPLAYED HERE -->
+        <div id="myOrdersList"
+             class="my-orders-list">
 
         </div>
+
+        <!-- POPUP FOOTER -->
+        <div class="orders-modal-footer">
+            <span class="material-symbols-outlined">verified_user</span>
+            <p>Your order information is securely retrieved.</p>
+        </div>
+
     </section>
+
+</div>
+
 
 </main>
 
