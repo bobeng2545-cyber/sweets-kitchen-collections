@@ -2165,6 +2165,15 @@ async function connectStoreProductIds() {
     const myOrdersSectionElement =
         document.getElementById("myOrders");
 
+   const myOrdersList =
+    document.getElementById("myOrdersList");
+
+const ordersMessage =
+    document.getElementById("ordersMessage");
+
+const refreshOrdersBtn =
+    document.getElementById("refreshOrdersBtn");
+
 
     const notificationButton =
         document.getElementById("notificationButton");
@@ -3066,14 +3075,10 @@ async function connectStoreProductIds() {
 
 
     /* =================================================
-       15N. INITIALIZE NOTIFICATIONS
-    ================================================= */
+   15N. INITIALIZE NOTIFICATIONS
+================================================= */
 
-    renderCustomerNotifications();
-
-    if (myOrdersSectionElement) {
-        createOrderNotificationContainer();
-    }
+renderCustomerNotifications();
 
 
     /* =================================================
