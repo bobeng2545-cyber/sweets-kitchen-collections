@@ -78,6 +78,41 @@ function initializeSweetWebsite() {
         });
     }
 
+   
+/* ======================================
+   PRODUCT STOCK DISPLAY
+====================================== */
+
+function createStockDisplay(stock) {
+    const stockElement = document.createElement("p");
+    stockElement.className = "product-stock";
+
+    if (stock === null || stock === undefined || stock === "") {
+        stockElement.textContent = "Stock information unavailable";
+        stockElement.classList.add("stock-unavailable");
+        return stockElement;
+    }
+
+    const quantity = Number(stock);
+
+    if (!Number.isFinite(quantity) || quantity < 0) {
+        stockElement.textContent = "Stock information unavailable";
+        stockElement.classList.add("stock-unavailable");
+    } else if (quantity === 0) {
+        stockElement.textContent = "Out of stock";
+        stockElement.classList.add("out-of-stock");
+    } else if (quantity <= 5) {
+        stockElement.textContent = `Low stock: ${quantity} left`;
+        stockElement.classList.add("low-stock");
+    } else {
+        stockElement.textContent = `Available: ${quantity}`;
+        stockElement.classList.add("in-stock");
+    }
+
+    return stockElement;
+}
+
+
 
     /* =================================================
        4. CONNECT SUPABASE PRODUCT IDS
@@ -149,7 +184,7 @@ function createStockDisplay(stock) {
     return stockElement;
 }
 
-// Add or update stock information on a product card.
+
 function updateProductStock(card, stock) {
     let stockElement = card.querySelector(".product-stock");
 
@@ -160,11 +195,11 @@ function updateProductStock(card, stock) {
         const description = card.querySelector(".product-description");
         const productInfo = card.querySelector(".product-info");
 
-       // Display actual stock quantity.
-       updateProductStock(card, product.stock);
-
         if (description) {
-            description.insertAdjacentElement("afterend", stockElement);
+            description.insertAdjacentElement(
+                "afterend",
+                stockElement
+            );
         } else if (productInfo) {
             productInfo.appendChild(stockElement);
         } else {
@@ -177,6 +212,7 @@ function updateProductStock(card, stock) {
     stockElement.textContent = updatedStock.textContent;
     stockElement.className = updatedStock.className;
 }
+
 
     // Permanent connections for the six existing HTML product cards.
     const PRODUCT_CARD_IDS = {
@@ -254,6 +290,9 @@ function updateProductStock(card, stock) {
         if (description) {
             description.textContent = product.description || "";
         }
+
+       // Display actual Supabase stock quantity.
+       updateProductStock(card, product.stock);
 
         // Update product category.
         const category = card.querySelector(".products-category");
