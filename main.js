@@ -1630,18 +1630,20 @@ async function connectStoreProductIds() {
     function showSignedIn(user) {
         currentUser = user;
 
-        const userName =
-            user.user_metadata?.full_name ||
-            user.user_metadata?.name ||
-            user.email?.split("@")[0] ||
-            "Customer";
+        const fullName =
+    user.user_metadata?.full_name ||
+    user.user_metadata?.name ||
+    user.email?.split("@")[0] ||
+    "Customer";
+
+const firstName = fullName.trim().split(/\s+/)[0];
 
         if (profileName) {
-            profileName.textContent = userName;
+            profileName.textContent = firstName;
         }
 
         if (profileNameDisplay) {
-            profileNameDisplay.textContent = userName;
+            profileNameDisplay.textContent = firstName;
         }
 
         if (profileEmail) {
