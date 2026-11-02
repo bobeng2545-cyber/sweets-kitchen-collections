@@ -1,3 +1,4 @@
+
 /* =====================================================
    SWEET's KITCHEN & COLLECTIONS
    COMPLETE MAIN WEBSITE JAVASCRIPT
@@ -15,6 +16,7 @@
    10. Secure notification token storage
    11. My Orders navigation
    12. Separate Flash Sale section
+   13. Product stock display
 ===================================================== */
 
 
@@ -80,253 +82,355 @@ function initializeSweetWebsite() {
 
 
     /* =================================================
+       3A. PRODUCT STOCK DISPLAY
+    ================================================= */
+
+    function createStockDisplay(stock) {
+
+        const stockElement = document.createElement("p");
+
+        stockElement.className = "product-stock-status";
+
+        if (
+            stock === null ||
+            stock === undefined ||
+            stock === ""
+        ) {
+
+            stockElement.textContent = "Stock unavailable";
+
+            stockElement.classList.add("stock-unavailable");
+
+            return stockElement;
+        }
+
+        const quantity = Number(stock);
+
+        if (!Number.isFinite(quantity)) {
+
+            stockElement.textContent = "Stock unavailable";
+
+            stockElement.classList.add("stock-unavailable");
+
+            return stockElement;
+        }
+
+        if (quantity <= 0) {
+
+            stockElement.textContent = "Out of stock";
+
+            stockElement.classList.add("out-of-stock");
+
+        } else if (quantity <= 5) {
+
+            stockElement.textContent = `Only ${quantity} left`;
+
+            stockElement.classList.add("low-stock");
+
+        } else {
+
+            stockElement.textContent = `${quantity} available`;
+
+            stockElement.classList.add("in-stock");
+        }
+
+        return stockElement;
+    }
+
+
+    /* =================================================
        4. CONNECT SUPABASE PRODUCT IDS
     ================================================= */
 
-    
+    async function connectStoreProductIds() {
 
-async function connectStoreProductIds() {
-    if (!supabaseClient) {
-        console.error("Supabase connection is unavailable.");
-        return;
-    }
-
-    const { data, error } = await supabaseClient
-        .from("store_products")
-        .select("id, name, description, price, category, image_url, stock")
-        .eq("is_active", true);
-
-    if (error) {
-        console.error("Could not load store products:", error);
-        throw error;
-    }
-
-    const productsGrid = document.getElementById("productsGrid");
-
-    if (!productsGrid) {
-        console.error("Products grid was not found.");
-        return;
-    }
-
-    const products = data || [];
-
-    function normalize(value) {
-        return String(value || "")
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, "");
-    }
-
-    // Permanent connections for the six existing HTML product cards.
-    const PRODUCT_CARD_IDS = {
-        airfryer: "7ae8e8dd-00f5-48e5-94ce-d0c495996168",
-        blender: "bba08aa0-d7b7-4678-bf70-3b8e6631b8cf",
-        kettle: "3c7c050f-7108-43d4-bf8c-a0445c973a8f",
-        cutleryset: "6996946d-e1ef-4983-ae59-59d84b9e1385",
-        bowls: "cdac8cef-49c4-460b-b2a0-c5260607b704",
-        juicermixer: "7e34ba9a-ebdf-461d-87db-429e9c37be77"
-    };
-
-    // Remove previously generated database cards before reloading.
-    productsGrid
-        .querySelectorAll(".database-product-card")
-        .forEach(card => card.remove());
-
-    const existingCards = Array.from(
-        productsGrid.querySelectorAll(
-            ".product-card:not(.flash-sale-card):not(.database-product-card)"
-        )
-    );
-
-    const usedProductIds = new Set();
-
-    // Update the six existing product cards from Supabase.
-    existingCards.forEach(card => {
-        const button = card.querySelector(".add-to-cart");
-
-        if (!button) return;
-
-        // Use the original HTML name to identify its permanent database ID.
-        const originalName =
-            button.dataset.name ||
-            card.dataset.name ||
-            card.querySelector("h3")?.textContent ||
-            "";
-
-        const productId =
-            card.dataset.productId ||
-            PRODUCT_CARD_IDS[normalize(originalName)];
-
-        if (!productId) return;
-
-        const product = products.find(
-            item => String(item.id) === String(productId)
-        );
-
-        if (!product) {
-            console.warn("Product not found in Supabase:", originalName);
+        if (!supabaseClient) {
+            console.error("Supabase connection is unavailable.");
             return;
         }
 
-        usedProductIds.add(product.id);
+        const { data, error } = await supabaseClient
+            .from("store_products")
+            .select("id, name, description, price, category, image_url, stock")
+            .eq("is_active", true);
 
-        // Keep the card connected to its permanent database ID.
-        card.dataset.productId = product.id;
-        card.dataset.name = product.name || "";
-        card.dataset.category = product.category || "";
-
-        button.dataset.productId = product.id;
-        button.dataset.name = product.name || "";
-        button.dataset.price = String(Number(product.price || 0));
-        button.dataset.originalPrice = String(Number(product.price || 0));
-
-        // Update product name.
-        const heading = card.querySelector("h3");
-
-        if (heading) {
-            heading.textContent = product.name || "Unnamed product";
+        if (error) {
+            console.error("Could not load store products:", error);
+            throw error;
         }
 
-        // Update product description.
-        const description = card.querySelector(".product-description");
+        const productsGrid = document.getElementById("productsGrid");
 
-        if (description) {
-            description.textContent = product.description || "";
+        if (!productsGrid) {
+            console.error("Products grid was not found.");
+            return;
         }
 
-        // Update product category.
-        const category = card.querySelector(".products-category");
+        const products = data || [];
 
-        if (category) {
-            category.textContent = product.category || "Other";
+        function normalize(value) {
+            return String(value || "")
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, "");
         }
 
-        // Update product image.
-        const imageContainer = card.querySelector(".product-image");
+        // Permanent connections for the six existing HTML product cards.
+        const PRODUCT_CARD_IDS = {
+            airfryer: "7ae8e8dd-00f5-48e5-94ce-d0c495996168",
+            blender: "bba08aa0-d7b7-4678-bf70-3b8e6631b8cf",
+            kettle: "3c7c050f-7108-43d4-bf8c-a0445c973a8f",
+            cutleryset: "6996946d-e1ef-4983-ae59-59d84b9e1385",
+            bowls: "cdac8cef-49c4-460b-b2a0-c5260607b704",
+            juicermixer: "7e34ba9a-ebdf-461d-87db-429e9c37be77"
+        };
 
-        if (imageContainer && product.image_url) {
-            let image = imageContainer.querySelector("img");
+        // Remove previously generated database cards before reloading.
+        productsGrid
+            .querySelectorAll(".database-product-card")
+            .forEach(card => card.remove());
 
-            if (!image) {
-                image = document.createElement("img");
-                imageContainer.prepend(image);
+        const existingCards = Array.from(
+            productsGrid.querySelectorAll(
+                ".product-card:not(.flash-sale-card):not(.database-product-card)"
+            )
+        );
+
+        const usedProductIds = new Set();
+
+        // Update the six existing product cards from Supabase.
+        existingCards.forEach(card => {
+
+            const button = card.querySelector(".add-to-cart");
+
+            if (!button) return;
+
+            // Use the original HTML name to identify its permanent database ID.
+            const originalName =
+                button.dataset.name ||
+                card.dataset.name ||
+                card.querySelector("h3")?.textContent ||
+                "";
+
+            const productId =
+                card.dataset.productId ||
+                PRODUCT_CARD_IDS[normalize(originalName)];
+
+            if (!productId) return;
+
+            const product = products.find(
+                item => String(item.id) === String(productId)
+            );
+
+            if (!product) {
+                console.warn("Product not found in Supabase:", originalName);
+                return;
             }
 
-            image.src = product.image_url;
-            image.alt = product.name || "Product image";
-        }
+            usedProductIds.add(product.id);
 
-        // Update displayed price.
-        const price = card.querySelector(
-            ".product-buttom strong, .product-bottom strong"
-        );
+            // Keep the card connected to its permanent database ID.
+            card.dataset.productId = product.id;
+            card.dataset.name = product.name || "";
+            card.dataset.category = product.category || "";
 
-        if (price) {
+            button.dataset.productId = product.id;
+            button.dataset.name = product.name || "";
+            button.dataset.price = String(Number(product.price || 0));
+            button.dataset.originalPrice = String(Number(product.price || 0));
+
+            // Update product name.
+            const heading = card.querySelector("h3");
+
+            if (heading) {
+                heading.textContent = product.name || "Unnamed product";
+            }
+
+            // Update product description.
+            const description = card.querySelector(".product-description");
+
+            if (description) {
+                description.textContent = product.description || "";
+            }
+
+            // Display current stock.
+            card.querySelectorAll(".product-stock-status")
+                .forEach(element => element.remove());
+
+            const stockDisplay = createStockDisplay(product.stock);
+
+            const productInfo = card.querySelector(".product-info");
+
+            if (productInfo) {
+                productInfo.appendChild(stockDisplay);
+            } else {
+                card.appendChild(stockDisplay);
+            }
+
+            // Update product category.
+            const category = card.querySelector(".products-category");
+
+            if (category) {
+                category.textContent = product.category || "Other";
+            }
+
+            // Update product image.
+            const imageContainer = card.querySelector(".product-image");
+
+            if (imageContainer && product.image_url) {
+
+                let image = imageContainer.querySelector("img");
+
+                if (!image) {
+                    image = document.createElement("img");
+                    imageContainer.prepend(image);
+                }
+
+                image.src = product.image_url;
+                image.alt = product.name || "Product image";
+            }
+
+            // Update displayed price.
+            const price = card.querySelector(
+                ".product-buttom strong, .product-bottom strong"
+            );
+
+            if (price) {
+                price.textContent =
+                    `GH₵${Number(product.price || 0).toLocaleString("en-GH")}`;
+            }
+
+            // Update stock availability on the button.
+            const isOutOfStock =
+                product.stock !== null &&
+                product.stock !== undefined &&
+                Number(product.stock) <= 0;
+
+            button.dataset.databaseOutOfStock = String(isOutOfStock);
+
+            button.disabled = isOutOfStock;
+
+            button.textContent = isOutOfStock
+                ? "Out of Stock"
+                : "Add to cart";
+        });
+
+
+        // Add any additional products created through the admin dashboard.
+        products.forEach(product => {
+
+            if (usedProductIds.has(product.id)) return;
+
+            const card = document.createElement("article");
+
+            card.className = "product-card database-product-card";
+
+            card.dataset.productId = product.id;
+            card.dataset.category = product.category || "";
+            card.dataset.name = product.name || "";
+
+            const imageContainer = document.createElement("div");
+
+            imageContainer.className = "product-image";
+
+            if (product.image_url) {
+
+                const image = document.createElement("img");
+
+                image.src = product.image_url;
+                image.alt = product.name || "Product image";
+                image.loading = "lazy";
+
+                imageContainer.appendChild(image);
+            }
+
+            const favouriteButton = document.createElement("button");
+
+            favouriteButton.type = "button";
+            favouriteButton.className = "favourite-button";
+
+            favouriteButton.setAttribute(
+                "aria-label",
+                `Add ${product.name} to favourites`
+            );
+
+            favouriteButton.textContent = "💖";
+
+            imageContainer.appendChild(favouriteButton);
+
+            const productInfo = document.createElement("div");
+
+            productInfo.className = "product-info";
+
+            const category = document.createElement("p");
+
+            category.className = "products-category";
+            category.textContent = product.category || "Other";
+
+            const heading = document.createElement("h3");
+
+            heading.textContent = product.name || "Unnamed product";
+
+            const description = document.createElement("p");
+
+            description.className = "product-description";
+            description.textContent = product.description || "";
+
+            // Display stock for additional products.
+            const stockDisplay = createStockDisplay(product.stock);
+
+            productInfo.append(
+                category,
+                heading,
+                description,
+                stockDisplay
+            );
+
+            const productBottom = document.createElement("div");
+
+            productBottom.className = "product-buttom";
+
+            const price = document.createElement("strong");
+
             price.textContent =
                 `GH₵${Number(product.price || 0).toLocaleString("en-GH")}`;
-        }
 
-        // Update stock status.
-        const isOutOfStock =
-            product.stock !== null &&
-            product.stock !== undefined &&
-            Number(product.stock) <= 0;
+            const addButton = document.createElement("button");
 
-        button.dataset.databaseOutOfStock = String(isOutOfStock);
-        button.disabled = isOutOfStock;
-        button.textContent = isOutOfStock
-            ? "Out of Stock"
-            : "Add to cart";
-    });
+            addButton.type = "button";
+            addButton.className = "add-to-cart";
+            addButton.textContent = "Add to cart";
 
-    // Add any additional products created through the admin dashboard.
-    products.forEach(product => {
-        if (usedProductIds.has(product.id)) return;
+            addButton.dataset.name = product.name || "";
+            addButton.dataset.price = String(Number(product.price || 0));
+            addButton.dataset.productId = product.id;
 
-        const card = document.createElement("article");
-        card.className = "product-card database-product-card";
+            addButton.dataset.originalPrice =
+                String(Number(product.price || 0));
 
-        card.dataset.productId = product.id;
-        card.dataset.category = product.category || "";
-        card.dataset.name = product.name || "";
+            const isOutOfStock =
+                product.stock !== null &&
+                product.stock !== undefined &&
+                Number(product.stock) <= 0;
 
-        const imageContainer = document.createElement("div");
-        imageContainer.className = "product-image";
+            addButton.dataset.databaseOutOfStock = String(isOutOfStock);
 
-        if (product.image_url) {
-            const image = document.createElement("img");
-            image.src = product.image_url;
-            image.alt = product.name || "Product image";
-            image.loading = "lazy";
-            imageContainer.appendChild(image);
-        }
+            if (isOutOfStock) {
+                addButton.disabled = true;
+                addButton.textContent = "Out of Stock";
+            }
 
-        const favouriteButton = document.createElement("button");
-        favouriteButton.type = "button";
-        favouriteButton.className = "favourite-button";
-        favouriteButton.setAttribute(
-            "aria-label",
-            `Add ${product.name} to favourites`
+            productBottom.append(price, addButton);
+
+            card.append(imageContainer, productInfo, productBottom);
+
+            productsGrid.appendChild(card);
+        });
+
+        console.log(
+            "Store products loaded successfully:",
+            products.length
         );
-        favouriteButton.textContent = "💖";
-
-        imageContainer.appendChild(favouriteButton);
-
-        const productInfo = document.createElement("div");
-        productInfo.className = "product-info";
-
-        const category = document.createElement("p");
-        category.className = "products-category";
-        category.textContent = product.category || "Other";
-
-        const heading = document.createElement("h3");
-        heading.textContent = product.name || "Unnamed product";
-
-        const description = document.createElement("p");
-        description.className = "product-description";
-        description.textContent = product.description || "";
-
-        productInfo.append(category, heading, description);
-
-        const productBottom = document.createElement("div");
-        productBottom.className = "product-buttom";
-
-        const price = document.createElement("strong");
-        price.textContent =
-            `GH₵${Number(product.price || 0).toLocaleString("en-GH")}`;
-
-        const addButton = document.createElement("button");
-        addButton.type = "button";
-        addButton.className = "add-to-cart";
-        addButton.textContent = "Add to cart";
-        addButton.dataset.name = product.name || "";
-        addButton.dataset.price = String(Number(product.price || 0));
-        addButton.dataset.productId = product.id;
-        addButton.dataset.originalPrice = String(Number(product.price || 0));
-
-        const isOutOfStock =
-            product.stock !== null &&
-            product.stock !== undefined &&
-            Number(product.stock) <= 0;
-
-        addButton.dataset.databaseOutOfStock = String(isOutOfStock);
-
-        if (isOutOfStock) {
-            addButton.disabled = true;
-            addButton.textContent = "Out of Stock";
-        }
-
-        productBottom.append(price, addButton);
-        card.append(imageContainer, productInfo, productBottom);
-
-        productsGrid.appendChild(card);
-    });
-
-    console.log(
-        "Store products loaded successfully:",
-        products.length
-    );
-}
-
+    }
 
 
     // IMPORTANT: Flash Sales will wait for this promise.
@@ -1304,6 +1408,10 @@ async function connectStoreProductIds() {
                 product.description || "";
 
 
+            // Display stock for Flash Sale products.
+            const stockDisplay = createStockDisplay(product.stock);
+
+
             const prices =
                 document.createElement("div");
 
@@ -1361,6 +1469,7 @@ async function connectStoreProductIds() {
 
             details.appendChild(name);
             details.appendChild(description);
+            details.appendChild(stockDisplay);
             details.appendChild(prices);
             details.appendChild(button);
 
@@ -2165,14 +2274,14 @@ async function connectStoreProductIds() {
     const myOrdersSectionElement =
         document.getElementById("myOrders");
 
-   const myOrdersList =
-    document.getElementById("myOrdersList");
+    const myOrdersList =
+        document.getElementById("myOrdersList");
 
-const ordersMessage =
-    document.getElementById("ordersMessage");
+    const ordersMessage =
+        document.getElementById("ordersMessage");
 
-const refreshOrdersBtn =
-    document.getElementById("refreshOrdersBtn");
+    const refreshOrdersBtn =
+        document.getElementById("refreshOrdersBtn");
 
 
     const notificationButton =
@@ -3075,10 +3184,10 @@ const refreshOrdersBtn =
 
 
     /* =================================================
-   15N. INITIALIZE NOTIFICATIONS
-================================================= */
+       15N. INITIALIZE NOTIFICATIONS
+    ================================================= */
 
-renderCustomerNotifications();
+    renderCustomerNotifications();
 
 
     /* =================================================
