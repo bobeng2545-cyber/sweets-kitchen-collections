@@ -3639,3 +3639,175 @@ body.dark-mode #myOrders #refreshOrdersBtn:hover {
 #profilePictureMessage.error {
     color: #dc2626;
 }
+
+
+/* =========================================
+   PROFESSIONAL CHECKOUT DETAILS
+========================================= */
+
+.payment-box {
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 25px;
+    border-radius: 16px;
+}
+
+.checkout-subtitle {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #d18b24;
+    margin-bottom: 6px;
+}
+
+.payment-header h2 {
+    margin: 0;
+}
+
+.payment-order {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 16px;
+    margin: 20px 0;
+    border-radius: 10px;
+    background: #f5f5f5;
+}
+
+.payment-order p {
+    margin: 0 0 6px;
+    font-size: 13px;
+    color: #666;
+}
+
+.payment-order strong {
+    font-size: 21px;
+}
+
+.checkout-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0 15px;
+}
+
+.checkout-section-heading > .material-symbols-outlined {
+    font-size: 27px;
+    color: #d18b24;
+}
+
+.checkout-section-heading h3 {
+    margin: 0 0 4px;
+    font-size: 17px;
+}
+
+.checkout-section-heading p {
+    margin: 0;
+    font-size: 12px;
+    color: #777;
+}
+
+.customer-details label,
+.payment-box > label {
+    display: block;
+    margin: 14px 0 7px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.customer-details label span,
+.payment-box > label span {
+    color: #dc3545;
+}
+
+.customer-details input,
+.customer-details textarea,
+.customer-details select,
+.payment-box > select {
+    display: block;
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    background: #fff;
+    color: #222;
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.customer-details input:focus,
+.customer-details textarea:focus,
+.customer-details select:focus,
+.payment-box > select:focus {
+    border-color: #d18b24;
+    box-shadow: 0 0 0 3px rgba(209, 139, 36, 0.13);
+}
+
+.customer-details textarea {
+    resize: vertical;
+}
+
+.delivery-heading {
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.payment-heading {
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+#confirmPaymentInstructions {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 15px;
+    margin-top: 22px;
+    border: none;
+    border-radius: 9px;
+    background: #d18b24;
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#confirmPaymentInstructions:hover {
+    background: #b87513;
+}
+
+.payment-warning {
+    text-align: center;
+    font-size: 12px;
+    color: #777;
+    line-height: 1.5;
+    margin: 12px 0;
+}
+
+#closePaymentBottom {
+    display: block;
+    margin: 12px auto 0;
+}
+
+@media (max-width: 600px) {
+    .payment-box {
+        width: 94%;
+        max-height: 92vh;
+        padding: 18px;
+    }
+
+    .payment-order {
+        flex-direction: column;
+    }
+
+    .checkout-section-heading h3 {
+        font-size: 16px;
+    }
+}
