@@ -4445,3 +4445,57 @@ body.orders-popup-open {
     outline: none;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
 }
+
+
+/* ======================================
+   PRODUCT STOCK DISPLAY
+====================================== */
+
+.product-stock {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 8px 0 12px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.product-stock.in-stock {
+    color: #16803c;
+    background: #e8f7ed;
+}
+
+.product-stock.low-stock {
+    color: #a65b00;
+    background: #fff3d6;
+}
+
+.product-stock.out-of-stock {
+    color: #c62828;
+    background: #fdeaea;
+}
+
+.product-stock.stock-unavailable {
+    color: #666;
+    background: #eeeeee;
+}
+
+.dark-mode .product-stock.in-stock {
+    color: #8ee5a8;
+    background: #173d27;
+}
+
+.dark-mode .product-stock.low-stock {
+    color: #ffd27a;
+    background: #493619;
+}
+
+.dark-mode .product-stock.out-of-stock {
+    color: #ffaaaa;
+    background: #481f1f;
+}
+
+.dark-mode .product-stock.stock-unavailable {
+    color: #ccc;
+    background: #333;
+}
