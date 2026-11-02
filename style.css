@@ -3487,12 +3487,6 @@ body.dark-mode #myOrders #refreshOrdersBtn:hover {
     }
 }
 
-/* Make all order history text black */
-#myOrdersList,
-#myOrdersList * {
-    color: #000000 !important;
-}
-
 /* =========================================
    CUSTOMER MY ORDERS
 ========================================= */
