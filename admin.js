@@ -201,6 +201,9 @@ productImageFile.addEventListener("change", () => {
 const productActive =
     document.getElementById("productActive");
 
+const productNewArrival =
+    document.getElementById("productNewArrival");
+
 const productFormMessage =
     document.getElementById("productFormMessage");
 
@@ -989,6 +992,10 @@ function openNewProductModal() {
     productStock.value = "0";
     productActive.checked = true;
 
+   if (productNewArrival) {
+      productNewArrival.checked = false;
+   }
+
     productModalTitle.textContent = "Add New Product";
     saveProductButton.textContent = "Save Product";
 
@@ -1026,6 +1033,11 @@ if (product.image_url) {
     productImagePreview.hidden = false;
 }
     productActive.checked = product.is_active === true;
+
+if (productNewArrival) {
+   productNewArrival.checked =
+      product.is_new_arrival === true;
+}
 
     productModalTitle.textContent = "Edit Product";
     saveProductButton.textContent = "Update Product";
@@ -1155,15 +1167,18 @@ productForm.addEventListener("submit", async event => {
         }
 
         // Prepare product information
-        const productData = {
-            name,
-            description,
-            category,
-            price,
-            stock,
-            image_url: imageUrl,
-            is_active: productActive.checked
-        };
+       const productData = {
+          name,
+          description,
+          category,
+          price,
+          stock,
+          image_url: imageUrl,
+          is_active: productActive.checked,
+          is_new_arrival: productNewArrival
+             ? productNewArrival.checked
+             : false
+       };
 
         let result;
 
