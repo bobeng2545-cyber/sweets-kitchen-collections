@@ -39,6 +39,9 @@ let currentAdmin = null;
 let allProducts = [];
 let allOrders = [];
 let allFlashSales = [];
+let allCategories = [];
+
+let editingCategoryId = null;
 
 let editingProductId = null;
 let dashboardLoading = false;
@@ -129,6 +132,41 @@ const productCategoryFilter =
 
 const addProductButton =
     document.getElementById("addProductButton");
+
+/* Categories */
+
+const categoriesTableBody =
+    document.getElementById("categoriesTableBody");
+
+const categoriesMessage =
+    document.getElementById("categoriesMessage");
+
+const addCategoryButton =
+    document.getElementById("addCategoryButton");
+
+const categoryModal =
+    document.getElementById("categoryModal");
+
+const categoryForm =
+    document.getElementById("categoryForm");
+
+const categoryId =
+    document.getElementById("categoryId");
+
+const categoryName =
+    document.getElementById("categoryName");
+
+const categoryActive =
+    document.getElementById("categoryActive");
+
+const categoryModalTitle =
+    document.getElementById("categoryModalTitle");
+
+const categoryFormMessage =
+    document.getElementById("categoryFormMessage");
+
+const saveCategoryButton =
+    document.getElementById("saveCategoryButton");
 
 
 /* Product modal */
@@ -643,6 +681,7 @@ const sectionTitles = {
     overview: "Dashboard Overview",
     orders: "Order Management",
     products: "Product Management",
+    categories: "Category Management",
     "flash-sales": "Flash Sales",
     customers: "Customer Management"
 };
@@ -720,11 +759,12 @@ async function loadDashboardData() {
     clearGlobalMessage();
 
     try {
-        await Promise.all([
-            loadProducts(),
-            loadOrders(),
-            loadFlashSales()
-        ]);
+       await Promise.all([
+          loadCategories(),
+          loadProducts(),
+          loadOrders(),
+          loadFlashSales()
+       ]);
 
         updateDashboardStatistics();
 
@@ -772,6 +812,360 @@ function updateDashboardStatistics() {
     renderRecentOrders();
 }
 
+/* =========================================================
+   CATEGORY MANAGEMENT
+========================================================= */
+
+/* LOAD CATEGORIES */
+
+async function loadCategories() {
+    if (!categoriesTableBody) return;
+
+    hideTableMessage(categoriesMessage);
+
+    const { data, error } = await supabase
+        .from("store_categories")
+        .select("id, name, is_active, created_at")
+        .order("name", { ascending: true });
+
+    if (error) {
+        console.error("CATEGORY LOADING ERROR:", error);
+        throw error;
+    }
+
+    allCategories = data || [];
+
+    renderCategories();
+    updateProductCategoryOptions();
+    updateCategoryFilter();
+}
+
+
+/* DISPLAY CATEGORIES */
+
+function renderCategories() {
+    if (!categoriesTableBody) return;
+
+    categoriesTableBody.replaceChildren();
+
+    if (!allCategories.length) {
+        showEmptyRow(
+            categoriesTableBody,
+            "No categories have been created yet.",
+            4
+        );
+        return;
+    }
+
+    allCategories.forEach(category => {
+        const row = document.createElement("tr");
+
+        row.appendChild(createCell(category.name));
+        row.appendChild(createCell(formatDate(category.created_at)));
+
+        const statusCell = document.createElement("td");
+
+        statusCell.appendChild(
+            createStatusBadge(
+                category.is_active ? "active" : "inactive"
+            )
+        );
+
+        row.appendChild(statusCell);
+
+        const actionCell = document.createElement("td");
+        const actionGroup = document.createElement("div");
+
+        actionGroup.className = "button-group";
+
+        actionGroup.append(
+            createActionButton(
+                "Edit",
+                "edit-category",
+                category.id
+            ),
+            createActionButton(
+                category.is_active ? "Deactivate" : "Activate",
+                "toggle-category",
+                category.id
+            ),
+            createActionButton(
+                "Delete",
+                "delete-category",
+                category.id,
+                "danger-button"
+            )
+        );
+
+        actionCell.appendChild(actionGroup);
+        row.appendChild(actionCell);
+
+        categoriesTableBody.appendChild(row);
+    });
+}
+
+
+/* FILL PRODUCT CATEGORY DROPDOWN */
+
+function updateProductCategoryOptions() {
+    if (!productCategory) return;
+
+    const selectedCategory = productCategory.value;
+
+    productCategory.replaceChildren();
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Select a category";
+
+    productCategory.appendChild(placeholder);
+
+    allCategories
+        .filter(category => category.is_active)
+        .forEach(category => {
+            const option = document.createElement("option");
+
+            option.value = category.name;
+            option.textContent = category.name;
+
+            productCategory.appendChild(option);
+        });
+
+    if (
+        [...productCategory.options].some(
+            option => option.value === selectedCategory
+        )
+    ) {
+        productCategory.value = selectedCategory;
+    }
+}
+
+
+/* OPEN ADD CATEGORY MODAL */
+
+function openNewCategoryModal() {
+    editingCategoryId = null;
+
+    categoryForm.reset();
+    categoryId.value = "";
+    categoryActive.checked = true;
+
+    categoryModalTitle.textContent = "Add New Category";
+    saveCategoryButton.textContent = "Save Category";
+
+    hideMessage(categoryFormMessage);
+
+    openModal(categoryModal);
+}
+
+
+addCategoryButton.addEventListener("click", openNewCategoryModal);
+
+
+/* OPEN EDIT CATEGORY MODAL */
+
+function openEditCategoryModal(id) {
+    const category = allCategories.find(item => item.id === id);
+
+    if (!category) return;
+
+    editingCategoryId = category.id;
+
+    categoryId.value = category.id;
+    categoryName.value = category.name;
+    categoryActive.checked = category.is_active === true;
+
+    categoryModalTitle.textContent = "Edit Category";
+    saveCategoryButton.textContent = "Update Category";
+
+    hideMessage(categoryFormMessage);
+
+    openModal(categoryModal);
+}
+
+
+/* SAVE CATEGORY */
+
+categoryForm.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    hideMessage(categoryFormMessage);
+
+    const name = categoryName.value.trim();
+
+    if (!name) {
+        showMessage(
+            categoryFormMessage,
+            "Please enter a category name.",
+            "error"
+        );
+        return;
+    }
+
+    const duplicate = allCategories.some(category =>
+        category.name.toLowerCase() === name.toLowerCase() &&
+        category.id !== editingCategoryId
+    );
+
+    if (duplicate) {
+        showMessage(
+            categoryFormMessage,
+            "This category already exists.",
+            "error"
+        );
+        return;
+    }
+
+    const categoryData = {
+        name,
+        is_active: categoryActive.checked
+    };
+
+    setButtonLoading(
+        saveCategoryButton,
+        true,
+        "Saving..."
+    );
+
+    try {
+        let result;
+
+        if (editingCategoryId) {
+            result = await supabase
+                .from("store_categories")
+                .update(categoryData)
+                .eq("id", editingCategoryId);
+        } else {
+            result = await supabase
+                .from("store_categories")
+                .insert(categoryData);
+        }
+
+        if (result.error) throw result.error;
+
+        closeModal(categoryModal);
+
+        await loadCategories();
+
+        showGlobalMessage(
+            editingCategoryId
+                ? "Category updated successfully."
+                : "Category added successfully."
+        );
+
+        editingCategoryId = null;
+
+    } catch (error) {
+        console.error("CATEGORY SAVE ERROR:", error);
+
+        showMessage(
+            categoryFormMessage,
+            error.message || "Unable to save category.",
+            "error"
+        );
+
+    } finally {
+        setButtonLoading(saveCategoryButton, false);
+    }
+});
+
+
+/* ACTIVATE OR DEACTIVATE CATEGORY */
+
+async function toggleCategory(id) {
+    const category = allCategories.find(item => item.id === id);
+
+    if (!category) return;
+
+    const newStatus = !category.is_active;
+
+    const { error } = await supabase
+        .from("store_categories")
+        .update({ is_active: newStatus })
+        .eq("id", id);
+
+    if (error) {
+        console.error("CATEGORY STATUS ERROR:", error);
+        showGlobalMessage(error.message);
+        return;
+    }
+
+    await loadCategories();
+
+    showGlobalMessage(
+        newStatus
+            ? "Category activated successfully."
+            : "Category deactivated. It will no longer be available for new product selections."
+    );
+}
+
+
+/* DELETE CATEGORY */
+
+async function deleteCategory(id) {
+    const category = allCategories.find(item => item.id === id);
+
+    if (!category) return;
+
+    // Prevent deletion if existing products use this category.
+    const categoryInUse = allProducts.some(product =>
+        String(product.category || "").toLowerCase() ===
+        category.name.toLowerCase()
+    );
+
+    if (categoryInUse) {
+        showGlobalMessage(
+            "This category is assigned to existing products. " +
+            "Deactivate it instead, or change those products to another category first."
+        );
+        return;
+    }
+
+    const confirmed = window.confirm(
+        `Permanently delete the category "${category.name}"?`
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+        .from("store_categories")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        console.error("CATEGORY DELETE ERROR:", error);
+        showGlobalMessage(error.message);
+        return;
+    }
+
+    await loadCategories();
+
+    showGlobalMessage("Category deleted successfully.");
+}
+
+
+/* CATEGORY TABLE ACTIONS */
+
+categoriesTableBody.addEventListener("click", async event => {
+    const button = event.target.closest("button[data-action]");
+
+    if (!button) return;
+
+    const action = button.dataset.action;
+    const id = button.dataset.id;
+
+    if (action === "edit-category") {
+        openEditCategoryModal(id);
+    }
+
+    if (action === "toggle-category") {
+        await toggleCategory(id);
+    }
+
+    if (action === "delete-category") {
+        await deleteCategory(id);
+    }
+});
 
 
 /* =========================================================
@@ -1021,7 +1415,22 @@ function openEditProductModal(id) {
 
     productName.value = product.name || "";
     productDescription.value = product.description || "";
-    productCategory.value = product.category || "";
+    const existingCategory = product.category || "";
+
+if (
+    existingCategory &&
+    ![...productCategory.options].some(
+        option => option.value === existingCategory
+    )
+) {
+    const option = document.createElement("option");
+    option.value = existingCategory;
+    option.textContent = `${existingCategory} (Inactive)`;
+
+    productCategory.appendChild(option);
+}
+
+productCategory.value = existingCategory;
     productPrice.value = product.price ?? 0;
     productStock.value = product.stock ?? 0;
     productImage.value = product.image_url || "";
