@@ -4500,9 +4500,9 @@ body.orders-popup-open {
     background: #333;
 }
 
-/* =====================================
+/* =========================================
    NEW ARRIVALS SECTION
-===================================== */
+========================================= */
 
 .new-arrivals-section {
     width: 100%;
@@ -4541,18 +4541,25 @@ body.orders-popup-open {
     font-size: 17px;
 }
 
-/* Product grid */
+/* =========================================
+   NEW ARRIVALS PRODUCT GRID
+========================================= */
+
 .new-arrivals-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 15px;
     padding: 0 18px;
+    width: 100%;
     box-sizing: border-box;
+    align-items: stretch;
 }
 
 /* Product cards */
+
 .new-arrivals-grid .product-card {
     position: relative;
+    min-width: 0;
     background: #ffffff;
     color: #222222;
     border: 1px solid #e5e7eb;
@@ -4567,9 +4574,11 @@ body.orders-popup-open {
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.13);
 }
 
+/* Product images */
+
 .new-arrivals-grid .product-image {
     width: 100%;
-    height: 220px;
+    height: 180px;
     overflow: hidden;
 }
 
@@ -4580,6 +4589,7 @@ body.orders-popup-open {
 }
 
 /* NEW label */
+
 .new-arrival-badge {
     position: absolute;
     top: 12px;
@@ -4594,7 +4604,73 @@ body.orders-popup-open {
     letter-spacing: 1px;
 }
 
-/* Mobile */
+/* =========================================
+   NEW ARRIVALS - ADD TO CART BUTTON
+========================================= */
+
+.new-arrivals-grid .add-to-cart {
+    width: 100%;
+    padding: 13px 8px;
+    margin-top: 12px;
+    background: #2864ed;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: all 0.3s ease;
+}
+
+/* Shopping cart icon */
+
+.new-arrivals-grid .add-to-cart::before {
+    content: "🛒";
+    font-size: 15px;
+}
+
+/* Hover effect */
+
+.new-arrivals-grid .add-to-cart:hover:not(:disabled) {
+    background: #1749bd;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 14px rgba(40, 100, 237, 0.25);
+}
+
+/* Click effect */
+
+.new-arrivals-grid .add-to-cart:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+/* Disabled / out-of-stock button */
+
+.new-arrivals-grid .add-to-cart:disabled {
+    background: #9ca3af;
+    color: #ffffff;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* =========================================
+   TABLET RESPONSIVENESS
+========================================= */
+
+@media (max-width: 1100px) {
+    .new-arrivals-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* =========================================
+   SMALL TABLET RESPONSIVENESS
+========================================= */
+
 @media (max-width: 768px) {
     .new-arrivals-section {
         padding: 28px 0 35px;
@@ -4614,7 +4690,7 @@ body.orders-popup-open {
     }
 
     .new-arrivals-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
         padding: 0 10px;
     }
@@ -4622,67 +4698,25 @@ body.orders-popup-open {
     .new-arrivals-grid .product-image {
         height: 165px;
     }
-}
 
-/* =========================================
-   NEW ARRIVALS - ADD TO CART BUTTON
-========================================= */
-
-.new-arrivals-grid .add-to-cart {
-    width: 100%;
-    padding: 13px 16px;
-    margin-top: 12px;
-
-    background: #2864ed;
-    color: #ffffff;
-
-    border: none;
-    border-radius: 8px;
-
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.4px;
-
-    cursor: pointer;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 9px;
-
-    transition: all 0.3s ease;
-}
-
-/* Shopping cart icon */
-.new-arrivals-grid .add-to-cart::before {
-    content: "🛒";
-    font-size: 17px;
-}
-
-/* Hover effect */
-.new-arrivals-grid .add-to-cart:hover:not(:disabled) {
-    background: #1749bd;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 14px rgba(40, 100, 237, 0.25);
-}
-
-/* Click effect */
-.new-arrivals-grid .add-to-cart:active:not(:disabled) {
-    transform: scale(0.97);
-}
-
-/* Disabled / out-of-stock button */
-.new-arrivals-grid .add-to-cart:disabled {
-    background: #9ca3af;
-    color: #ffffff;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-/* Mobile adjustment */
-@media (max-width: 768px) {
     .new-arrivals-grid .add-to-cart {
         padding: 11px 8px;
         font-size: 12px;
+    }
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS
+========================================= */
+
+@media (max-width: 480px) {
+    .new-arrivals-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        padding: 0 10px;
+    }
+
+    .new-arrivals-grid .product-image {
+        height: 150px;
     }
 }
