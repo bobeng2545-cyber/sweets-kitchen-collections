@@ -2017,6 +2017,73 @@ const firstName = fullName.trim().split(/\s+/)[0];
         }
     });
 
+   // ==========================================
+// AUTHENTICATION + 5-MINUTE INACTIVITY LOGOUT
+// ==========================================
+
+const INACTIVITY_LIMIT = 5 * 60 * 1000;
+let inactivityTimer = null;
+let customerIsSignedIn = false;
+
+function resetInactivityTimer() {
+
+    if (!customerIsSignedIn) return;
+
+    clearTimeout(inactivityTimer);
+
+    inactivityTimer = setTimeout(async () => {
+
+        try {
+            const { error } = await client.auth.signOut();
+
+            if (error) {
+                console.error("Automatic logout failed:", error);
+                return;
+            }
+
+            alert(
+                "You have been logged out due to 5 minutes of inactivity. Please sign in again."
+            );
+
+            window.location.replace("./login.html?reason=timeout");
+
+        } catch (error) {
+            console.error("Automatic logout error:", error);
+        }
+
+    }, INACTIVITY_LIMIT);
+}
+
+// Detect customer activity
+[
+    "mousemove",
+    "mousedown",
+    "keydown",
+    "scroll",
+    "touchstart",
+    "click"
+].forEach(eventName => {
+    document.addEventListener(eventName, resetInactivityTimer, {
+        passive: true
+    });
+});
+
+// Listen for login/logout changes
+client.auth.onAuthStateChange((event, session) => {
+
+    customerIsSignedIn = Boolean(session?.user);
+
+    clearTimeout(inactivityTimer);
+
+    if (session?.user) {
+        showSignedIn(session.user);
+        resetInactivityTimer();
+    } else {
+        showSignedOut();
+    }
+
+});
+
     // Load profile when page opens
     refreshProfile();
 
