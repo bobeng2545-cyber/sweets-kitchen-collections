@@ -94,6 +94,11 @@
                     Products
                 </button>
 
+                <button type="button" class="nav-link" data-section="categories">
+                    <span class="material-symbols-outlined">category</span>
+                    Categories
+                </button>
+
                 <button type="button" class="nav-link" data-section="flash-sales">
                     <span class="material-symbols-outlined">local_fire_department</span>
                     Flash Sales
@@ -395,6 +400,57 @@
                 </div>
 
             </section>
+
+
+<!-- CATEGORIES -->
+<section class="dashboard-section" id="section-categories">
+
+    <div class="section-heading">
+        <div>
+            <h2>Category Management</h2>
+            <p>Create and manage your store product categories.</p>
+        </div>
+
+        <button
+            type="button"
+            class="primary-button compact"
+            id="addCategoryButton"
+        >
+            + Add Category
+        </button>
+    </div>
+
+    <div class="content-card">
+
+        <p id="categoriesMessage" class="table-message" role="status"></p>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category Name</th>
+                        <th>Date Created</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="categoriesTableBody">
+                    <tr>
+                        <td colspan="4" class="empty-cell">
+                            Categories will appear here.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- FLASH SALES -->
 
 
             <!-- FLASH SALES -->
