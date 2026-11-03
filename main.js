@@ -128,7 +128,7 @@ async function connectStoreProductIds() {
 
     const { data, error } = await supabaseClient
         .from("store_products")
-        .select("id, name, description, price, category, image_url, stock")
+        .select("id, name, description, price, category, image_url, stock, is_new_arrival")
         .eq("is_active", true);
 
     if (error) {
@@ -428,6 +428,72 @@ function updateProductStock(card, stock) {
 
         productsGrid.appendChild(card);
     });
+
+       // =========================================
+    // DISPLAY PRODUCTS MARKED AS NEW ARRIVALS
+    // =========================================
+
+    const newArrivalsSection =
+        document.getElementById("newArrivalsSection");
+
+    const newArrivalsGrid =
+        document.getElementById("newArrivalsGrid");
+
+    if (newArrivalsSection && newArrivalsGrid) {
+
+        // Remove previous New Arrival cards before reloading.
+        newArrivalsGrid
+            .querySelectorAll(".new-arrival-product-card")
+            .forEach(card => card.remove());
+
+        // Get active products marked as New Arrivals.
+        const newArrivalProducts = products.filter(product =>
+            product.is_new_arrival === true
+        );
+
+        newArrivalProducts.forEach(product => {
+
+            // Find the product's existing card in the normal catalogue.
+            const originalCard = Array.from(
+                productsGrid.querySelectorAll(".product-card")
+            ).find(card =>
+                String(card.dataset.productId) === String(product.id)
+            );
+
+            if (!originalCard) {
+                console.warn(
+                    "New Arrival card not found:",
+                    product.name
+                );
+                return;
+            }
+
+            // Clone the original card to preserve its product details.
+            const arrivalCard = originalCard.cloneNode(true);
+
+            arrivalCard.classList.add("new-arrival-product-card");
+
+            // Add the NEW badge to the product image.
+            const imageContainer =
+                arrivalCard.querySelector(".product-image");
+
+            if (imageContainer) {
+
+                const badge = document.createElement("span");
+
+                badge.className = "new-arrival-badge";
+                badge.textContent = "NEW";
+
+                imageContainer.prepend(badge);
+            }
+
+            newArrivalsGrid.appendChild(arrivalCard);
+        });
+
+        // Hide the section when there are no New Arrivals.
+        newArrivalsSection.hidden =
+            newArrivalProducts.length === 0;
+    }
 
     console.log(
         "Store products loaded successfully:",
