@@ -833,30 +833,6 @@ async function loadCategories() {
 
     allCategories = data || [];
 
-    // Display categories if the category table exists.
-    renderCategories();
-
-    // Populate the Add Product category dropdown.
-    updateProductCategoryOptions();
-
-    // Update the product category filter.
-    updateCategoryFilter();
-}
-
-    hideTableMessage(categoriesMessage);
-
-    const { data, error } = await supabase
-        .from("store_categories")
-        .select("id, name, is_active, created_at")
-        .order("name", { ascending: true });
-
-    if (error) {
-        console.error("CATEGORY LOADING ERROR:", error);
-        throw error;
-    }
-
-    allCategories = data || [];
-
     renderCategories();
     updateProductCategoryOptions();
     updateCategoryFilter();
