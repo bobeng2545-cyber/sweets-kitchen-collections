@@ -959,7 +959,10 @@ function openNewCategoryModal() {
 }
 
 
-addCategoryButton.addEventListener("click", openNewCategoryModal);
+addCategoryButton?.addEventListener(
+    "click",
+    openNewCategoryModal
+);
 
 
 /* OPEN EDIT CATEGORY MODAL */
@@ -1146,7 +1149,7 @@ async function deleteCategory(id) {
 
 /* CATEGORY TABLE ACTIONS */
 
-categoriesTableBody.addEventListener("click", async event => {
+categoriesTableBody?.addEventListener("click", async event => {
     const button = event.target.closest("button[data-action]");
 
     if (!button) return;
