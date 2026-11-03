@@ -502,7 +502,6 @@
                 <textarea id="productDescription" rows="3" placeholder="Describe your product"></textarea>
 
                 <label for="productCategory">Category</label>
-                
                 <select id="productCategory" required>
                     <option value="">Loading categories...</option>
                 </select>
@@ -555,58 +554,7 @@
 
     </div>
 
-    <!-- ==========================================
-     CATEGORY MANAGEMENT SECTION
-========================================== -->
-
-<section class="admin-section" id="section-categories">
-
-    <div class="section-header">
-        <div>
-            <h1>Category Management</h1>
-            <p>Manage the categories available in your store.</p>
-        </div>
-
-        <button
-            type="button"
-            class="primary-button"
-            id="addCategoryButton"
-        >
-            <span class="material-symbols-outlined">add</span>
-            Add Category
-        </button>
-    </div>
-
-    <div class="table-container">
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Category Name</th>
-                    <th>Status</th>
-                    <th>Date Created</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-
-            <tbody id="categoriesTableBody">
-                <tr>
-                    <td colspan="4">Loading categories...</td>
-                </tr>
-            </tbody>
-        </table>
-
-    </div>
-
-    <p id="categoriesMessage" class="message" role="status"></p>
-
-</section>
-
-
-<!-- ==========================================
-     CATEGORY MODAL
-========================================== -->
-
+    <!-- CATEGORY MODAL -->
 <div class="modal-backdrop" id="categoryModal" hidden>
 
     <div class="modal-card">
@@ -630,7 +578,6 @@
             <input type="hidden" id="categoryId">
 
             <label for="categoryName">Category Name</label>
-
             <input
                 type="text"
                 id="categoryName"
@@ -640,19 +587,11 @@
             >
 
             <label class="checkbox-row">
-                <input
-                    type="checkbox"
-                    id="categoryActive"
-                    checked
-                >
+                <input type="checkbox" id="categoryActive" checked>
                 Make this category available in the store
             </label>
 
-            <p
-                id="categoryFormMessage"
-                class="message"
-                role="status"
-            ></p>
+            <p id="categoryFormMessage" class="message" role="status"></p>
 
             <button
                 type="submit"
