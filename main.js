@@ -3340,109 +3340,102 @@ const firstName = fullName.trim().split(/\s+/)[0];
        15P. CHECK AND RETRIEVE COMPLETE ORDERS
     ================================================= */
 
-    async function checkOrderNotifications() {
-        if (
-            !supabaseClient ||
-            notificationCheckInProgress
+    
+async function checkOrderNotifications() {
+    if (!supabaseClient || notificationCheckInProgress) {
+        return;
+    }
+
+    notificationCheckInProgress = true;
+
+    if (refreshOrdersBtn) {
+        refreshOrdersBtn.disabled = true;
+        refreshOrdersBtn.setAttribute("aria-busy", "true");
+    }
+
+    const retrievedOrders = [];
+    const orderReferences = new Set();
+
+    try {
+        // 1. Retrieve orders belonging to the signed-in account.
+        const {
+            data: accountData,
+            error: accountError
+        } = await supabaseClient.functions.invoke(
+            "get-my-orders"
+        );
+
+        if (accountError) {
+            console.error(
+                "Account orders retrieval failed:",
+                accountError
+            );
+        } else if (
+            accountData?.success === true &&
+            Array.isArray(accountData.orders)
         ) {
-            return;
+            accountData.orders.forEach(order => {
+                if (!order.reference) return;
+
+                retrievedOrders.push(order);
+                orderReferences.add(order.reference);
+            });
         }
 
-        notificationCheckInProgress = true;
-
-        if (refreshOrdersBtn) {
-            refreshOrdersBtn.disabled = true;
-            refreshOrdersBtn.setAttribute("aria-busy", "true");
-        }
-
+        // 2. Retrieve guest orders using their private tokens.
         const savedOrders = getSavedOrderNotifications();
-        const retrievedOrders = [];
 
-        try {
-            if (savedOrders.length === 0) {
-                renderCustomerOrders([]);
-
-                const list = document.getElementById(
-                    "orderNotificationList"
-                );
-
-                if (list) {
-                    list.textContent = "No order updates yet.";
-                }
-
-                return;
-            }
-
-            for (const savedOrder of savedOrders) {
-                try {
-                    const { data, error } =
-                        await supabaseClient.functions.invoke(
-                            "get-order-notifications",
-                            {
-                                body: {
-                                    reference: savedOrder.reference,
-                                    notification_token: savedOrder.token
-                                }
+        for (const savedOrder of savedOrders) {
+            try {
+                const { data, error } =
+                    await supabaseClient.functions.invoke(
+                        "get-order-notifications",
+                        {
+                            body: {
+                                reference: savedOrder.reference,
+                                notification_token: savedOrder.token
                             }
-                        );
-
-                    if (error) {
-                        console.error(
-                            "Order retrieval failed:",
-                            savedOrder.reference,
-                            error
-                        );
-                        continue;
-                    }
-
-                    if (
-                        !data ||
-                        data.success !== true ||
-                        !data.notification ||
-                        !data.order
-                    ) {
-                        console.warn(
-                            "Incomplete order response:",
-                            savedOrder.reference,
-                            data
-                        );
-                        continue;
-                    }
-
-                    const order = data.order;
-                    const notification = data.notification;
-
-                    retrievedOrders.push(order);
-
-                    displayOrderNotification(
-                        order,
-                        notification
+                        }
                     );
 
-                    if (
-                        notification.payment_status == null ||
-                        notification.order_status == null
-                    ) {
-                        continue;
-                    }
+                if (error) {
+                    console.error(
+                        "Guest order retrieval failed:",
+                        savedOrder.reference,
+                        error
+                    );
+                    continue;
+                }
 
-                    const currentStatus = {
-                        payment_status: notification.payment_status,
-                        order_status: notification.order_status
-                    };
+                if (
+                    !data ||
+                    data.success !== true ||
+                    !data.notification ||
+                    !data.order
+                ) {
+                    continue;
+                }
 
-                    const previousStatus =
-                        orderStatusSnapshots[savedOrder.reference];
+                const order = data.order;
+                const notification = data.notification;
 
-                    // First successful check establishes the baseline.
-                    if (!previousStatus) {
-                        orderStatusSnapshots[savedOrder.reference] =
-                            currentStatus;
+                // Display the latest payment and delivery status.
+                displayOrderNotification(order, notification);
 
-                        saveOrderStatusSnapshots();
-                        continue;
-                    }
+                const currentStatus = {
+                    payment_status: notification.payment_status,
+                    order_status: notification.order_status
+                };
 
+                const previousStatus =
+                    orderStatusSnapshots[savedOrder.reference];
+
+                if (!previousStatus) {
+                    orderStatusSnapshots[savedOrder.reference] =
+                        currentStatus;
+
+                    saveOrderStatusSnapshots();
+                } else {
                     const paymentChanged =
                         previousStatus.payment_status !==
                         currentStatus.payment_status;
@@ -3481,36 +3474,67 @@ const firstName = fullName.trim().split(/\s+/)[0];
                         currentStatus;
 
                     saveOrderStatusSnapshots();
-
-                } catch (error) {
-                    console.error(
-                        "Could not retrieve order:",
-                        savedOrder.reference,
-                        error
-                    );
                 }
-            }
 
-            renderCustomerOrders(retrievedOrders);
+                // Do not duplicate an account order.
+                if (!orderReferences.has(order.reference)) {
+                    retrievedOrders.push(order);
+                    orderReferences.add(order.reference);
+                }
 
-            if (
-                retrievedOrders.length === 0 &&
-                ordersMessage
-            ) {
-                ordersMessage.hidden = false;
-                ordersMessage.textContent =
-                    "We could not retrieve your orders. Please refresh and try again.";
-            }
-
-        } finally {
-            notificationCheckInProgress = false;
-
-            if (refreshOrdersBtn) {
-                refreshOrdersBtn.disabled = false;
-                refreshOrdersBtn.removeAttribute("aria-busy");
+            } catch (error) {
+                console.error(
+                    "Could not retrieve guest order:",
+                    savedOrder.reference,
+                    error
+                );
             }
         }
+
+        // 3. Show all retrieved orders, newest first.
+        retrievedOrders.sort((a, b) =>
+            new Date(b.created_at || 0) -
+            new Date(a.created_at || 0)
+        );
+
+        renderCustomerOrders(retrievedOrders);
+
+        const list = document.getElementById(
+            "orderNotificationList"
+        );
+
+        if (list && list.children.length === 0) {
+            list.textContent = "No order updates yet.";
+        }
+
+        if (
+            retrievedOrders.length === 0 &&
+            ordersMessage
+        ) {
+            ordersMessage.hidden = false;
+            ordersMessage.textContent =
+                "No orders were found for this account or browser.";
+        }
+
+    } catch (error) {
+        console.error("My Orders refresh failed:", error);
+
+        if (ordersMessage) {
+            ordersMessage.hidden = false;
+            ordersMessage.textContent =
+                "We could not retrieve your orders. Please refresh and try again.";
+        }
+
+    } finally {
+        notificationCheckInProgress = false;
+
+        if (refreshOrdersBtn) {
+            refreshOrdersBtn.disabled = false;
+            refreshOrdersBtn.removeAttribute("aria-busy");
+        }
     }
+}
+
 
 
     /* =================================================
