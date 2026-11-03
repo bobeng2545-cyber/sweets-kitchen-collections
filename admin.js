@@ -832,6 +832,8 @@ async function loadCategories() {
     }
 
     allCategories = data || [];
+   
+   console.log("CATEGORIES FROM SUPABASE:", allCategories);
 
     renderCategories();
     updateProductCategoryOptions();
