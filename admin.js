@@ -959,11 +959,7 @@ function openNewCategoryModal() {
 }
 
 
-if (addCategoryButton) {
-    addCategoryButton.addEventListener("click", openNewCategoryModal);
-} else {
-    console.error("Add Category button not found. Check admin.html for id='addCategoryButton'.");
-}
+addCategoryButton.addEventListener("click", openNewCategoryModal);
 
 
 /* OPEN EDIT CATEGORY MODAL */
