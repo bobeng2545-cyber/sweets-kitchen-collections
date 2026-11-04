@@ -3720,6 +3720,17 @@ async function checkOrderNotifications() {
 // 1. RETRIEVE REGISTERED CUSTOMER ORDERS
 // ==========================================
 
+   const {
+      data: { session },
+      error: sessionError
+   } = await supabaseClient.auth.getSession();
+       
+       console.log("MY ORDERS SESSION CHECK:", {
+          hasSession: Boolean(session),
+          userId: session?.user?.id || null,
+          error: sessionError?.message || null
+       });
+
 const {
     data: accountData,
     error: accountError
