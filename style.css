@@ -4722,3 +4722,26 @@ body.orders-popup-open {
         font-size: 12px;
     }
 }
+
+/* ======================================
+   FLASH SALE COUNTDOWN TIMER
+====================================== */
+
+.flash-sale-countdown {
+    display: block;
+    width: fit-content;
+    margin: 12px 0;
+    padding: 9px 14px;
+    background: #fff0f0;
+    color: #d90000;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+
+.dark-mode .flash-sale-countdown {
+    background: #451b1b;
+    color: #ff7777;
+}
