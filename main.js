@@ -3223,61 +3223,67 @@ if (clearNotifications) {
 
 
 
-    /* =================================================
-       15K. ORDER STATUS UPDATE CONTAINER
-    ================================================= */
+    
+/* =================================================
+   15K. ORDER STATUS UPDATE CONTAINER
+================================================= */
 
-    function createOrderNotificationContainer() {
-        if (!myOrdersSectionElement) return null;
+function createOrderNotificationContainer() {
+    if (!myOrdersSectionElement) return null;
 
-        let container = document.getElementById(
-            "orderNotificationContainer"
+    let container = document.getElementById(
+        "orderNotificationContainer"
+    );
+
+    if (!container) {
+        container = document.createElement("div");
+
+        container.id = "orderNotificationContainer";
+        container.className = "order-notification-container";
+
+        container.appendChild(
+            createOrderElement(
+                "h3",
+                "",
+                "My Order Updates"
+            )
         );
 
-        if (!container) {
-            container = document.createElement("div");
+        container.appendChild(
+            createOrderElement(
+                "p",
+                "",
+                "Your payment and delivery updates will appear here."
+            )
+        );
 
-            container.id = "orderNotificationContainer";
-            container.className = "order-notification-container";
+        const list = document.createElement("div");
+        list.id = "orderNotificationList";
 
-            container.appendChild(
-                createOrderElement(
-                    "h3",
-                    "",
-                    "My Order Updates"
-                )
+        container.appendChild(list);
+
+        // Place the container before the footer
+        // only when the footer belongs to this parent.
+        const footer = myOrdersSectionElement.querySelector(
+            ".orders-modal-footer"
+        );
+
+        if (
+            footer &&
+            footer.parentElement === myOrdersSectionElement
+        ) {
+            myOrdersSectionElement.insertBefore(
+                container,
+                footer
             );
-
-            container.appendChild(
-                createOrderElement(
-                    "p",
-                    "",
-                    "Your payment and delivery updates will appear here."
-                )
-            );
-
-            const list = document.createElement("div");
-            list.id = "orderNotificationList";
-
-            container.appendChild(list);
-
-            // Place order updates above the modal footer.
-            const footer = myOrdersSectionElement.querySelector(
-                ".orders-modal-footer"
-            );
-
-            if (footer) {
-                myOrdersSectionElement.insertBefore(
-                    container,
-                    footer
-                );
-            } else {
-                myOrdersSectionElement.appendChild(container);
-            }
+        } else {
+            myOrdersSectionElement.appendChild(container);
         }
-
-        return container;
     }
+
+    return container;
+}
+
 
 
     /* =================================================
