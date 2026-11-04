@@ -4546,10 +4546,10 @@ body.orders-popup-open {
 ========================================= */
 
 .new-arrivals-grid {
-    display: grid;
+    display: flex;
     grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 15px;
-    padding: 0 18px;
+    padding: 5px 10px 15px;
     width: 100%;
     box-sizing: border-box;
     align-items: stretch;
@@ -4559,27 +4559,32 @@ body.orders-popup-open {
 
 .new-arrivals-grid .product-card {
     position: relative;
-    min-width: 0;
-    background: #ffffff;
+    min-width: 100;
+    background: #fff;
     color: #222222;
     border: 1px solid #e5e7eb;
-    border-radius: 13px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.08);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .new-arrivals-grid .product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.13);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.13);
 }
 
 /* Product images */
 
 .new-arrivals-grid .product-image {
+    position: relative;
+    display: block;
     width: 100%;
-    height: 180px;
+    height: 240px;
+    min-height: 240px;
+    padding: 0;
     overflow: hidden;
+    background: #f5f5f5;
 }
 
 .new-arrivals-grid .product-image img {
