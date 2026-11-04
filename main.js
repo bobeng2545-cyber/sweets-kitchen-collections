@@ -3236,65 +3236,24 @@ if (clearNotifications) {
 
 
     
+
 /* =================================================
    15K. ORDER STATUS UPDATE CONTAINER
 ================================================= */
 
 function createOrderNotificationContainer() {
-    if (!myOrdersSectionElement) return null;
-
-    let container = document.getElementById(
+    // Do not create a second order-updates panel.
+    const existingContainer = document.getElementById(
         "orderNotificationContainer"
     );
 
-    if (!container) {
-        container = document.createElement("div");
-
-        container.id = "orderNotificationContainer";
-        container.className = "order-notification-container";
-
-        container.appendChild(
-            createOrderElement(
-                "h3",
-                "",
-                "My Order Updates"
-            )
-        );
-
-        container.appendChild(
-            createOrderElement(
-                "p",
-                "",
-                "Your payment and delivery updates will appear here."
-            )
-        );
-
-        const list = document.createElement("div");
-        list.id = "orderNotificationList";
-
-        container.appendChild(list);
-
-        // Place the container before the footer
-        // only when the footer belongs to this parent.
-        const footer = myOrdersSectionElement.querySelector(
-            ".orders-modal-footer"
-        );
-
-        if (
-            footer &&
-            footer.parentElement === myOrdersSectionElement
-        ) {
-            myOrdersSectionElement.insertBefore(
-                container,
-                footer
-            );
-        } else {
-            myOrdersSectionElement.appendChild(container);
-        }
+    if (existingContainer) {
+        existingContainer.remove();
     }
 
-    return container;
+    return null;
 }
+
 
 
 
