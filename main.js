@@ -2978,93 +2978,121 @@ function mergeDatabaseNotifications(records) {
        15I. MARK ALL NOTIFICATIONS AS READ
     ================================================= */
 
-    if (markAllNotificationsRead) {
-        markAllNotificationsRead.addEventListener(
-            "click",
-            async function (event) {
-                event.preventDefault();
+    
+if (markAllNotificationsRead) {
+    markAllNotificationsRead.addEventListener(
+        "click",
+        async function (event) {
 
-                if (customerNotifications.length === 0) {
-                    return;
+            event.preventDefault();
+
+            if (customerNotifications.length === 0) {
+                return;
+            }
+
+            try {
+
+                // ==========================================
+                // 1. CHECK CUSTOMER LOGIN SESSION
+                // ==========================================
+
+                const {
+                    data: sessionData,
+                    error: sessionError
+                } = await supabaseClient.auth.getSession();
+
+                if (sessionError) {
+                    throw sessionError;
                 }
 
-                try {
-                    const { data: sessionData } =
-                        await supabaseClient.auth.getSession();
+                const session = sessionData?.session;
 
-                    const session = sessionData?.session;
+                // ==========================================
+                // 2. MARK REGISTERED CUSTOMER NOTIFICATIONS
+                // ==========================================
 
-                    if (session?.user) {
+                if (session?.user) {
 
-                        const { data, error } =
-                            await supabaseClient.functions.invoke(
-                                "manage-order-notifications",
-                                {
-                                    body: {
-                                        action: "mark_all_read",
-                                        customer_type: "registered"
-                                    }
-                                }
-                            );
-
-                        if (error || data?.success !== true) {
-                            throw new Error(
-                                data?.message ||
-                                error?.message ||
-                                "Could not update notifications."
-                            );
-                        }
-
-                    } else {
-
-                        const savedOrders =
-                            getSavedOrderNotifications();
-
-                        for (const savedOrder of savedOrders) {
-
-                            const { data, error } =
-                                await supabaseClient.functions.invoke(
-                                    "manage-order-notifications",
-                                    {
-                                        body: {
-                                            action: "mark_all_read",
-                                            customer_type: "guest",
-                                            reference: savedOrder.reference,
-                                            notification_token: savedOrder.token
-                                        }
-                                    }
-                                );
-
-                            if (error || data?.success !== true) {
-                                console.warn(
-                                    "Could not mark guest notifications as read:",
-                                    savedOrder.reference,
-                                    error?.message || data?.message
-                                );
+                    const {
+                        data,
+                        error
+                    } = await supabaseClient.functions.invoke(
+                        "manage-order-notifications",
+                        {
+                            body: {
+                                action: "mark_all_read",
+                                customer_type: "registered"
                             }
                         }
+                    );
+
+                    if (error || data?.success !== true) {
+                        throw new Error(
+                            data?.message ||
+                            error?.message ||
+                            "Could not update registered customer notifications."
+                        );
                     }
-
-                    customerNotifications.forEach(item => {
-                        item.read = true;
-                    });
-
-                    saveCustomerNotifications();
-                    renderCustomerNotifications();
-
-                } catch (error) {
-                    console.error(
-                        "Mark all notifications as read failed:",
-                        error
-                    );
-
-                    alert(
-                        "Could not update notifications. Please try again."
-                    );
                 }
+
+                // ==========================================
+                // 3. MARK ALL SAVED GUEST ORDER NOTIFICATIONS
+                // ==========================================
+
+                const savedOrders =
+                    getSavedOrderNotifications();
+
+                for (const savedOrder of savedOrders) {
+
+                    const {
+                        data,
+                        error
+                    } = await supabaseClient.functions.invoke(
+                        "manage-order-notifications",
+                        {
+                            body: {
+                                action: "mark_all_read",
+                                customer_type: "guest",
+                                reference: savedOrder.reference,
+                                notification_token: savedOrder.token
+                            }
+                        }
+                    );
+
+                    if (error || data?.success !== true) {
+                        throw new Error(
+                            data?.message ||
+                            error?.message ||
+                            "Could not update guest order notifications."
+                        );
+                    }
+                }
+
+                // ==========================================
+                // 4. UPDATE THE LOCAL NOTIFICATION DISPLAY
+                // ==========================================
+
+                customerNotifications.forEach(item => {
+                    item.read = true;
+                });
+
+                saveCustomerNotifications();
+                renderCustomerNotifications();
+
+            } catch (error) {
+
+                console.error(
+                    "Mark all notifications as read failed:",
+                    error
+                );
+
+                alert(
+                    "Could not update all notifications. Please try again."
+                );
             }
-        );
-    }
+        }
+    );
+}
 
 
     
