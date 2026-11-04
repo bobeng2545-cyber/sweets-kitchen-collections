@@ -3758,47 +3758,52 @@ async function checkOrderNotifications() {
     try {
 
         // ==========================================
-        // 1. RETRIEVE REGISTERED CUSTOMER ORDERS
-        // ==========================================
+// 1. RETRIEVE REGISTERED CUSTOMER ORDERS
+// ==========================================
 
-        const {
-            data: accountData,
-            error: accountError
-        } = await supabaseClient.functions.invoke(
-            "get-my-orders"
+const {
+    data: accountData,
+    error: accountError
+} = await supabaseClient.functions.invoke(
+    "get-my-orders"
+);
+
+console.log("REGISTERED ACCOUNT RESPONSE:", accountData);
+
+if (accountError) {
+
+    console.warn(
+        "Account orders retrieval:",
+        accountError.message
+    );
+
+} else if (accountData?.success === true) {
+
+    console.log(
+        "REGISTERED NOTIFICATIONS:",
+        accountData.notifications
+    );
+
+    // Collect registered-customer notifications.
+    if (Array.isArray(accountData.notifications)) {
+        allDatabaseNotifications.push(
+            ...accountData.notifications
         );
+    }
 
-        if (accountError) {
+    // Load registered-customer orders.
+    if (Array.isArray(accountData.orders)) {
 
-            console.warn(
-                "Account orders retrieval:",
-                accountError.message
-            );
+        accountData.orders.forEach(order => {
 
-        } else if (
-            accountData?.success === true
-        ) {
+            if (!order.reference) return;
 
-            // Collect registered-customer notifications.
-            if (Array.isArray(accountData.notifications)) {
-                allDatabaseNotifications.push(
-                    ...accountData.notifications
-                );
-            }
+            retrievedOrders.push(order);
 
-            // Load registered-customer orders.
-            if (Array.isArray(accountData.orders)) {
-
-                accountData.orders.forEach(order => {
-
-                    if (!order.reference) return;
-
-                    retrievedOrders.push(order);
-
-                    orderReferences.add(order.reference);
-                });
-            }
-        }
+            orderReferences.add(order.reference);
+        });
+    }
+}
 
         // ==========================================
         // 2. RETRIEVE GUEST CUSTOMER ORDERS
