@@ -3660,6 +3660,7 @@ function mergeDatabaseNotifications(records) {
    15P. CHECK AND RETRIEVE COMPLETE ORDERS
 ================================================= */
 
+
 async function checkOrderNotifications() {
 
     if (!supabaseClient || notificationCheckInProgress) {
@@ -3675,6 +3676,9 @@ async function checkOrderNotifications() {
 
     const retrievedOrders = [];
     const orderReferences = new Set();
+
+    // Collect every database notification before merging.
+    const allDatabaseNotifications = [];
 
     try {
 
@@ -3700,10 +3704,12 @@ async function checkOrderNotifications() {
             accountData?.success === true
         ) {
 
-            // Load actual registered-customer notifications.
-            mergeDatabaseNotifications(
-                accountData.notifications || []
-            );
+            // Collect registered-customer notifications.
+            if (Array.isArray(accountData.notifications)) {
+                allDatabaseNotifications.push(
+                    ...accountData.notifications
+                );
+            }
 
             // Load registered-customer orders.
             if (Array.isArray(accountData.orders)) {
@@ -3761,10 +3767,12 @@ async function checkOrderNotifications() {
                     continue;
                 }
 
-                // Load actual guest notification records.
-                mergeDatabaseNotifications(
-                    data.notifications || []
-                );
+                // Collect this guest order's notifications.
+                if (Array.isArray(data.notifications)) {
+                    allDatabaseNotifications.push(
+                        ...data.notifications
+                    );
+                }
 
                 const order = data.order;
                 const notification = data.notification;
@@ -3796,7 +3804,15 @@ async function checkOrderNotifications() {
         }
 
         // ==========================================
-        // 3. SORT ORDERS BY DATE
+        // 3. MERGE ALL DATABASE NOTIFICATIONS ONCE
+        // ==========================================
+
+        mergeDatabaseNotifications(
+            allDatabaseNotifications
+        );
+
+        // ==========================================
+        // 4. SORT ORDERS BY DATE
         // ==========================================
 
         retrievedOrders.sort((a, b) =>
@@ -3805,7 +3821,7 @@ async function checkOrderNotifications() {
         );
 
         // ==========================================
-        // 4. DISPLAY CUSTOMER ORDERS
+        // 5. DISPLAY CUSTOMER ORDERS
         // ==========================================
 
         renderCustomerOrders(retrievedOrders);
@@ -3856,6 +3872,7 @@ async function checkOrderNotifications() {
         }
     }
 }
+
 
 
 
