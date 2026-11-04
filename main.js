@@ -261,9 +261,16 @@ function updateProductStock(card, stock) {
         );
 
         if (!product) {
-            console.warn("Product not found in Supabase:", originalName);
-            return;
-        }
+    console.warn(
+        "Product is inactive, hidden or unavailable:",
+        originalName
+    );
+
+    // Do not display products that are not active in Supabase.
+    card.remove();
+
+    return;
+}
 
         usedProductIds.add(product.id);
 
@@ -488,6 +495,10 @@ function updateProductStock(card, stock) {
             }
 
             newArrivalsGrid.appendChild(arrivalCard);
+
+           // Remove the original from Sweet Products.
+           // It will now appear only in New Arrivals.
+           originalCard.remove();
         });
 
         // Hide the section when there are no New Arrivals.
@@ -1018,8 +1029,13 @@ function updateProductStock(card, stock) {
             ? searchInput.value.trim().toLowerCase()
             : "";
 
-        const productCards =
-            document.querySelectorAll(".product-card");
+        // Filter only products inside the main Sweet Products catalogue.
+       // New Arrivals and Flash Sales remain separate.
+       const productCards = productsGrid
+          ? productsGrid.querySelectorAll(
+             ".product-card:not(.flash-sale-card)"
+          )
+          : [];
 
         let matchingProducts = 0;
 
