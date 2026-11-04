@@ -2982,6 +2982,7 @@ function mergeDatabaseNotifications(records) {
     }
 
 
+    
     /* =================================================
        15I. MARK ALL NOTIFICATIONS AS READ
     ================================================= */
@@ -2989,15 +2990,87 @@ function mergeDatabaseNotifications(records) {
     if (markAllNotificationsRead) {
         markAllNotificationsRead.addEventListener(
             "click",
-            function (event) {
+            async function (event) {
                 event.preventDefault();
 
-                customerNotifications.forEach(item => {
-                    item.read = true;
-                });
+                if (customerNotifications.length === 0) {
+                    return;
+                }
 
-                saveCustomerNotifications();
-                renderCustomerNotifications();
+                try {
+                    const { data: sessionData } =
+                        await supabaseClient.auth.getSession();
+
+                    const session = sessionData?.session;
+
+                    if (session?.user) {
+
+                        const { data, error } =
+                            await supabaseClient.functions.invoke(
+                                "manage-order-notifications",
+                                {
+                                    body: {
+                                        action: "mark_all_read",
+                                        customer_type: "registered"
+                                    }
+                                }
+                            );
+
+                        if (error || data?.success !== true) {
+                            throw new Error(
+                                data?.message ||
+                                error?.message ||
+                                "Could not update notifications."
+                            );
+                        }
+
+                    } else {
+
+                        const savedOrders =
+                            getSavedOrderNotifications();
+
+                        for (const savedOrder of savedOrders) {
+
+                            const { data, error } =
+                                await supabaseClient.functions.invoke(
+                                    "manage-order-notifications",
+                                    {
+                                        body: {
+                                            action: "mark_all_read",
+                                            customer_type: "guest",
+                                            reference: savedOrder.reference,
+                                            notification_token: savedOrder.token
+                                        }
+                                    }
+                                );
+
+                            if (error || data?.success !== true) {
+                                console.warn(
+                                    "Could not mark guest notifications as read:",
+                                    savedOrder.reference,
+                                    error?.message || data?.message
+                                );
+                            }
+                        }
+                    }
+
+                    customerNotifications.forEach(item => {
+                        item.read = true;
+                    });
+
+                    saveCustomerNotifications();
+                    renderCustomerNotifications();
+
+                } catch (error) {
+                    console.error(
+                        "Mark all notifications as read failed:",
+                        error
+                    );
+
+                    alert(
+                        "Could not update notifications. Please try again."
+                    );
+                }
             }
         );
     }
