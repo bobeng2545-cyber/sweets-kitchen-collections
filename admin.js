@@ -2936,13 +2936,22 @@ addFlashSaleButton.addEventListener("click", () => {
 
 /* Create flash sale */
 
+
+/* =========================================================
+   CREATE FLASH SALE
+   WITH ADMIN AUTHENTICATION DIAGNOSTICS
+========================================================= */
+
 flashSaleForm.addEventListener("submit", async event => {
+
     event.preventDefault();
 
     const formMessage =
         document.getElementById("saleFormMessage");
 
     hideMessage(formMessage);
+
+    /* GET FORM VALUES */
 
     const productIdValue = saleProduct.value;
 
@@ -2951,7 +2960,11 @@ flashSaleForm.addEventListener("submit", async event => {
     const start = new Date(saleStart.value);
     const end = new Date(saleEnd.value);
 
+
+    /* VALIDATE PRODUCT */
+
     if (!productIdValue) {
+
         showMessage(
             formMessage,
             "Please select a product.",
@@ -2961,11 +2974,15 @@ flashSaleForm.addEventListener("submit", async event => {
         return;
     }
 
+
+    /* VALIDATE DISCOUNT */
+
     if (
         !Number.isFinite(discount) ||
         discount <= 0 ||
         discount >= 100
     ) {
+
         showMessage(
             formMessage,
             "Discount must be between 1 and 99 percent.",
@@ -2975,11 +2992,15 @@ flashSaleForm.addEventListener("submit", async event => {
         return;
     }
 
+
+    /* VALIDATE DATES */
+
     if (
         Number.isNaN(start.getTime()) ||
         Number.isNaN(end.getTime()) ||
         end <= start
     ) {
+
         showMessage(
             formMessage,
             "The end date must be later than the start date.",
@@ -2989,13 +3010,23 @@ flashSaleForm.addEventListener("submit", async event => {
         return;
     }
 
+
+    /* PREPARE FLASH SALE DATA */
+
     const saleData = {
+
         product_id: productIdValue,
+
         discount_percentage: discount,
+
         starts_at: start.toISOString(),
+
         ends_at: end.toISOString(),
+
         is_active: true
+
     };
+
 
     setButtonLoading(
         saveFlashSaleButton,
@@ -3003,32 +3034,108 @@ flashSaleForm.addEventListener("submit", async event => {
         "Creating..."
     );
 
+
     try {
-        const { error } = await supabase
+
+        /* =========================================
+           STEP 1: CHECK AUTHENTICATED USER
+        ========================================= */
+
+        const {
+            data: authData,
+            error: authError
+        } = await supabase.auth.getUser();
+
+
+        console.log(
+            "CURRENT AUTHENTICATED USER:",
+            authData?.user?.id || null
+        );
+
+        console.log(
+            "AUTHENTICATION ERROR:",
+            authError
+        );
+
+
+        /* =========================================
+           STEP 2: CHECK ADMINISTRATOR PERMISSION
+        ========================================= */
+
+        const {
+            data: adminCheck,
+            error: adminError
+        } = await supabase.rpc("is_store_admin");
+
+
+        console.log(
+            "IS STORE ADMIN:",
+            adminCheck
+        );
+
+        console.log(
+            "ADMIN CHECK ERROR:",
+            adminError
+        );
+
+
+        /* =========================================
+           STEP 3: ATTEMPT FLASH SALE INSERT
+        ========================================= */
+
+        const {
+            error: insertError
+        } = await supabase
             .from("store_flash_sales")
             .insert(saleData);
 
-        if (error) throw error;
+
+        if (insertError) {
+
+            throw insertError;
+
+        }
+
+
+        /* =========================================
+           STEP 4: SUCCESS
+        ========================================= */
 
         closeModal(flashSaleModal);
 
         await loadFlashSales();
 
-        showGlobalMessage("Flash sale created successfully.");
+        showGlobalMessage(
+            "Flash sale created successfully."
+        );
+
 
     } catch (error) {
-        console.error("Flash sale creation error:", error);
+
+        console.error(
+            "FLASH SALE CREATION ERROR:",
+            error
+        );
 
         showMessage(
             formMessage,
-            error.message || "Unable to create flash sale.",
+            error.message ||
+            "Unable to create flash sale.",
             "error"
         );
 
+
     } finally {
-        setButtonLoading(saveFlashSaleButton, false);
+
+        setButtonLoading(
+            saveFlashSaleButton,
+            false
+        );
+
     }
+
 });
+
 
 
 /* Flash sale actions */
