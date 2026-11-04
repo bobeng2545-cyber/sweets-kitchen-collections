@@ -3100,97 +3100,126 @@ if (markAllNotificationsRead) {
        15J. CLEAR ALL NOTIFICATIONS
     ================================================= */
 
-    if (clearNotifications) {
-        clearNotifications.addEventListener(
-            "click",
-            async function (event) {
-                event.preventDefault();
+    
+if (clearNotifications) {
+    clearNotifications.addEventListener(
+        "click",
+        async function (event) {
 
-                if (customerNotifications.length === 0) {
-                    return;
+            event.preventDefault();
+
+            if (customerNotifications.length === 0) {
+                return;
+            }
+
+            if (!confirm(
+                "Are you sure you want to clear all notifications?"
+            )) {
+                return;
+            }
+
+            try {
+
+                // ==========================================
+                // 1. CHECK CUSTOMER LOGIN SESSION
+                // ==========================================
+
+                const {
+                    data: sessionData,
+                    error: sessionError
+                } = await supabaseClient.auth.getSession();
+
+                if (sessionError) {
+                    throw sessionError;
                 }
 
-                if (!confirm(
-                    "Are you sure you want to clear all notifications?"
-                )) {
-                    return;
-                }
+                const session = sessionData?.session;
 
-                try {
-                    const { data: sessionData } =
-                        await supabaseClient.auth.getSession();
+                // ==========================================
+                // 2. CLEAR REGISTERED CUSTOMER NOTIFICATIONS
+                // ==========================================
 
-                    const session = sessionData?.session;
+                if (session?.user) {
 
-                    if (session?.user) {
-
-                        const { data, error } =
-                            await supabaseClient.functions.invoke(
-                                "manage-order-notifications",
-                                {
-                                    body: {
-                                        action: "clear",
-                                        customer_type: "registered"
-                                    }
-                                }
-                            );
-
-                        if (error || data?.success !== true) {
-                            throw new Error(
-                                data?.message ||
-                                error?.message ||
-                                "Could not clear notifications."
-                            );
-                        }
-
-                    } else {
-
-                        const savedOrders =
-                            getSavedOrderNotifications();
-
-                        for (const savedOrder of savedOrders) {
-
-                            const { data, error } =
-                                await supabaseClient.functions.invoke(
-                                    "manage-order-notifications",
-                                    {
-                                        body: {
-                                            action: "clear",
-                                            customer_type: "guest",
-                                            reference: savedOrder.reference,
-                                            notification_token: savedOrder.token
-                                        }
-                                    }
-                                );
-
-                            if (error || data?.success !== true) {
-                                throw new Error(
-                                    data?.message ||
-                                    error?.message ||
-                                    "Could not clear guest notifications."
-                                );
+                    const {
+                        data,
+                        error
+                    } = await supabaseClient.functions.invoke(
+                        "manage-order-notifications",
+                        {
+                            body: {
+                                action: "clear",
+                                customer_type: "registered"
                             }
                         }
+                    );
+
+                    if (error || data?.success !== true) {
+                        throw new Error(
+                            data?.message ||
+                            error?.message ||
+                            "Could not clear registered customer notifications."
+                        );
                     }
-
-                    customerNotifications = [];
-
-                    saveCustomerNotifications();
-                    renderCustomerNotifications();
-
-                } catch (error) {
-                    console.error(
-                        "Clear notifications failed:",
-                        error
-                    );
-
-                    alert(
-                        "Could not clear notifications. Please try again."
-                    );
                 }
+
+                // ==========================================
+                // 3. CLEAR ALL SAVED GUEST ORDER NOTIFICATIONS
+                // ==========================================
+
+                const savedOrders =
+                    getSavedOrderNotifications();
+
+                for (const savedOrder of savedOrders) {
+
+                    const {
+                        data,
+                        error
+                    } = await supabaseClient.functions.invoke(
+                        "manage-order-notifications",
+                        {
+                            body: {
+                                action: "clear",
+                                customer_type: "guest",
+                                reference: savedOrder.reference,
+                                notification_token: savedOrder.token
+                            }
+                        }
+                    );
+
+                    if (error || data?.success !== true) {
+                        throw new Error(
+                            data?.message ||
+                            error?.message ||
+                            "Could not clear guest order notifications."
+                        );
+                    }
+                }
+
+                // ==========================================
+                // 4. CLEAR LOCAL NOTIFICATION DISPLAY
+                // ==========================================
+
+                customerNotifications = [];
+
+                saveCustomerNotifications();
+                renderCustomerNotifications();
+
+            } catch (error) {
+
+                console.error(
+                    "Clear notifications failed:",
+                    error
+                );
+
+                alert(
+                    "Could not clear all notifications. Please try again."
+                );
             }
-        );
-    }
+        }
+    );
+}
+
 
 
 
