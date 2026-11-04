@@ -1189,6 +1189,7 @@ async function loadProducts() {
             image_url,
             stock,
             is_active,
+            is_new_arrival,
             created_at,
             updated_at
         `)
