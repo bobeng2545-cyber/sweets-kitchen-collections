@@ -2883,33 +2883,41 @@ client.auth.onAuthStateChange((event, session) => {
    15G-1. LOAD REAL DATABASE NOTIFICATIONS
 ================================================= */
 
+
 function mergeDatabaseNotifications(records) {
     if (!Array.isArray(records)) return;
 
-    const databaseNotifications = records.map(item => ({
-        id: String(item.id),
-        title: item.title || "Order update",
-        message: item.message || "",
-        reference: item.order_reference || "",
-        createdAt: item.created_at || new Date().toISOString(),
-        read: item.is_read === true,
-        source: "database"
-    }));
+    const notificationMap = new Map();
 
-    const databaseIds = new Set(
-        databaseNotifications.map(item => item.id)
+    // Preserve database notifications already loaded
+    // from other customer orders.
+    customerNotifications
+        .filter(item => item.source === "database")
+        .forEach(item => {
+            notificationMap.set(String(item.id), item);
+        });
+
+    // Add or update the newly retrieved database records.
+    records.forEach(item => {
+        notificationMap.set(String(item.id), {
+            id: String(item.id),
+            title: item.title || "Order update",
+            message: item.message || "",
+            reference: item.order_reference || "",
+            createdAt: item.created_at || new Date().toISOString(),
+            read: item.is_read === true,
+            source: "database"
+        });
+    });
+
+    // Preserve older local notifications.
+    const localNotifications = customerNotifications.filter(
+        item => item.source !== "database"
     );
 
-    // Keep older local notifications that are not database records.
-    const existingLocalNotifications =
-        customerNotifications.filter(item =>
-            item.source !== "database" &&
-            !databaseIds.has(String(item.id))
-        );
-
     customerNotifications = [
-        ...databaseNotifications,
-        ...existingLocalNotifications
+        ...notificationMap.values(),
+        ...localNotifications
     ]
         .sort((a, b) =>
             new Date(b.createdAt).getTime() -
@@ -2920,6 +2928,7 @@ function mergeDatabaseNotifications(records) {
     saveCustomerNotifications();
     renderCustomerNotifications();
 }
+
 
 
     /* =================================================
