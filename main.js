@@ -2884,20 +2884,13 @@ client.auth.onAuthStateChange((event, session) => {
 ================================================= */
 
 
+
 function mergeDatabaseNotifications(records) {
     if (!Array.isArray(records)) return;
 
     const notificationMap = new Map();
 
-    // Preserve database notifications already loaded
-    // from other customer orders.
-    customerNotifications
-        .filter(item => item.source === "database")
-        .forEach(item => {
-            notificationMap.set(String(item.id), item);
-        });
-
-    // Add or update the newly retrieved database records.
+    // Add the database notifications returned by Supabase.
     records.forEach(item => {
         notificationMap.set(String(item.id), {
             id: String(item.id),
@@ -2910,7 +2903,7 @@ function mergeDatabaseNotifications(records) {
         });
     });
 
-    // Preserve older local notifications.
+    // Preserve locally generated notifications.
     const localNotifications = customerNotifications.filter(
         item => item.source !== "database"
     );
@@ -2928,6 +2921,7 @@ function mergeDatabaseNotifications(records) {
     saveCustomerNotifications();
     renderCustomerNotifications();
 }
+
 
 
 
