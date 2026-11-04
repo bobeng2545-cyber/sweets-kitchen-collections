@@ -3076,6 +3076,7 @@ function mergeDatabaseNotifications(records) {
     }
 
 
+    
     /* =================================================
        15J. CLEAR ALL NOTIFICATIONS
     ================================================= */
@@ -3083,7 +3084,7 @@ function mergeDatabaseNotifications(records) {
     if (clearNotifications) {
         clearNotifications.addEventListener(
             "click",
-            function (event) {
+            async function (event) {
                 event.preventDefault();
 
                 if (customerNotifications.length === 0) {
@@ -3096,13 +3097,82 @@ function mergeDatabaseNotifications(records) {
                     return;
                 }
 
-                customerNotifications = [];
+                try {
+                    const { data: sessionData } =
+                        await supabaseClient.auth.getSession();
 
-                saveCustomerNotifications();
-                renderCustomerNotifications();
+                    const session = sessionData?.session;
+
+                    if (session?.user) {
+
+                        const { data, error } =
+                            await supabaseClient.functions.invoke(
+                                "manage-order-notifications",
+                                {
+                                    body: {
+                                        action: "clear",
+                                        customer_type: "registered"
+                                    }
+                                }
+                            );
+
+                        if (error || data?.success !== true) {
+                            throw new Error(
+                                data?.message ||
+                                error?.message ||
+                                "Could not clear notifications."
+                            );
+                        }
+
+                    } else {
+
+                        const savedOrders =
+                            getSavedOrderNotifications();
+
+                        for (const savedOrder of savedOrders) {
+
+                            const { data, error } =
+                                await supabaseClient.functions.invoke(
+                                    "manage-order-notifications",
+                                    {
+                                        body: {
+                                            action: "clear",
+                                            customer_type: "guest",
+                                            reference: savedOrder.reference,
+                                            notification_token: savedOrder.token
+                                        }
+                                    }
+                                );
+
+                            if (error || data?.success !== true) {
+                                throw new Error(
+                                    data?.message ||
+                                    error?.message ||
+                                    "Could not clear guest notifications."
+                                );
+                            }
+                        }
+                    }
+
+                    customerNotifications = [];
+
+                    saveCustomerNotifications();
+                    renderCustomerNotifications();
+
+                } catch (error) {
+                    console.error(
+                        "Clear notifications failed:",
+                        error
+                    );
+
+                    alert(
+                        "Could not clear notifications. Please try again."
+                    );
+                }
             }
         );
     }
+
 
 
     /* =================================================
