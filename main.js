@@ -1408,6 +1408,81 @@ function updateProductStock(card, stock) {
        12C. RENDER SEPARATE FLASH SALE SECTION
     ================================================= */
 
+   /* =================================================
+   FLASH SALE COUNTDOWN TIMER
+================================================= */
+
+function updateFlashSaleCountdowns() {
+
+    const countdowns = document.querySelectorAll(
+        ".flash-sale-countdown"
+    );
+
+    let expiredSaleFound = false;
+
+    countdowns.forEach(timer => {
+
+        const endTime = new Date(
+            timer.dataset.endsAt
+        ).getTime();
+
+        if (!Number.isFinite(endTime)) {
+            timer.textContent = "Expiry time unavailable";
+            return;
+        }
+
+        const remaining = endTime - Date.now();
+
+        if (remaining <= 0) {
+
+            timer.textContent = "Flash Sale Ended";
+
+            const card = timer.closest(".flash-sale-card");
+
+            const button = card?.querySelector(".add-to-cart");
+
+            if (button) {
+                button.disabled = true;
+                button.textContent = "Sale Ended";
+            }
+
+            // Request a refresh only once for this expired card.
+            if (
+                card &&
+                card.dataset.expiryRefreshRequested !== "true"
+            ) {
+                card.dataset.expiryRefreshRequested = "true";
+                expiredSaleFound = true;
+            }
+
+            return;
+        }
+
+        const totalSeconds = Math.floor(remaining / 1000);
+
+        const hours = Math.floor(totalSeconds / 3600);
+
+        const minutes = Math.floor(
+            (totalSeconds % 3600) / 60
+        );
+
+        const seconds = totalSeconds % 60;
+
+        const formattedTime = [
+            String(hours).padStart(2, "0"),
+            String(minutes).padStart(2, "0"),
+            String(seconds).padStart(2, "0")
+        ].join(":");
+
+        timer.textContent = `Ends in ${formattedTime}`;
+    });
+
+    // Reload the Flash Sales from Supabase after expiry.
+    if (expiredSaleFound) {
+        loadStoreFlashSales();
+    }
+}
+
     function renderStoreFlashSales(sales) {
 
         flashSaleGrid.replaceChildren();
@@ -1519,7 +1594,18 @@ function updateProductStock(card, stock) {
             prices.appendChild(salePrice);
             prices.appendChild(oldPrice);
 
-
+           // ======================================
+           // FLASH SALE COUNTDOWN DISPLAY
+           // ======================================
+           
+           const countdown = document.createElement("div");
+           
+           countdown.className = "flash-sale-countdown";
+           
+           countdown.dataset.endsAt = sale.ends_at;
+           
+           countdown.textContent = "Loading countdown...";
+           
             const button =
                 document.createElement("button");
 
@@ -1555,6 +1641,7 @@ function updateProductStock(card, stock) {
            details.appendChild(description);
            details.appendChild(stockDisplay);
            details.appendChild(prices);
+           details.appendChild(countdown);
            details.appendChild(button);
 
             card.appendChild(badge);
@@ -1700,6 +1787,16 @@ function updateProductStock(card, stock) {
         if (!document.hidden) {
             loadStoreFlashSales();
         }
+
+       // Update every Flash Sale countdown every second.
+       updateFlashSaleCountdowns();
+       
+       window.setInterval(function () {
+          
+          if (!document.hidden) {
+             updateFlashSaleCountdowns();
+          }
+       }, 1000);
 
     }, 60000);
 
