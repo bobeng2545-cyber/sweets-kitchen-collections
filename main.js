@@ -2878,6 +2878,49 @@ client.auth.onAuthStateChange((event, session) => {
         );
     }
 
+   
+/* =================================================
+   15G-1. LOAD REAL DATABASE NOTIFICATIONS
+================================================= */
+
+function mergeDatabaseNotifications(records) {
+    if (!Array.isArray(records)) return;
+
+    const databaseNotifications = records.map(item => ({
+        id: String(item.id),
+        title: item.title || "Order update",
+        message: item.message || "",
+        reference: item.order_reference || "",
+        createdAt: item.created_at || new Date().toISOString(),
+        read: item.is_read === true,
+        source: "database"
+    }));
+
+    const databaseIds = new Set(
+        databaseNotifications.map(item => item.id)
+    );
+
+    // Keep older local notifications that are not database records.
+    const existingLocalNotifications =
+        customerNotifications.filter(item =>
+            item.source !== "database" &&
+            !databaseIds.has(String(item.id))
+        );
+
+    customerNotifications = [
+        ...databaseNotifications,
+        ...existingLocalNotifications
+    ]
+        .sort((a, b) =>
+            new Date(b.createdAt).getTime() -
+            new Date(a.createdAt).getTime()
+        )
+        .slice(0, 100);
+
+    saveCustomerNotifications();
+    renderCustomerNotifications();
+}
+
 
     /* =================================================
        15H. NOTIFICATION BELL OPEN AND CLOSE
@@ -3469,12 +3512,13 @@ client.auth.onAuthStateChange((event, session) => {
     });
 
 
-    /* =================================================
-       15P. CHECK AND RETRIEVE COMPLETE ORDERS
-    ================================================= */
-
     
+/* =================================================
+   15P. CHECK AND RETRIEVE COMPLETE ORDERS
+================================================= */
+
 async function checkOrderNotifications() {
+
     if (!supabaseClient || notificationCheckInProgress) {
         return;
     }
@@ -3490,7 +3534,11 @@ async function checkOrderNotifications() {
     const orderReferences = new Set();
 
     try {
-        // 1. Retrieve orders belonging to the signed-in account.
+
+        // ==========================================
+        // 1. RETRIEVE REGISTERED CUSTOMER ORDERS
+        // ==========================================
+
         const {
             data: accountData,
             error: accountError
@@ -3499,123 +3547,103 @@ async function checkOrderNotifications() {
         );
 
         if (accountError) {
-            console.error(
-                "Account orders retrieval failed:",
-                accountError
-            );
-        } else if (
-            accountData?.success === true &&
-            Array.isArray(accountData.orders)
-        ) {
-            accountData.orders.forEach(order => {
-                if (!order.reference) return;
 
-                retrievedOrders.push(order);
-                orderReferences.add(order.reference);
-            });
+            console.warn(
+                "Account orders retrieval:",
+                accountError.message
+            );
+
+        } else if (
+            accountData?.success === true
+        ) {
+
+            // Load actual registered-customer notifications.
+            mergeDatabaseNotifications(
+                accountData.notifications || []
+            );
+
+            // Load registered-customer orders.
+            if (Array.isArray(accountData.orders)) {
+
+                accountData.orders.forEach(order => {
+
+                    if (!order.reference) return;
+
+                    retrievedOrders.push(order);
+
+                    orderReferences.add(order.reference);
+                });
+            }
         }
 
-        // 2. Retrieve guest orders using their private tokens.
+        // ==========================================
+        // 2. RETRIEVE GUEST CUSTOMER ORDERS
+        // ==========================================
+
         const savedOrders = getSavedOrderNotifications();
 
         for (const savedOrder of savedOrders) {
+
             try {
-                const { data, error } =
-                    await supabaseClient.functions.invoke(
-                        "get-order-notifications",
-                        {
-                            body: {
-                                reference: savedOrder.reference,
-                                notification_token: savedOrder.token
-                            }
+
+                const {
+                    data,
+                    error
+                } = await supabaseClient.functions.invoke(
+                    "get-order-notifications",
+                    {
+                        body: {
+                            reference: savedOrder.reference,
+                            notification_token: savedOrder.token
                         }
-                    );
+                    }
+                );
 
                 if (error) {
-                    console.error(
+
+                    console.warn(
                         "Guest order retrieval failed:",
                         savedOrder.reference,
-                        error
+                        error.message
                     );
+
                     continue;
                 }
 
                 if (
                     !data ||
                     data.success !== true ||
-                    !data.notification ||
                     !data.order
                 ) {
                     continue;
                 }
 
+                // Load actual guest notification records.
+                mergeDatabaseNotifications(
+                    data.notifications || []
+                );
+
                 const order = data.order;
                 const notification = data.notification;
 
                 // Display the latest payment and delivery status.
-                displayOrderNotification(order, notification);
-
-                const currentStatus = {
-                    payment_status: notification.payment_status,
-                    order_status: notification.order_status
-                };
-
-                const previousStatus =
-                    orderStatusSnapshots[savedOrder.reference];
-
-                if (!previousStatus) {
-                    orderStatusSnapshots[savedOrder.reference] =
-                        currentStatus;
-
-                    saveOrderStatusSnapshots();
-                } else {
-                    const paymentChanged =
-                        previousStatus.payment_status !==
-                        currentStatus.payment_status;
-
-                    const orderChanged =
-                        previousStatus.order_status !==
-                        currentStatus.order_status;
-
-                    if (paymentChanged || orderChanged) {
-                        const changes = [];
-
-                        if (paymentChanged) {
-                            changes.push(
-                                "Payment status: " +
-                                currentStatus.payment_status
-                            );
-                        }
-
-                        if (orderChanged) {
-                            changes.push(
-                                "Delivery status: " +
-                                currentStatus.order_status
-                            );
-                        }
-
-                        addCustomerNotification(
-                            "Your order has been updated",
-                            changes.join(" | ") +
-                                ". Order reference: " +
-                                savedOrder.reference,
-                            savedOrder.reference
-                        );
-                    }
-
-                    orderStatusSnapshots[savedOrder.reference] =
-                        currentStatus;
-
-                    saveOrderStatusSnapshots();
+                if (notification) {
+                    displayOrderNotification(
+                        order,
+                        notification
+                    );
                 }
 
-                // Do not duplicate an account order.
+                // Add the guest order without duplicating it.
                 if (!orderReferences.has(order.reference)) {
+
                     retrievedOrders.push(order);
+
                     orderReferences.add(order.reference);
                 }
 
             } catch (error) {
+
                 console.error(
                     "Could not retrieve guest order:",
                     savedOrder.reference,
@@ -3624,11 +3652,18 @@ async function checkOrderNotifications() {
             }
         }
 
-        // 3. Show all retrieved orders, newest first.
+        // ==========================================
+        // 3. SORT ORDERS BY DATE
+        // ==========================================
+
         retrievedOrders.sort((a, b) =>
             new Date(b.created_at || 0) -
             new Date(a.created_at || 0)
         );
+
+        // ==========================================
+        // 4. DISPLAY CUSTOMER ORDERS
+        // ==========================================
 
         renderCustomerOrders(retrievedOrders);
 
@@ -3644,29 +3679,41 @@ async function checkOrderNotifications() {
             retrievedOrders.length === 0 &&
             ordersMessage
         ) {
+
             ordersMessage.hidden = false;
+
             ordersMessage.textContent =
                 "No orders were found for this account or browser.";
         }
 
     } catch (error) {
-        console.error("My Orders refresh failed:", error);
+
+        console.error(
+            "My Orders refresh failed:",
+            error
+        );
 
         if (ordersMessage) {
+
             ordersMessage.hidden = false;
+
             ordersMessage.textContent =
                 "We could not retrieve your orders. Please refresh and try again.";
         }
 
     } finally {
+
         notificationCheckInProgress = false;
 
         if (refreshOrdersBtn) {
+
             refreshOrdersBtn.disabled = false;
+
             refreshOrdersBtn.removeAttribute("aria-busy");
         }
     }
 }
+
 
 
 
