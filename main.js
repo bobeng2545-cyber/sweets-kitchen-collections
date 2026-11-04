@@ -2883,15 +2883,22 @@ client.auth.onAuthStateChange((event, session) => {
    15G-1. LOAD REAL DATABASE NOTIFICATIONS
 ================================================= */
 
-
-
 function mergeDatabaseNotifications(records) {
     if (!Array.isArray(records)) return;
 
     const notificationMap = new Map();
 
-    // Add the database notifications returned by Supabase.
+    // Preserve existing local notifications.
+    customerNotifications
+        .filter(item => item.source !== "database")
+        .forEach(item => {
+            notificationMap.set(String(item.id), item);
+        });
+
+    // Add or update notifications retrieved from Supabase.
     records.forEach(item => {
+        if (!item || !item.id) return;
+
         notificationMap.set(String(item.id), {
             id: String(item.id),
             title: item.title || "Order update",
@@ -2903,15 +2910,7 @@ function mergeDatabaseNotifications(records) {
         });
     });
 
-    // Preserve locally generated notifications.
-    const localNotifications = customerNotifications.filter(
-        item => item.source !== "database"
-    );
-
-    customerNotifications = [
-        ...notificationMap.values(),
-        ...localNotifications
-    ]
+    customerNotifications = Array.from(notificationMap.values())
         .sort((a, b) =>
             new Date(b.createdAt).getTime() -
             new Date(a.createdAt).getTime()
@@ -2921,8 +2920,6 @@ function mergeDatabaseNotifications(records) {
     saveCustomerNotifications();
     renderCustomerNotifications();
 }
-
-
 
 
     /* =================================================
