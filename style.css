@@ -4217,8 +4217,8 @@ body.dark-mode .customer-order-reference small {
 
     padding: 20px;
 
-    /* Light, clean background without blur */
-    background: rgba(255, 255, 255, 0.20);
+    /* Hide the underlying page content */
+    background: #f8fafc;
 
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
