@@ -2896,6 +2896,18 @@ function mergeDatabaseNotifications(records) {
         });
 
     // Add or update notifications retrieved from Supabase.
+
+   console.log("NOTIFICATIONS RECEIVED FROM DATABASE:", records);
+
+console.table(
+    records.map(item => ({
+        title: item.title,
+        reference: item.order_reference,
+        is_read: item.is_read,
+        created_at: item.created_at
+    }))
+);
+   
     records.forEach(item => {
         if (!item || !item.id) return;
 
