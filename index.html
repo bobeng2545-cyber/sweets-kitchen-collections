@@ -875,6 +875,135 @@
     </svg>
 
 </a>
+
+    <!-- =========================================
+     CUSTOMER AI ASSISTANT
+========================================= -->
+
+<div class="customer-ai-widget" id="customerAIWidget">
+
+    <button
+        type="button"
+        class="customer-ai-launcher"
+        id="customerAILauncher"
+        aria-label="Open AI shopping assistant"
+        aria-expanded="false"
+    >
+        <span class="material-symbols-outlined">smart_toy</span>
+        <span class="customer-ai-launcher-text">Ask AI</span>
+    </button>
+
+
+    <section
+        class="customer-ai-panel"
+        id="customerAIPanel"
+        aria-label="Shopping AI assistant"
+        hidden
+    >
+
+        <div class="customer-ai-header">
+
+            <div class="customer-ai-avatar">
+                <span class="material-symbols-outlined">smart_toy</span>
+            </div>
+
+            <div class="customer-ai-header-info">
+                <h3>Sweet AI Assistant</h3>
+                <p>
+                    <span class="customer-ai-online-dot"></span>
+                    Your shopping assistant
+                </p>
+            </div>
+
+            <button
+                type="button"
+                class="customer-ai-close"
+                id="customerAIClose"
+                aria-label="Close AI assistant"
+            >
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+        </div>
+
+
+        <div
+            class="customer-ai-messages"
+            id="customerAIMessages"
+            aria-live="polite"
+            aria-relevant="additions"
+        >
+
+            <div class="customer-ai-message assistant">
+                <div class="customer-ai-message-avatar">
+                    <span class="material-symbols-outlined">smart_toy</span>
+                </div>
+
+                <div class="customer-ai-message-content">
+                    <strong>Welcome!</strong>
+
+                    <p>
+                        I'm your Sweet AI shopping assistant.
+                        I will help you find products, compare prices
+                        and answer shopping questions.
+                    </p>
+
+                    <p>
+                        What would you like help with today?
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="customer-ai-suggestions">
+
+            <button type="button" data-ai-question="Help me find a product.">
+                Find a product
+            </button>
+
+            <button type="button" data-ai-question="Help me compare products.">
+                Compare products
+            </button>
+
+            <button type="button" data-ai-question="How can I get help with delivery?">
+                Delivery help
+            </button>
+
+        </div>
+
+
+        <form class="customer-ai-input-area" id="customerAIForm">
+
+            <input
+                type="text"
+                id="customerAIInput"
+                placeholder="Ask me anything..."
+                autocomplete="off"
+                maxlength="1000"
+                aria-label="Type your question"
+                required
+            >
+
+            <button
+                type="submit"
+                id="customerAISend"
+                aria-label="Send message"
+            >
+                <span class="material-symbols-outlined">send</span>
+            </button>
+
+        </form>
+
+
+        <p class="customer-ai-footer">
+            Sweet AI Assistant
+        </p>
+
+    </section>
+
+</div>
     
 </body>
 </html>
