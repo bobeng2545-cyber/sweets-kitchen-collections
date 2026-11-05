@@ -4773,26 +4773,34 @@ body.orders-popup-open {
 }
 
 
+
 /* =========================================
    CUSTOMER AI ASSISTANT
    SWEET'S KITCHEN & COLLECTIONS
+   COMPLETE RESPONSIVE CSS
 ========================================= */
 
 
-/* MAIN WIDGET */
+/* =========================================
+   1. MAIN WIDGET
+========================================= */
 
 .customer-ai-widget {
-    position: fixed;
+    position: fixed !important;
+
     right: 24px;
     bottom: 100px;
-    z-index: 999999;
+
+    z-index: 999999 !important;
+
     isolation: isolate;
+
     font-family: inherit;
 }
 
 
 /* =========================================
-   FLOATING CIRCULAR AI BUTTON
+   2. FLOATING AI LAUNCHER
 ========================================= */
 
 .customer-ai-launcher {
@@ -4800,34 +4808,48 @@ body.orders-popup-open {
     align-items: center;
     justify-content: center;
 
-    width: 60px;
-    height: 60px;
-    min-height: 60px;
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    min-height: 64px;
 
     padding: 0;
+
     border: none;
     border-radius: 50%;
 
     background: #176b55;
-    color: #fff;
+    color: #ffffff;
 
     cursor: pointer;
 
-    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.2);
-
-    transition: transform 0.2s ease, background 0.2s ease;
-
     position: relative;
     z-index: 999999;
+
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.22);
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .customer-ai-launcher:hover {
     background: #105541;
-    transform: scale(1.08);
+
+    transform: translateY(-3px) scale(1.05);
+
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.customer-ai-launcher:focus-visible {
+    outline: 3px solid #25c47a;
+    outline-offset: 4px;
 }
 
 .customer-ai-launcher .material-symbols-outlined {
-    font-size: 30px;
+    font-size: 32px;
+    line-height: 1;
 }
 
 .customer-ai-launcher-text {
@@ -4836,11 +4858,12 @@ body.orders-popup-open {
 
 
 /* =========================================
-   CHAT PANEL
+   3. CHAT PANEL
 ========================================= */
 
 .customer-ai-panel {
     position: absolute;
+
     right: 0;
     bottom: 75px;
 
@@ -4851,43 +4874,66 @@ body.orders-popup-open {
     max-width: calc(100vw - 32px);
 
     height: 510px;
-    max-height: calc(100dvh - 130px);
 
-    min-height: 0;
+    max-height: calc(100dvh - 190px);
+
+    min-height: 300px;
 
     overflow: hidden;
 
-    background: #fff;
-    color: #000;
+    background: #ffffff;
+    color: #222222;
 
     border: 1px solid #e5e7eb;
     border-radius: 18px;
 
-    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.20);
 
     box-sizing: border-box;
+
+    transform-origin: bottom right;
+
+    animation: customerAIOpen 0.22s ease;
 }
 
 .customer-ai-panel[hidden] {
     display: none !important;
 }
 
+@keyframes customerAIOpen {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 
 /* =========================================
-   CHAT HEADER
+   4. CHAT HEADER
 ========================================= */
 
 .customer-ai-header {
     display: flex;
     align-items: center;
+
     gap: 12px;
 
-    flex-shrink: 0;
+    flex: 0 0 auto;
 
-    padding: 16px;
+    width: 100%;
+    min-height: 76px;
+
+    padding: 14px 16px;
 
     background: #176b55;
-    color: #fff;
+    color: #ffffff;
+
+    box-sizing: border-box;
 }
 
 .customer-ai-avatar {
@@ -4895,123 +4941,165 @@ body.orders-popup-open {
     align-items: center;
     justify-content: center;
 
-    width: 43px;
-    height: 43px;
+    width: 44px;
+    height: 44px;
 
-    flex-shrink: 0;
+    flex: 0 0 44px;
 
     border-radius: 50%;
+
     background: rgba(255, 255, 255, 0.18);
 }
 
 .customer-ai-avatar .material-symbols-outlined {
-    font-size: 26px;
+    font-size: 27px;
 }
 
 .customer-ai-header-info {
-    flex: 1;
+    flex: 1 1 auto;
+
     min-width: 0;
 }
 
 .customer-ai-header-info h3 {
-    margin: 0 0 4px;
-    font-size: 15px;
-    color: #fff;
+    margin: 0 0 5px;
+
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    line-height: 1.3;
 }
 
 .customer-ai-header-info p {
     display: flex;
     align-items: center;
+
     gap: 6px;
 
     margin: 0;
 
+    color: rgba(255, 255, 255, 0.88);
+
     font-size: 12px;
-    color: #fff;
-    opacity: 0.9;
 }
 
 .customer-ai-online-dot {
+    display: inline-block;
+
     width: 8px;
     height: 8px;
 
-    flex-shrink: 0;
+    flex: 0 0 8px;
 
     border-radius: 50%;
-    background: #7df5a5;
+
+    background: #39e58b;
 }
 
 
-/* HEADER ACTIONS */
+/* =========================================
+   5. HEADER ACTION BUTTONS
+========================================= */
 
 .customer-ai-header-actions {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin-left: auto;
-    flex-shrink: 0;
+
+    gap: 5px;
+
+    flex: 0 0 auto;
 }
 
-.customer-ai-close,
-.customer-ai-clear {
+.customer-ai-clear,
+.customer-ai-close {
     display: flex;
     align-items: center;
     justify-content: center;
 
-    width: 35px;
-    height: 35px;
+    width: 36px;
+    height: 36px;
 
-    flex-shrink: 0;
+    padding: 0;
 
     border: none;
     border-radius: 50%;
 
     background: transparent;
-    color: #fff;
+    color: #ffffff;
 
     cursor: pointer;
+
+    transition: background 0.2s ease;
 }
 
-.customer-ai-close:hover,
-.customer-ai-clear:hover {
+.customer-ai-clear:hover,
+.customer-ai-close:hover {
     background: rgba(255, 255, 255, 0.18);
+}
+
+.customer-ai-clear .material-symbols-outlined,
+.customer-ai-close .material-symbols-outlined {
+    font-size: 22px;
+}
+
+.customer-ai-clear:focus-visible,
+.customer-ai-close:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
 }
 
 
 /* =========================================
-   MESSAGES AREA
+   6. CHAT MESSAGES AREA
 ========================================= */
 
 .customer-ai-messages {
-    flex: 1 1 0;
-    min-height: 0;
-
     display: flex;
     flex-direction: column;
-    gap: 15px;
 
-    padding: 17px;
+    flex: 1 1 0;
+
+    min-height: 0;
+
+    padding: 18px 14px;
 
     overflow-x: hidden;
     overflow-y: auto;
 
     background: #f8faf9;
 
-    box-sizing: border-box;
-    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+
+    overscroll-behavior: contain;
 }
+
+.customer-ai-messages::-webkit-scrollbar {
+    width: 5px;
+}
+
+.customer-ai-messages::-webkit-scrollbar-thumb {
+    background: #cbd5d1;
+    border-radius: 10px;
+}
+
+
+/* =========================================
+   7. CHAT MESSAGE
+========================================= */
 
 .customer-ai-message {
     display: flex;
     align-items: flex-start;
+
     gap: 9px;
 
-    max-width: 95%;
-}
+    width: 100%;
 
-.customer-ai-message.user {
-    align-self: flex-end;
-    flex-direction: row-reverse;
+    margin-bottom: 15px;
+
+    box-sizing: border-box;
 }
 
 .customer-ai-message-avatar {
@@ -5019,56 +5107,50 @@ body.orders-popup-open {
     align-items: center;
     justify-content: center;
 
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
 
-    flex-shrink: 0;
+    flex: 0 0 32px;
 
     border-radius: 50%;
+
     background: #176b55;
-    color: #fff;
+    color: #ffffff;
 }
 
 .customer-ai-message-avatar .material-symbols-outlined {
-    font-size: 18px;
+    font-size: 19px;
 }
 
-
-/* MESSAGE TEXT */
-
 .customer-ai-message-content {
-    padding: 11px 13px;
+    max-width: 85%;
 
-    border-radius: 12px;
+    padding: 12px 14px;
 
-    background: #fff;
-    color: #000;
+    background: #ffffff;
+    color: #333333;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 4px 13px 13px 13px;
 
     font-size: 13px;
     line-height: 1.6;
 
-    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.05);
-
     overflow-wrap: anywhere;
-}
 
-.customer-ai-message.user .customer-ai-message-content {
-    background: #176b55;
-    color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .customer-ai-message-content strong {
     display: block;
-    margin-bottom: 5px;
-    color: #000;
-}
 
-.customer-ai-message.user .customer-ai-message-content strong {
-    color: #fff;
+    margin-bottom: 5px;
+
+    color: #176b55;
 }
 
 .customer-ai-message-content p {
-    margin: 0 0 8px;
+    margin: 0 0 9px;
 }
 
 .customer-ai-message-content p:last-child {
@@ -5076,84 +5158,114 @@ body.orders-popup-open {
 }
 
 
+/* CUSTOMER MESSAGE */
+
+.customer-ai-message.user {
+    justify-content: flex-end;
+}
+
+.customer-ai-message.user .customer-ai-message-content {
+    background: #176b55;
+    color: #ffffff;
+
+    border-color: #176b55;
+
+    border-radius: 13px 4px 13px 13px;
+}
+
+
 /* =========================================
-   QUICK SUGGESTIONS
+   8. SUGGESTED QUESTIONS
 ========================================= */
 
 .customer-ai-suggestions {
     display: flex;
     flex-wrap: wrap;
-    gap: 7px;
 
-    flex-shrink: 0;
+    gap: 8px;
+
+    flex: 0 0 auto;
 
     padding: 10px 12px;
 
-    background: #fff;
+    background: #ffffff;
+
+    border-top: 1px solid #eeeeee;
 }
 
 .customer-ai-suggestions button {
-    padding: 7px 10px;
+    padding: 8px 11px;
 
     border: 1px solid #176b55;
     border-radius: 20px;
 
-    background: #fff;
+    background: #ffffff;
     color: #176b55;
 
     font-size: 11px;
+
     cursor: pointer;
+
+    transition: all 0.2s ease;
 }
 
 .customer-ai-suggestions button:hover {
-    background: #eaf5f1;
+    background: #176b55;
+    color: #ffffff;
 }
 
 
 /* =========================================
-   MESSAGE INPUT
+   9. INPUT AREA
 ========================================= */
 
 .customer-ai-input-area {
     display: flex;
     align-items: center;
-    gap: 9px;
 
-    flex-shrink: 0;
+    gap: 8px;
+
+    flex: 0 0 auto;
+
+    width: 100%;
 
     padding: 12px;
 
-    border-top: 1px solid #eee;
+    background: #ffffff;
 
-    background: #fff;
+    border-top: 1px solid #eeeeee;
+
     box-sizing: border-box;
 }
 
-.customer-ai-input-area input {
-    flex: 1;
+.customer-ai-input-area input,
+.customer-ai-input-area textarea {
+    flex: 1 1 auto;
+
+    width: 100%;
     min-width: 0;
 
-    height: 43px;
+    padding: 12px 14px;
 
-    padding: 0 13px;
-
-    border: 1px solid #ddd;
+    border: 1px solid #176b55;
     border-radius: 25px;
+
+    background: #ffffff;
+    color: #222222;
+
+    font-family: inherit;
+    font-size: 13px;
 
     outline: none;
 
-    background: #fff;
-    color: #000;
-
-    font-size: 13px;
+    box-sizing: border-box;
 }
 
-.customer-ai-input-area input::placeholder {
-    color: #777;
-}
+.customer-ai-input-area input:focus,
+.customer-ai-input-area textarea:focus {
+    border-color: #25a77d;
 
-.customer-ai-input-area input:focus {
-    border-color: #176b55;
+    box-shadow: 0 0 0 2px rgba(23, 107, 85, 0.10);
 }
 
 .customer-ai-input-area button {
@@ -5164,13 +5276,15 @@ body.orders-popup-open {
     width: 43px;
     height: 43px;
 
-    flex-shrink: 0;
+    flex: 0 0 43px;
+
+    padding: 0;
 
     border: none;
     border-radius: 50%;
 
     background: #176b55;
-    color: #fff;
+    color: #ffffff;
 
     cursor: pointer;
 }
@@ -5179,27 +5293,54 @@ body.orders-popup-open {
     background: #105541;
 }
 
+.customer-ai-input-area button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 
 /* =========================================
-   CHAT FOOTER
+   10. CHAT FOOTER
 ========================================= */
 
 .customer-ai-footer {
-    flex-shrink: 0;
+    flex: 0 0 auto;
 
     margin: 0;
-    padding: 6px;
 
-    background: #fff;
-    color: #888;
+    padding: 7px 10px;
+
+    background: #ffffff;
+    color: #888888;
 
     text-align: center;
+
     font-size: 10px;
 }
 
 
 /* =========================================
-   MOBILE RESPONSIVENESS
+   11. TABLET RESPONSIVENESS
+========================================= */
+
+@media screen and (min-width: 481px) and (max-width: 768px) {
+
+    .customer-ai-widget {
+        right: 18px;
+        bottom: 95px;
+    }
+
+    .customer-ai-panel {
+        width: 350px;
+
+        max-height: calc(100dvh - 180px);
+    }
+
+}
+
+
+/* =========================================
+   12. MOBILE RESPONSIVENESS
 ========================================= */
 
 @media screen and (max-width: 480px) {
@@ -5207,6 +5348,18 @@ body.orders-popup-open {
     .customer-ai-widget {
         right: 14px;
         bottom: 90px;
+    }
+
+    .customer-ai-launcher {
+        width: 58px;
+        height: 58px;
+
+        min-width: 58px;
+        min-height: 58px;
+    }
+
+    .customer-ai-launcher .material-symbols-outlined {
+        font-size: 29px;
     }
 
     .customer-ai-panel {
@@ -5229,22 +5382,42 @@ body.orders-popup-open {
     }
 
     .customer-ai-header {
-        padding: 13px;
+        min-height: 70px;
+
+        padding: 12px;
+    }
+
+    .customer-ai-avatar {
+        width: 40px;
+        height: 40px;
+
+        flex-basis: 40px;
+    }
+
+    .customer-ai-header-info h3 {
+        font-size: 15px;
     }
 
     .customer-ai-messages {
         flex: 1 1 0;
+
         min-height: 0;
-        overflow-y: auto;
+
+        padding: 14px 11px;
     }
 
     .customer-ai-suggestions {
         flex-shrink: 0;
+
+        padding: 9px;
     }
 
     .customer-ai-input-area {
         flex-shrink: 0;
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
+
+        padding: 10px;
+
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
     }
 
     .customer-ai-footer {
