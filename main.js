@@ -3130,8 +3130,263 @@ client.auth.onAuthStateChange((event, session) => {
         const deliveryAddress =
             document.getElementById("deliveryAddress");
 
+       const customerRegion =
+    document.getElementById("customerRegion");
+
+const customerCity =
+    document.getElementById("customerCity");
+
+const customerDigitalAddress =
+    document.getElementById("customerDigitalAddress");
+
+const deliveryLandmark =
+    document.getElementById("deliveryLandmark");
+
+const deliveryInstructions =
+    document.getElementById("deliveryInstructions");
+
         const confirmButton =
             document.getElementById("confirmPaymentInstructions");
+
+       /* =========================================
+   AUTOMATIC DELIVERY PRICING
+========================================= */
+
+let selectedDeliveryFee = 0;
+let deliveryFeeLoaded = false;
+
+const deliveryBreakdown = document.createElement("div");
+
+deliveryBreakdown.className = "checkout-fee-breakdown";
+
+deliveryBreakdown.innerHTML = `
+    <div class="checkout-fee-row">
+        <span>Product subtotal</span>
+        <strong id="checkoutSubtotal">GH₵0.00</strong>
+    </div>
+
+    <div class="checkout-fee-row">
+        <span>Service charge (0.5%)</span>
+        <strong id="checkoutServiceCharge">GH₵0.00</strong>
+    </div>
+
+    <div class="checkout-fee-row">
+        <span>Delivery fee</span>
+        <strong id="checkoutDeliveryFee">Not selected</strong>
+    </div>
+`;
+
+if (paymentTotal.parentElement) {
+    paymentTotal.parentElement.insertAdjacentElement(
+        "beforebegin",
+        deliveryBreakdown
+    );
+}
+
+const checkoutSubtotal =
+    deliveryBreakdown.querySelector("#checkoutSubtotal");
+
+const checkoutServiceCharge =
+    deliveryBreakdown.querySelector("#checkoutServiceCharge");
+
+const checkoutDeliveryFee =
+    deliveryBreakdown.querySelector("#checkoutDeliveryFee");
+
+
+/* =========================================
+   UPDATE CHECKOUT TOTAL
+========================================= */
+
+function updateCheckoutTotal() {
+
+    const subtotal = cart.reduce(function (sum, item) {
+
+        return sum +
+            Number(item.price) *
+            Number(item.quantity);
+
+    }, 0);
+
+    const serviceCharge =
+        Math.round(subtotal * 0.005 * 100) / 100;
+
+    const total =
+        subtotal +
+        serviceCharge +
+        selectedDeliveryFee;
+
+    checkoutSubtotal.textContent =
+        formatMoney(subtotal);
+
+    checkoutServiceCharge.textContent =
+        formatMoney(serviceCharge);
+
+    checkoutDeliveryFee.textContent =
+        deliveryFeeLoaded
+            ? formatMoney(selectedDeliveryFee)
+            : "Not selected";
+
+    paymentTotal.textContent =
+        formatMoney(total);
+}
+
+
+/* =========================================
+   LOAD TOWNS FOR SELECTED REGION
+========================================= */
+
+async function loadDeliveryTowns() {
+
+    const region = customerRegion.value.trim();
+
+    selectedDeliveryFee = 0;
+    deliveryFeeLoaded = false;
+
+    customerCity.innerHTML = `
+        <option value="">Loading available towns...</option>
+    `;
+
+    customerCity.disabled = true;
+
+    updateCheckoutTotal();
+
+    if (!region) {
+
+        customerCity.innerHTML = `
+            <option value="">Select your region first</option>
+        `;
+
+        return;
+    }
+
+    if (!supabaseClient) {
+
+        customerCity.innerHTML = `
+            <option value="">Delivery service unavailable</option>
+        `;
+
+        return;
+    }
+
+    try {
+
+        const { data, error } = await supabaseClient
+            .from("delivery_pricing")
+            .select("region, town, delivery_fee")
+            .eq("region", region)
+            .eq("is_active", true)
+            .order("town", { ascending: true });
+
+        if (error) {
+            throw error;
+        }
+
+        customerCity.replaceChildren();
+
+        const placeholder = document.createElement("option");
+
+        placeholder.value = "";
+        placeholder.textContent = "Select your town/city";
+
+        customerCity.appendChild(placeholder);
+
+        if (!data || data.length === 0) {
+
+            const option = document.createElement("option");
+
+            option.value = "";
+            option.textContent =
+                "No delivery towns available in this region";
+
+            customerCity.appendChild(option);
+
+            customerCity.disabled = true;
+
+            return;
+        }
+
+        data.forEach(function (town) {
+
+            const option = document.createElement("option");
+
+            option.value = town.town;
+
+            option.textContent =
+                town.town +
+                " — " +
+                formatMoney(Number(town.delivery_fee));
+
+            // Used only for displaying the estimated fee.
+            // The payment server verifies the actual fee again.
+            option.dataset.fee = String(town.delivery_fee);
+
+            customerCity.appendChild(option);
+
+        });
+
+        customerCity.disabled = false;
+
+    } catch (error) {
+
+        console.error(
+            "Delivery town loading failed:",
+            error
+        );
+
+        customerCity.innerHTML = `
+            <option value="">Could not load towns. Try again.</option>
+        `;
+
+        customerCity.disabled = true;
+
+        alert(
+            "We could not load delivery towns. Please try again."
+        );
+
+    }
+}
+
+
+/* =========================================
+   REGION CHANGE
+========================================= */
+
+customerRegion.addEventListener(
+    "change",
+    loadDeliveryTowns
+);
+
+
+/* =========================================
+   TOWN CHANGE
+========================================= */
+
+customerCity.addEventListener(
+    "change",
+    function () {
+
+        const selectedOption =
+            customerCity.selectedOptions[0];
+
+        if (!selectedOption || !customerCity.value) {
+
+            selectedDeliveryFee = 0;
+            deliveryFeeLoaded = false;
+
+        } else {
+
+            selectedDeliveryFee =
+                Number(selectedOption.dataset.fee);
+
+            deliveryFeeLoaded =
+                Number.isFinite(selectedDeliveryFee) &&
+                selectedDeliveryFee >= 0;
+        }
+
+        updateCheckoutTotal();
+
+    }
+);
 
 
         if (
@@ -3227,19 +3482,31 @@ client.auth.onAuthStateChange((event, session) => {
                 }
 
                 if (
-                    !customerEmail.value.trim() ||
-                    !customerEmail.checkValidity() ||
-                    !customerName.value.trim() ||
-                    !customerPhone.value.trim() ||
-                    !deliveryAddress.value.trim()
+                   !customerEmail.value.trim() ||
+                   !customerEmail.checkValidity() ||
+                   !customerName.value.trim() ||
+                   !customerPhone.value.trim() ||
+                   !customerRegion.value.trim() ||
+                   !customerCity.value.trim() ||
+                   !deliveryAddress.value.trim()
                 ) {
-
-                    alert(
-                        "Please complete all customer details with a valid email."
-                    );
-
-                    return;
+                   
+                   alert(
+                      "Please complete your customer details, region, town and exact delivery address."
+                   );
+                   
+                   return;
                 }
+               
+               if (!deliveryFeeLoaded) {
+                  
+                  alert(
+                     
+                     "Please select a valid delivery town so we can calculate your delivery fee."
+                  );
+                  
+                  return;
+               }
 
                 const network = paymentNetwork.value;
 
