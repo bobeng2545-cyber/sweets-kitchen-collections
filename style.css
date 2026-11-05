@@ -5087,40 +5087,48 @@ body.orders-popup-open {
 
 
 
+
 /* =========================================
    CUSTOMER AI MOBILE DISPLAY FIX
 ========================================= */
 
-@media (max-width: 480px) {
+@media screen and (max-width: 480px) {
 
     .customer-ai-widget {
         position: fixed !important;
-        right: 14px;
-        bottom: 90px;
+        right: 14px !important;
+        bottom: 90px !important;
         z-index: 999999 !important;
     }
 
     .customer-ai-panel {
         position: fixed !important;
 
-        top: 15px !important;
-        left: 10px !important;
-        right: 10px !important;
-        bottom: 15px !important;
+        inset: 10px !important;
 
         width: auto !important;
         max-width: none !important;
 
         height: auto !important;
         max-height: none !important;
+        min-height: 0 !important;
 
-        display: flex;
-        flex-direction: column;
+        display: flex !important;
+        flex-direction: column !important;
 
-        overflow: hidden;
+        margin: 0 !important;
+        padding: 0 !important;
 
-        border-radius: 18px;
-        background: #fff;
+        overflow: hidden !important;
+
+        background: #ffffff !important;
+        color: #000000 !important;
+
+        border: 1px solid #ddd !important;
+        border-radius: 16px !important;
+
+        box-sizing: border-box !important;
+
         z-index: 999999 !important;
     }
 
@@ -5129,27 +5137,52 @@ body.orders-popup-open {
     }
 
     .customer-ai-header {
-        flex-shrink: 0;
+        position: relative !important;
+        display: flex !important;
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .customer-ai-messages {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow-y: auto;
+        position: relative !important;
+        display: flex !important;
+        flex: 1 1 0% !important;
+
+        width: 100% !important;
+        min-height: 0 !important;
+
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+
+        box-sizing: border-box !important;
         -webkit-overflow-scrolling: touch;
     }
 
     .customer-ai-suggestions {
-        flex-shrink: 0;
+        position: relative !important;
+        display: flex !important;
+        flex: 0 0 auto !important;
+
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .customer-ai-input-area {
-        flex-shrink: 0;
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        position: relative !important;
+        display: flex !important;
+        flex: 0 0 auto !important;
+
+        width: 100% !important;
+        box-sizing: border-box !important;
+        background: #fff !important;
     }
 
     .customer-ai-footer {
-        flex-shrink: 0;
+        position: relative !important;
+        flex: 0 0 auto !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
 }
