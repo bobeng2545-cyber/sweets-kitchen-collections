@@ -5892,3 +5892,34 @@ body.dark-mode .product-details-quantity-controls button {
 body.dark-mode .product-details-quantity-controls span {
     color: #fff;
 }
+
+/* =========================================
+   CHECKOUT DELIVERY FEE BREAKDOWN
+========================================= */
+
+.checkout-fee-breakdown {
+    width: 100%;
+    margin: 16px 0;
+    padding: 15px;
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 12px;
+    background: var(--card-background, #ffffff);
+}
+
+.checkout-fee-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 9px 0;
+    font-size: 14px;
+}
+
+.checkout-fee-row + .checkout-fee-row {
+    border-top: 1px solid #e5e7eb;
+}
+
+.checkout-fee-row strong {
+    font-weight: 700;
+    white-space: nowrap;
+}
