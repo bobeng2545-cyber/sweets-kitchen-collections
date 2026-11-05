@@ -4763,10 +4763,11 @@ body.orders-popup-open {
 ========================================= */
 
 .customer-ai-widget {
-    position: fixed;
+    position: fixed !important;
     right: 24px;
     bottom: 100px;
-    z-index: 9998;
+    z-index: 999999 !important;
+    isolation: isolate;
 }
 
 
@@ -4788,6 +4789,11 @@ body.orders-popup-open {
     cursor: pointer;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
     transition: transform 0.2s ease, background 0.2s ease;
+    position: relative;
+    z-index: 999999 !important;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
 }
 
 .customer-ai-launcher:hover {
