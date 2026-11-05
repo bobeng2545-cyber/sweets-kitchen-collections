@@ -3612,114 +3612,32 @@ if (clearNotifications) {
                 const session = sessionData?.session;
 
                 // ==========================================
-// 2. MARK REGISTERED CUSTOMER NOTIFICATIONS
-// ==========================================
+                // 2. CLEAR REGISTERED CUSTOMER NOTIFICATIONS
+                // ==========================================
 
-if (session?.user) {
+                if (session?.user) {
 
-    console.log("Updating registered customer notifications...");
+                    const {
+                        data,
+                        error
+                    } = await supabaseClient.functions.invoke(
+                        "manage-order-notifications",
+                        {
+                            body: {
+                                action: "clear",
+                                customer_type: "registered"
+                            }
+                        }
+                    );
 
-    const { data, error } =
-        await supabaseClient.functions.invoke(
-            "manage-order-notifications",
-            {
-                body: {
-                    action: "mark_all_read",
-                    customer_type: "registered"
+                    if (error || data?.success !== true) {
+                        throw new Error(
+                            data?.message ||
+                            error?.message ||
+                            "Could not clear registered customer notifications."
+                        );
+                    }
                 }
-            }
-        );
-
-    if (error || data?.success !== true) {
-
-        console.error(
-            "REGISTERED NOTIFICATION UPDATE FAILED:",
-            error,
-            data
-        );
-
-        if (error?.context) {
-            try {
-                console.error(
-                    "REGISTERED RESPONSE:",
-                    await error.context.clone().text()
-                );
-            } catch (e) {
-                console.error("Could not read registered response.");
-            }
-        }
-
-        throw new Error(
-            data?.message ||
-            error?.message ||
-            "Could not update registered notifications."
-        );
-    }
-
-    console.log("Registered notifications updated successfully.");
-}
-
-
-// ==========================================
-// 3. MARK ALL SAVED GUEST ORDER NOTIFICATIONS
-// ==========================================
-
-const savedOrders = getSavedOrderNotifications();
-
-console.log(
-    "Saved guest notification orders:",
-    savedOrders.length
-);
-
-for (const savedOrder of savedOrders) {
-
-    console.log(
-        "Updating guest notification:",
-        savedOrder.reference
-    );
-
-    const { data, error } =
-        await supabaseClient.functions.invoke(
-            "manage-order-notifications",
-            {
-                body: {
-                    action: "mark_all_read",
-                    customer_type: "guest",
-                    reference: savedOrder.reference,
-                    notification_token: savedOrder.token
-                }
-            }
-        );
-
-    if (error || data?.success !== true) {
-
-        console.error(
-            "GUEST NOTIFICATION UPDATE FAILED:",
-            savedOrder.reference,
-            error,
-            data
-        );
-
-        if (error?.context) {
-            try {
-                console.error(
-                    "GUEST RESPONSE:",
-                    await error.context.clone().text()
-                );
-            } catch (e) {
-                console.error("Could not read guest response.");
-            }
-        }
-
-        throw new Error(
-            data?.message ||
-            error?.message ||
-            "Could not update guest notifications."
-        );
-    }
-}
-
-console.log("All guest notifications updated successfully.");
 
                 // ==========================================
                 // 3. CLEAR ALL SAVED GUEST ORDER NOTIFICATIONS
