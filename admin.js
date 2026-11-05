@@ -41,6 +41,11 @@ let allOrders = [];
 let allFlashSales = [];
 let allCategories = [];
 
+/* MASTER STOREFRONT VISIBILITY */
+
+let storefrontProductsHidden = false;
+let storefrontControlSaving = false;
+
 let editingCategoryId = null;
 
 let editingProductId = null;
