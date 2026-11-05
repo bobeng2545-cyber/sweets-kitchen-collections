@@ -1575,37 +1575,42 @@ function updateFlashSaleCountdowns() {
             prices.className = "flash-sale-prices";
 
 
-            const salePrice =
-                document.createElement("span");
-
-            salePrice.className = "flash-sale-price";
-            salePrice.textContent =
-                formatMoney(discountedPrice);
-
-
-            const oldPrice =
-                document.createElement("span");
-
-            oldPrice.className = "flash-sale-original";
-            oldPrice.textContent =
-                formatMoney(originalPrice);
-
-
-            prices.appendChild(salePrice);
-            prices.appendChild(oldPrice);
-
+            
+           const salePrice =
+              document.createElement("span");
            
-// ======================================
-// FLASH SALE COUNTDOWN DISPLAY
-// ======================================
+           salePrice.className = "flash-sale-price";
+           
+           salePrice.textContent =
+              formatMoney(discountedPrice);
+           
+           
+           const oldPrice =
+              document.createElement("span");
+           
+           oldPrice.className = "flash-sale-original";
+           
+           oldPrice.textContent =
+              formatMoney(originalPrice);
+           
+           
+           prices.appendChild(salePrice);
+           prices.appendChild(oldPrice);
+           
+           
+           // ======================================
+           // FLASH SALE COUNTDOWN DISPLAY
+           // ======================================
+           
+           const countdown = document.createElement("div");
+           
+           countdown.className = "flash-sale-countdown";
+           
+           countdown.dataset.endsAt = sale.ends_at;
 
-const countdown = document.createElement("div");
-
-countdown.className = "flash-sale-countdown";
-
-countdown.dataset.endsAt = sale.ends_at;
 
 // Calculate initial remaining time
+
 const endTime = new Date(sale.ends_at).getTime();
 
 if (Number.isFinite(endTime)) {
@@ -1615,13 +1620,19 @@ if (Number.isFinite(endTime)) {
         Math.ceil((endTime - Date.now()) / 1000)
     );
 
-    const minutes = Math.floor(remaining / 60);
+    const hours = Math.floor(remaining / 3600);
+
+    const minutes = Math.floor(
+        (remaining % 3600) / 60
+    );
 
     const seconds = remaining % 60;
 
     countdown.textContent =
         remaining > 0
-            ? `Sale ends in ${minutes}:${String(seconds).padStart(2, "0")}`
+            ? hours > 0
+                ? `Sale ends in ${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+                : `Sale ends in ${minutes}:${String(seconds).padStart(2, "0")}`
             : "Sale ended";
 
 } else {
@@ -1630,58 +1641,88 @@ if (Number.isFinite(endTime)) {
 
 }
 
-           
-            const button =
-                document.createElement("button");
 
-            button.type = "button";
+// ======================================
+// ADD TO CART BUTTON
+// ======================================
 
-            button.className =
-                "add-to-cart flash-sale-add";
+const button =
+    document.createElement("button");
 
-            button.textContent = "Add to Cart";
+button.type = "button";
 
-            button.dataset.name = product.name || "";
-            button.dataset.price = String(discountedPrice);
-            button.dataset.productId = product.id;
-            button.dataset.flashSaleId = sale.id;
+button.className =
+    "add-to-cart flash-sale-add";
 
-            button.dataset.originalPrice =
-                String(originalPrice);
+button.textContent = "Add to Cart";
 
+button.dataset.name = product.name || "";
 
-            if (
-                product.stock !== null &&
-                product.stock !== undefined &&
-                Number(product.stock) <= 0
-            ) {
-                button.disabled = true;
-                button.textContent = "Out of Stock";
-            }
+button.dataset.price = String(discountedPrice);
+
+button.dataset.productId = product.id;
+
+button.dataset.flashSaleId = sale.id;
+
+button.dataset.originalPrice =
+    String(originalPrice);
 
 
-            const stockDisplay = createStockDisplay(product.stock);
-           
-           details.appendChild(name);
-           details.appendChild(description);
-           details.appendChild(stockDisplay);
-           details.appendChild(prices);
-           details.appendChild(countdown);
-           details.appendChild(button);
+if (
+    product.stock !== null &&
+    product.stock !== undefined &&
+    Number(product.stock) <= 0
+) {
 
-            card.appendChild(badge);
-            card.appendChild(image);
-            card.appendChild(details);
+    button.disabled = true;
 
-            flashSaleGrid.appendChild(card);
-        });
+    button.textContent = "Out of Stock";
 
-        filterProducts();
+}
 
-        console.log(
-            `${sales.length} active Flash Sale product(s) loaded.`
-        );
-    }
+
+// ======================================
+// APPEND FLASH SALE CARD ELEMENTS
+// ======================================
+
+const stockDisplay =
+    createStockDisplay(product.stock);
+
+
+details.appendChild(name);
+
+details.appendChild(description);
+
+details.appendChild(stockDisplay);
+
+details.appendChild(prices);
+
+details.appendChild(countdown);
+
+details.appendChild(button);
+
+
+card.appendChild(badge);
+
+card.appendChild(image);
+
+card.appendChild(details);
+
+
+flashSaleGrid.appendChild(card);
+
+});
+
+filterProducts();
+
+updateFlashSaleCountdowns();
+
+console.log(
+    `${sales.length} active Flash Sale product(s) loaded.`
+);
+
+}
+
 
 
     /* =================================================
