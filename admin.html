@@ -807,5 +807,122 @@
     <!-- ADMIN JAVASCRIPT -->
     <script src="./admin.js"></script>
 
+    
+<!-- =========================================
+     ADMIN AI ASSISTANT
+========================================= -->
+
+<div class="admin-ai-widget" id="adminAIWidget">
+
+    <button
+        type="button"
+        class="admin-ai-launcher"
+        id="adminAILauncher"
+        aria-expanded="false"
+        aria-label="Open admin AI assistant"
+    >
+        <span class="material-symbols-outlined">psychology</span>
+        <span>Admin AI</span>
+    </button>
+
+    <section
+        class="admin-ai-panel"
+        id="adminAIPanel"
+        aria-label="Admin AI assistant"
+        hidden
+    >
+
+        <div class="admin-ai-header">
+
+            <div class="admin-ai-avatar">
+                <span class="material-symbols-outlined">psychology</span>
+            </div>
+
+            <div class="admin-ai-heading">
+                <h3>Sweet Admin AI</h3>
+                <p>Your business assistant</p>
+            </div>
+
+            <button
+                type="button"
+                id="adminAIClose"
+                class="admin-ai-close"
+                aria-label="Close assistant"
+            >
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+        </div>
+
+        <div
+            class="admin-ai-messages"
+            id="adminAIMessages"
+            aria-live="polite"
+        >
+
+            <div class="admin-ai-message assistant">
+                <div class="admin-ai-message-content">
+                    <strong>Welcome, Admin!</strong>
+                    <p>
+                        I'm your business assistant.
+                        I will help you understand your sales,
+                        products, inventory and orders.
+                    </p>
+                    <p>What would you like to analyse today?</p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="admin-ai-suggestions">
+
+            <button type="button"
+                data-admin-question="Give me an overview of my store performance.">
+                Store performance
+            </button>
+
+            <button type="button"
+                data-admin-question="Which products should I check for low stock?">
+                Low stock
+            </button>
+
+            <button type="button"
+                data-admin-question="Help me analyse my sales.">
+                Sales analysis
+            </button>
+
+            <button type="button"
+                data-admin-question="Summarise my orders.">
+                Order summary
+            </button>
+
+        </div>
+
+        <form class="admin-ai-input-area" id="adminAIForm">
+
+            <input
+                type="text"
+                id="adminAIInput"
+                placeholder="Ask about your business..."
+                maxlength="1000"
+                autocomplete="off"
+                required
+            >
+
+            <button type="submit" aria-label="Send message">
+                <span class="material-symbols-outlined">send</span>
+            </button>
+
+        </form>
+
+        <p class="admin-ai-footer">
+            Private business assistant
+        </p>
+
+    </section>
+
+</div>
+
+    
 </body>
 </html>
