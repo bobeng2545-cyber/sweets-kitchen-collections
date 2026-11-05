@@ -4765,9 +4765,8 @@ body.orders-popup-open {
 .customer-ai-widget {
     position: fixed;
     right: 24px;
-    bottom: 24px;
+    bottom: 100px;
     z-index: 9998;
-    font-family: inherit;
 }
 
 
@@ -5087,15 +5086,15 @@ body.orders-popup-open {
 
     .customer-ai-widget {
         right: 14px;
-        bottom: 14px;
+        bottom: 90px;
     }
 
     .customer-ai-panel {
         position: fixed;
         right: 10px;
-        bottom: 80px;
+        bottom: 155px;
         width: calc(100vw - 20px);
-        height: min(510px, calc(100dvh - 100px));
+        height: min(510px, calc(100dvh - 175px));
     }
 
 }
