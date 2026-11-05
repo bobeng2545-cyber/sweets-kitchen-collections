@@ -1370,6 +1370,314 @@ function updateProductStock(card, stock) {
     const flashSaleMessage =
         document.getElementById("flashSaleMessage");
 
+   
+/* =================================================
+   PRODUCT DETAILS POPUP
+   Works with:
+   1. Normal products
+   2. New Arrivals
+   3. Flash Sale products
+================================================= */
+
+// CREATE PRODUCT DETAILS POPUP
+
+const productDetailsOverlay = document.createElement("div");
+
+productDetailsOverlay.className = "product-details-overlay";
+productDetailsOverlay.id = "productDetailsOverlay";
+productDetailsOverlay.hidden = true;
+
+productDetailsOverlay.innerHTML = `
+    <div class="product-details-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="productDetailsName">
+
+        <button type="button"
+                class="product-details-close"
+                aria-label="Close product details">
+            &times;
+        </button>
+
+        <div class="product-details-layout">
+
+            <div class="product-details-image">
+                <img id="productDetailsImage"
+                     src=""
+                     alt="Product image">
+            </div>
+
+            <div class="product-details-information">
+
+                <span id="productDetailsCategory"
+                      class="product-details-category">
+                </span>
+
+                <h2 id="productDetailsName"></h2>
+
+                <div id="productDetailsPrice"
+                     class="product-details-price">
+                </div>
+
+                <div id="productDetailsDescription"
+                     class="product-details-description">
+                </div>
+
+                <p id="productDetailsStock"
+                   class="product-details-stock">
+                </p>
+
+                <div id="productDetailsCartArea"
+                     class="product-details-cart-area">
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+`;
+
+document.body.appendChild(productDetailsOverlay);
+
+
+// POPUP ELEMENTS
+
+const productDetailsClose =
+    productDetailsOverlay.querySelector(".product-details-close");
+
+const productDetailsImage =
+    document.getElementById("productDetailsImage");
+
+const productDetailsName =
+    document.getElementById("productDetailsName");
+
+const productDetailsCategory =
+    document.getElementById("productDetailsCategory");
+
+const productDetailsPrice =
+    document.getElementById("productDetailsPrice");
+
+const productDetailsDescription =
+    document.getElementById("productDetailsDescription");
+
+const productDetailsStock =
+    document.getElementById("productDetailsStock");
+
+const productDetailsCartArea =
+    document.getElementById("productDetailsCartArea");
+
+
+// OPEN PRODUCT DETAILS
+
+function openProductDetails(card) {
+
+    if (!card || storefrontProductsHidden) return;
+
+    const cartButton =
+        card.querySelector(".add-to-cart");
+
+    const productName =
+        cartButton?.dataset.name ||
+        card.dataset.name ||
+        card.querySelector("h3")?.textContent ||
+        "Product";
+
+    const category =
+        card.dataset.category ||
+        card.querySelector(".products-category")?.textContent ||
+        "Other";
+
+    const description =
+        card.querySelector(".product-description")?.textContent ||
+        card.querySelector(".flash-sale-details > p")?.textContent ||
+        "";
+
+    const image =
+        card.querySelector("img");
+
+    const currentPrice =
+        Number(cartButton?.dataset.price);
+
+    const originalPrice =
+        Number(cartButton?.dataset.originalPrice);
+
+    const stock =
+        card.querySelector(".product-stock");
+
+    // PRODUCT IMAGE
+
+    if (image && image.src) {
+
+        productDetailsImage.src = image.src;
+
+        productDetailsImage.alt = productName;
+
+        productDetailsImage.hidden = false;
+
+    } else {
+
+        productDetailsImage.removeAttribute("src");
+
+        productDetailsImage.hidden = true;
+    }
+
+
+    // PRODUCT NAME
+
+    productDetailsName.textContent = productName;
+
+
+    // PRODUCT CATEGORY
+
+    productDetailsCategory.textContent = category;
+
+
+    // PRODUCT PRICE
+
+    productDetailsPrice.replaceChildren();
+
+    const price = document.createElement("strong");
+
+    price.textContent = Number.isFinite(currentPrice)
+        ? formatMoney(currentPrice)
+        : "Price unavailable";
+
+    productDetailsPrice.appendChild(price);
+
+
+    // SHOW ORIGINAL PRICE FOR DISCOUNTED PRODUCTS
+
+    if (
+        cartButton?.dataset.flashSaleId ||
+        (
+            Number.isFinite(originalPrice) &&
+            originalPrice > currentPrice
+        )
+    ) {
+
+        if (
+            Number.isFinite(originalPrice) &&
+            originalPrice > currentPrice
+        ) {
+
+            const oldPrice = document.createElement("span");
+
+            oldPrice.className = "product-details-original-price";
+
+            oldPrice.textContent = formatMoney(originalPrice);
+
+            productDetailsPrice.appendChild(oldPrice);
+        }
+    }
+
+
+    // FULL PRODUCT DESCRIPTION
+
+    productDetailsDescription.textContent =
+        description.trim() ||
+        "A full description for this product is not available yet.";
+
+
+    // PRODUCT STOCK
+
+    productDetailsStock.textContent =
+        stock?.textContent ||
+        "Stock information unavailable";
+
+
+    // ADD TO CART BUTTON
+
+    productDetailsCartArea.replaceChildren();
+
+    if (cartButton) {
+
+        const detailsAddButton =
+            cartButton.cloneNode(true);
+
+        detailsAddButton.classList.add("product-details-add");
+
+        productDetailsCartArea.appendChild(detailsAddButton);
+    }
+
+
+    // SHOW POPUP
+
+    productDetailsOverlay.hidden = false;
+
+    document.body.classList.add("product-details-open");
+
+    productDetailsClose.focus();
+}
+
+
+// CLOSE PRODUCT DETAILS
+
+function closeProductDetails() {
+
+    productDetailsOverlay.hidden = true;
+
+    document.body.classList.remove("product-details-open");
+}
+
+
+productDetailsClose.addEventListener(
+    "click",
+    closeProductDetails
+);
+
+
+// CLOSE WHEN CUSTOMER CLICKS OUTSIDE THE POPUP
+
+productDetailsOverlay.addEventListener("click", function(event) {
+
+    if (event.target === productDetailsOverlay) {
+
+        closeProductDetails();
+    }
+});
+
+
+// CLOSE WITH ESCAPE KEY
+
+document.addEventListener("keydown", function(event) {
+
+    if (
+        event.key === "Escape" &&
+        !productDetailsOverlay.hidden
+    ) {
+
+        closeProductDetails();
+    }
+});
+
+
+// OPEN WHEN CUSTOMER CLICKS A PRODUCT CARD
+
+document.addEventListener("click", function(event) {
+
+    const card = event.target.closest(".product-card");
+
+    if (!card) return;
+
+    // Do not open the popup when a customer clicks a button.
+    // This protects Add to Cart and Favourite functionality.
+
+    if (
+        event.target.closest(
+            "button, a, input, select, textarea, label"
+        )
+    ) {
+
+        return;
+    }
+
+    openProductDetails(card);
+});
+
+console.log("Product Details popup initialized.");
+
+
 
     function normalizeFlashSaleText(value) {
 
