@@ -1723,6 +1723,10 @@ console.log(
 
 }
 
+   updateFlashSaleCountdowns();
+   
+   window.setInterval(updateFlashSaleCountdowns, 1000);
+
 
 
     /* =================================================
