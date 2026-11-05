@@ -5764,3 +5764,61 @@ body.dark-mode .product-details-close {
         font-size: 14px !important;
     }
 }
+
+
+/* =========================================
+   SHORT PRODUCT DESCRIPTIONS ON STOREFRONT
+========================================= */
+
+/* Normal products and New Arrivals */
+.product-card .product-description {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+
+    line-height: 1.6 !important;
+    max-height: 3.2em !important;
+
+    margin: 8px 0 12px !important;
+    font-size: 13px !important;
+    color: #666 !important;
+}
+
+/* Flash Sale products */
+.flash-sale-details > p {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+
+    line-height: 1.6 !important;
+    max-height: 3.2em !important;
+
+    font-size: 13px !important;
+}
+
+/* Make product cards feel clickable */
+.product-card {
+    cursor: pointer;
+}
+
+/* Keep buttons behaving normally */
+.product-card button {
+    cursor: pointer;
+}
+
+/* Full description inside the popup must remain unrestricted */
+.product-details-description {
+    display: block !important;
+    -webkit-line-clamp: unset !important;
+    max-height: none !important;
+    overflow: visible !important;
+
+    white-space: pre-wrap !important;
+    line-height: 1.9 !important;
+}
