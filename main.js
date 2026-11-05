@@ -1944,19 +1944,24 @@ console.log(
 
 
     
-/* =================================================
+
+/* =========================================
    12D. LOAD FLASH SALES FROM SUPABASE
-================================================= */
+========================================= */
 
 async function loadStoreFlashSales() {
 
-    /* HIDE FLASH SALES IF STOREFRONT IS HIDDEN */
+    // ALWAYS HIDE FLASH SALES FIRST
+    if (flashSaleSection) {
+        flashSaleSection.hidden = true;
+    }
 
+    if (flashSaleMessage) {
+        flashSaleMessage.hidden = true;
+    }
+
+    // Do not load when storefront products are hidden
     if (storefrontProductsHidden) {
-
-        if (flashSaleSection) {
-            flashSaleSection.hidden = true;
-        }
 
         if (flashSaleGrid) {
             flashSaleGrid.replaceChildren();
@@ -1965,48 +1970,23 @@ async function loadStoreFlashSales() {
         return;
     }
 
-
-    /* CHECK SUPABASE CONNECTION */
-
-    if (!supabaseClient) {
-
-        console.error(
-            "Supabase connection is unavailable."
-        );
-
-        if (flashSaleSection) {
-            flashSaleSection.hidden = true;
-        }
-
-        return;
-    }
-
-
-    /* CHECK REQUIRED HTML ELEMENTS */
-
+    // Check required HTML elements
     if (!flashSaleSection || !flashSaleGrid) {
 
-        console.warn(
-            "Flash Sale HTML elements are missing."
-        );
+        console.warn("Flash Sale HTML elements are missing.");
 
         return;
     }
 
+    // Check Supabase connection
+    if (!supabaseClient) {
 
-    /* HIDE SECTION WHILE CHECKING FOR ACTIVE SALES */
+        console.error("Supabase connection is unavailable.");
 
-    flashSaleSection.hidden = true;
-
-    if (flashSaleMessage) {
-        flashSaleMessage.hidden = true;
-        flashSaleMessage.textContent = "";
+        return;
     }
 
-
     try {
-
-        /* FETCH FLASH SALES FROM SUPABASE */
 
         const { data, error } = await supabaseClient
             .from("store_flash_sales")
@@ -2030,20 +2010,18 @@ async function loadStoreFlashSales() {
             `)
             .eq("is_active", true);
 
-        if (error) throw error;
-
-
-        /* CHECK WHICH SALES ARE CURRENTLY ACTIVE */
+        if (error) {
+            throw error;
+        }
 
         const now = Date.now();
 
+        // CHECK ONLY VALID AND CURRENTLY ACTIVE SALES
         const activeSales = (data || []).filter(sale => {
 
-            const start =
-                new Date(sale.starts_at).getTime();
+            const start = new Date(sale.starts_at).getTime();
 
-            const end =
-                new Date(sale.ends_at).getTime();
+            const end = new Date(sale.ends_at).getTime();
 
             const product = sale.product;
 
@@ -2052,80 +2030,53 @@ async function loadStoreFlashSales() {
                 sale.is_active === true &&
 
                 Number.isFinite(start) &&
-
                 Number.isFinite(end) &&
 
                 now >= start &&
-
                 now < end &&
 
                 product &&
-
                 product.is_active === true &&
 
                 Number(product.price) > 0 &&
 
                 Number(sale.discount_percentage) > 0 &&
-
                 Number(sale.discount_percentage) < 100
 
             );
 
         });
 
-
-        /* NO ACTIVE FLASH SALES */
-
+        // NO ACTIVE FLASH SALES: KEEP EVERYTHING HIDDEN
         if (activeSales.length === 0) {
+
+            restoreOriginalProductCards();
 
             flashSaleGrid.replaceChildren();
 
             flashSaleSection.hidden = true;
 
             if (flashSaleMessage) {
-
                 flashSaleMessage.hidden = true;
-
-                flashSaleMessage.textContent = "";
-
             }
 
-            restoreOriginalProductCards();
-
-            console.log(
-                "No active Flash Sales. Flash Sale section hidden."
-            );
+            console.log("No active Flash Sales available.");
 
             return;
         }
 
+        // UPDATE EXISTING PRODUCT CARDS
+        updateExistingProductCardsWithFlashSales(activeSales);
 
-        /* ACTIVE FLASH SALES EXIST */
-
-        flashSaleSection.hidden = false;
-
-        if (flashSaleMessage) {
-            flashSaleMessage.hidden = true;
-            flashSaleMessage.textContent = "";
-        }
-
-
-        /* UPDATE EXISTING PRODUCT CARDS */
-
-        updateExistingProductCardsWithFlashSales(
-            activeSales
-        );
-
-
-        /* DISPLAY FLASH SALE PRODUCTS */
-
+        // RENDER VALID FLASH SALES
         renderStoreFlashSales(activeSales);
 
+        // DISPLAY ONLY AFTER VALID SALES ARE CONFIRMED
+        flashSaleSection.hidden = false;
 
         console.log(
-            `${activeSales.length} active Flash Sale(s) displayed.`
+            `${activeSales.length} active Flash Sale(s) loaded.`
         );
-
 
     } catch (error) {
 
@@ -2134,22 +2085,21 @@ async function loadStoreFlashSales() {
             error
         );
 
-        flashSaleGrid.replaceChildren();
-
-        flashSaleSection.hidden = true;
-
         restoreOriginalProductCards();
 
+        flashSaleGrid.replaceChildren();
+
+        // NEVER SHOW AN ERROR OR EMPTY FLASH SALE SECTION
+        flashSaleSection.hidden = true;
+
         if (flashSaleMessage) {
-
             flashSaleMessage.hidden = true;
-
-            flashSaleMessage.textContent = "";
-
         }
 
     }
+
 }
+
 
 
 
