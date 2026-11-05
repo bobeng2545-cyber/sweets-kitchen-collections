@@ -1594,40 +1594,31 @@ function updateFlashSaleCountdowns() {
             prices.appendChild(salePrice);
             prices.appendChild(oldPrice);
 
-           // ======================================
-           // FLASH SALE COUNTDOWN DISPLAY
-           // ======================================
-           
-           const countdown = document.createElement("div");
-           
-           countdown.className = "flash-sale-countdown";
-           
-           countdown.dataset.endsAt = sale.ends_at;
-           
            countdown.textContent = "Calculating time...";
-
-const endTime = new Date(sale.ends_at).getTime();
-
-if (Number.isFinite(endTime)) {
-
-    const remaining = Math.max(
-        0,
-        Math.ceil((endTime - Date.now()) / 1000)
-    );
-
-    const minutes = Math.floor(remaining / 60);
-    const seconds = remaining % 60;
-
-    countdown.textContent =
-        remaining > 0
-            ? `Sale ends in ${minutes}:${String(seconds).padStart(2, "0")}`
-            : "Sale ended";
-
-} else {
-
-    countdown.textContent = "Time unavailable";
-
-}
+           
+           const endTime = new Date(sale.ends_at).getTime();
+           
+           if (Number.isFinite(endTime)) {
+              
+              const remaining = Math.max(
+                 
+                 0,
+                 Math.ceil((endTime - Date.now()) / 1000)
+              );
+              
+              const minutes = Math.floor(remaining / 60);
+              const seconds = remaining % 60;
+              
+              countdown.textContent =
+                 remaining > 0
+                 ? `Sale ends in ${minutes}:${String(seconds).padStart(2, "0")}`
+                 : "Sale ended";
+           
+           } else {
+              
+              countdown.textContent = "Time unavailable";
+           
+           }
            
             const button =
                 document.createElement("button");
