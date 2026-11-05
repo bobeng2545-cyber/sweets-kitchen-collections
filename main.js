@@ -1594,18 +1594,18 @@ function updateFlashSaleCountdowns() {
             prices.appendChild(salePrice);
             prices.appendChild(oldPrice);
 
-           // ======================================
-           // FLASH SALE COUNTDOWN DISPLAY
-           // ======================================
            
-           const countdown = document.createElement("div");
-           
-           countdown.className = "flash-sale-countdown";
-           
-           countdown.dataset.endsAt = sale.ends_at;
-           
-           countdown.textContent = "Calculating time...";
+// ======================================
+// FLASH SALE COUNTDOWN DISPLAY
+// ======================================
 
+const countdown = document.createElement("div");
+
+countdown.className = "flash-sale-countdown";
+
+countdown.dataset.endsAt = sale.ends_at;
+
+// Calculate initial remaining time
 const endTime = new Date(sale.ends_at).getTime();
 
 if (Number.isFinite(endTime)) {
@@ -1616,6 +1616,7 @@ if (Number.isFinite(endTime)) {
     );
 
     const minutes = Math.floor(remaining / 60);
+
     const seconds = remaining % 60;
 
     countdown.textContent =
@@ -1628,6 +1629,7 @@ if (Number.isFinite(endTime)) {
     countdown.textContent = "Time unavailable";
 
 }
+
            
             const button =
                 document.createElement("button");
