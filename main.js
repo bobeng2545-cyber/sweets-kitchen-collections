@@ -1712,11 +1712,12 @@ function updateFlashSaleCountdowns() {
             return;
         }
 
-        flashSaleSection.hidden = false;
-
-        if (flashSaleMessage) {
-            flashSaleMessage.hidden = true;
-        }
+       // Keep the section hidden while products are rendering.
+       flashSaleSection.hidden = true;
+       
+       if (flashSaleMessage) {
+          flashSaleMessage.hidden = true;
+       }
 
         sales.forEach(function (sale) {
 
