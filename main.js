@@ -59,6 +59,146 @@ function initializeSweetWebsite() {
 
     const supabaseClient = window.sweetSupabase;
 
+/* =================================================
+   MASTER STOREFRONT PRODUCT VISIBILITY
+================================================= */
+
+let storefrontProductsHidden = false;
+
+let storefrontVisibilityCheckInProgress = false;
+
+
+/* HIDE OR SHOW ALL PRODUCT SECTIONS */
+
+function applyStorefrontVisibility() {
+
+    const productsSection =
+        document.getElementById("products");
+
+    const newArrivalsSection =
+        document.getElementById("newArrivalsSection");
+
+    const flashSaleSection =
+        document.getElementById("flashSaleSection");
+
+    if (productsSection) {
+        productsSection.hidden = storefrontProductsHidden;
+    }
+
+    if (newArrivalsSection) {
+        newArrivalsSection.hidden = storefrontProductsHidden;
+    }
+
+    if (flashSaleSection) {
+        flashSaleSection.hidden = storefrontProductsHidden;
+    }
+}
+
+
+/* LOAD THE SAVED SETTING FROM SUPABASE */
+
+async function loadStorefrontVisibility() {
+
+    if (!supabaseClient) {
+
+        console.error(
+            "Cannot check storefront visibility. Supabase is unavailable."
+        );
+
+        storefrontProductsHidden = true;
+
+        applyStorefrontVisibility();
+
+        return;
+    }
+
+    if (storefrontVisibilityCheckInProgress) return;
+
+    storefrontVisibilityCheckInProgress = true;
+
+    try {
+
+        const { data, error } = await supabaseClient
+            .from("storefront_settings")
+            .select("products_hidden")
+            .eq("id", "main")
+            .maybeSingle();
+
+        if (error) throw error;
+
+        if (!data) {
+            throw new Error(
+                "The storefront visibility setting was not found."
+            );
+        }
+
+        const previousStatus = storefrontProductsHidden;
+
+        storefrontProductsHidden =
+            data.products_hidden === true;
+
+        applyStorefrontVisibility();
+
+        /*
+         * If the admin changes the setting while
+         * a customer is browsing, reload the page.
+         *
+         * This restores the original product cards
+         * and reloads all product-related displays.
+         */
+
+        if (
+            previousStatus !== storefrontProductsHidden &&
+            window.sweetWebsiteInitialized
+        ) {
+
+            window.location.reload();
+
+            return;
+        }
+
+        console.log(
+            "Storefront visibility:",
+            storefrontProductsHidden
+                ? "ALL PRODUCTS HIDDEN"
+                : "PRODUCTS VISIBLE"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Could not retrieve storefront visibility:",
+            error
+        );
+
+        /*
+         * Fail safely: if the visibility setting
+         * cannot be verified, do not display products.
+         */
+
+        storefrontProductsHidden = true;
+
+        applyStorefrontVisibility();
+
+    } finally {
+
+        storefrontVisibilityCheckInProgress = false;
+    }
+}
+
+
+/* CHECK FOR ADMIN CHANGES EVERY 10 SECONDS */
+
+loadStorefrontVisibility();
+
+window.setInterval(function () {
+
+    if (!document.hidden) {
+        loadStorefrontVisibility();
+    }
+
+}, 10000);
+
 
     /* =================================================
        3. CURRENCY FORMATTER
@@ -121,6 +261,20 @@ function createStockDisplay(stock) {
     
 
 async function connectStoreProductIds() {
+
+       // Check the master storefront visibility setting first.
+    await loadStorefrontVisibility();
+
+    // Stop loading products when the admin has hidden them.
+    if (storefrontProductsHidden) {
+
+        console.log(
+            "Product loading skipped: storefront products are hidden."
+        );
+
+        return;
+    }
+   
     if (!supabaseClient) {
         console.error("Supabase connection is unavailable.");
         return;
@@ -838,6 +992,15 @@ function updateProductStock(card, stock) {
     ================================================= */
 
     function addProductToCart(button) {
+
+               if (storefrontProductsHidden) {
+
+            alert(
+                "Our store is temporarily updating its products. Please check back shortly."
+            );
+
+            return;
+        }
 
         if (button.disabled) return;
 
@@ -1735,6 +1898,20 @@ console.log(
 
     async function loadStoreFlashSales() {
 
+               // Never load Flash Sales when the storefront is hidden.
+        if (storefrontProductsHidden) {
+
+            if (flashSaleSection) {
+                flashSaleSection.hidden = true;
+            }
+
+            if (flashSaleGrid) {
+                flashSaleGrid.replaceChildren();
+            }
+
+            return;
+        }
+
         if (!supabaseClient) {
 
             console.error("Supabase connection is unavailable.");
@@ -2409,6 +2586,15 @@ client.auth.onAuthStateChange((event, session) => {
 
 
         function openPaymentWindow() {
+
+                       if (storefrontProductsHidden) {
+
+                alert(
+                    "Checkout is temporarily unavailable while our store updates its products."
+                );
+
+                return;
+            }
 
             if (cart.length === 0) {
 
