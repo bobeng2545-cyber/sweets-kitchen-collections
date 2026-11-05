@@ -4758,72 +4758,100 @@ body.orders-popup-open {
     display: none !important;
 }
 
+
 /* =========================================
    CUSTOMER AI ASSISTANT
+   SWEET'S KITCHEN & COLLECTIONS
 ========================================= */
 
+
+/* MAIN WIDGET */
+
 .customer-ai-widget {
-    position: fixed !important;
+    position: fixed;
     right: 24px;
     bottom: 100px;
-    z-index: 999999 !important;
+    z-index: 999999;
     isolation: isolate;
+    font-family: inherit;
 }
 
 
-/* FLOATING BUTTON */
+/* =========================================
+   FLOATING CIRCULAR AI BUTTON
+========================================= */
 
 .customer-ai-launcher {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 9px;
-    min-height: 54px;
-    padding: 0 20px;
-    border: none;
-    border-radius: 50px;
-    background: #176b55;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s ease, background 0.2s ease;
-    position: relative;
-    z-index: 999999 !important;
+
     width: 60px;
     height: 60px;
+    min-height: 60px;
+
+    padding: 0;
+    border: none;
     border-radius: 50%;
+
+    background: #176b55;
+    color: #fff;
+
+    cursor: pointer;
+
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.2);
+
+    transition: transform 0.2s ease, background 0.2s ease;
+
+    position: relative;
+    z-index: 999999;
 }
 
 .customer-ai-launcher:hover {
     background: #105541;
-    transform: translateY(-3px);
+    transform: scale(1.08);
 }
 
 .customer-ai-launcher .material-symbols-outlined {
-    font-size: 25px;
+    font-size: 30px;
+}
+
+.customer-ai-launcher-text {
+    display: none;
 }
 
 
-/* CHAT PANEL */
+/* =========================================
+   CHAT PANEL
+========================================= */
 
 .customer-ai-panel {
     position: absolute;
     right: 0;
-    bottom: 70px;
+    bottom: 75px;
+
     display: flex;
     flex-direction: column;
+
     width: 370px;
     max-width: calc(100vw - 32px);
+
     height: 510px;
-    max-height: calc(100dvh - 120px);
+    max-height: calc(100dvh - 130px);
+
+    min-height: 0;
+
     overflow: hidden;
+
     background: #fff;
-    color: #222;
+    color: #000;
+
     border: 1px solid #e5e7eb;
     border-radius: 18px;
+
     box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+
+    box-sizing: border-box;
 }
 
 .customer-ai-panel[hidden] {
@@ -4831,13 +4859,19 @@ body.orders-popup-open {
 }
 
 
-/* HEADER */
+/* =========================================
+   CHAT HEADER
+========================================= */
 
 .customer-ai-header {
     display: flex;
     align-items: center;
     gap: 12px;
+
+    flex-shrink: 0;
+
     padding: 16px;
+
     background: #176b55;
     color: #fff;
 }
@@ -4846,9 +4880,12 @@ body.orders-popup-open {
     display: flex;
     align-items: center;
     justify-content: center;
+
     width: 43px;
     height: 43px;
+
     flex-shrink: 0;
+
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.18);
 }
@@ -4859,63 +4896,102 @@ body.orders-popup-open {
 
 .customer-ai-header-info {
     flex: 1;
+    min-width: 0;
 }
 
 .customer-ai-header-info h3 {
     margin: 0 0 4px;
     font-size: 15px;
+    color: #fff;
 }
 
 .customer-ai-header-info p {
     display: flex;
     align-items: center;
     gap: 6px;
+
     margin: 0;
+
     font-size: 12px;
+    color: #fff;
     opacity: 0.9;
 }
 
 .customer-ai-online-dot {
     width: 8px;
     height: 8px;
+
+    flex-shrink: 0;
+
     border-radius: 50%;
     background: #7df5a5;
 }
 
-.customer-ai-close {
+
+/* HEADER ACTIONS */
+
+.customer-ai-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.customer-ai-close,
+.customer-ai-clear {
     display: flex;
     align-items: center;
     justify-content: center;
+
     width: 35px;
     height: 35px;
+
+    flex-shrink: 0;
+
     border: none;
     border-radius: 50%;
+
     background: transparent;
     color: #fff;
+
     cursor: pointer;
 }
 
-.customer-ai-close:hover {
-    background: rgba(255, 255, 255, 0.15);
+.customer-ai-close:hover,
+.customer-ai-clear:hover {
+    background: rgba(255, 255, 255, 0.18);
 }
 
 
-/* MESSAGES */
+/* =========================================
+   MESSAGES AREA
+========================================= */
 
 .customer-ai-messages {
-    flex: 1;
+    flex: 1 1 0;
+    min-height: 0;
+
     display: flex;
     flex-direction: column;
     gap: 15px;
+
     padding: 17px;
+
+    overflow-x: hidden;
     overflow-y: auto;
+
     background: #f8faf9;
+
+    box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
 }
 
 .customer-ai-message {
     display: flex;
     align-items: flex-start;
     gap: 9px;
+
     max-width: 95%;
 }
 
@@ -4928,9 +5004,12 @@ body.orders-popup-open {
     display: flex;
     align-items: center;
     justify-content: center;
+
     width: 30px;
     height: 30px;
+
     flex-shrink: 0;
+
     border-radius: 50%;
     background: #176b55;
     color: #fff;
@@ -4941,24 +5020,37 @@ body.orders-popup-open {
 }
 
 
-/* =========================================
-   CUSTOMER AI MESSAGE TEXT
-========================================= */
+/* MESSAGE TEXT */
 
 .customer-ai-message-content {
-    color: #000 !important;
+    padding: 11px 13px;
+
+    border-radius: 12px;
+
     background: #fff;
+    color: #000;
+
+    font-size: 13px;
+    line-height: 1.6;
+
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.05);
+
+    overflow-wrap: anywhere;
 }
 
 .customer-ai-message.user .customer-ai-message-content {
-    color: #fff !important;
     background: #176b55;
+    color: #fff;
 }
 
 .customer-ai-message-content strong {
     display: block;
     margin-bottom: 5px;
     color: #000;
+}
+
+.customer-ai-message.user .customer-ai-message-content strong {
+    color: #fff;
 }
 
 .customer-ai-message-content p {
@@ -4970,22 +5062,31 @@ body.orders-popup-open {
 }
 
 
-/* QUICK SUGGESTIONS */
+/* =========================================
+   QUICK SUGGESTIONS
+========================================= */
 
 .customer-ai-suggestions {
     display: flex;
     flex-wrap: wrap;
     gap: 7px;
+
+    flex-shrink: 0;
+
     padding: 10px 12px;
+
     background: #fff;
 }
 
 .customer-ai-suggestions button {
     padding: 7px 10px;
+
     border: 1px solid #176b55;
     border-radius: 20px;
+
     background: #fff;
     color: #176b55;
+
     font-size: 11px;
     cursor: pointer;
 }
@@ -4995,28 +5096,42 @@ body.orders-popup-open {
 }
 
 
-/* MESSAGE INPUT */
+/* =========================================
+   MESSAGE INPUT
+========================================= */
 
 .customer-ai-input-area {
     display: flex;
     align-items: center;
     gap: 9px;
+
+    flex-shrink: 0;
+
     padding: 12px;
+
     border-top: 1px solid #eee;
+
     background: #fff;
+    box-sizing: border-box;
 }
 
 .customer-ai-input-area input {
     flex: 1;
     min-width: 0;
+
     height: 43px;
+
     padding: 0 13px;
+
     border: 1px solid #ddd;
     border-radius: 25px;
+
     outline: none;
-    font-size: 13px;
-    color: #000;
+
     background: #fff;
+    color: #000;
+
+    font-size: 13px;
 }
 
 .customer-ai-input-area input::placeholder {
@@ -5031,13 +5146,18 @@ body.orders-popup-open {
     display: flex;
     align-items: center;
     justify-content: center;
+
     width: 43px;
     height: 43px;
+
     flex-shrink: 0;
+
     border: none;
     border-radius: 50%;
+
     background: #176b55;
     color: #fff;
+
     cursor: pointer;
 }
 
@@ -5045,144 +5165,77 @@ body.orders-popup-open {
     background: #105541;
 }
 
+
+/* =========================================
+   CHAT FOOTER
+========================================= */
+
 .customer-ai-footer {
+    flex-shrink: 0;
+
     margin: 0;
     padding: 6px;
+
     background: #fff;
     color: #888;
+
     text-align: center;
     font-size: 10px;
 }
 
 
-/* CIRCULAR CUSTOMER AI ICON */
-
-.customer-ai-launcher {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 60px;
-    height: 60px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: #176b55;
-    color: #fff;
-    cursor: pointer;
-    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s ease;
-}
-
-.customer-ai-launcher:hover {
-    transform: scale(1.08);
-}
-
-.customer-ai-launcher .material-symbols-outlined {
-    font-size: 30px;
-}
-
-.customer-ai-launcher-text {
-    display: none;
-}
-
-
-
-
 /* =========================================
-   CUSTOMER AI MOBILE DISPLAY FIX
+   MOBILE RESPONSIVENESS
 ========================================= */
 
 @media screen and (max-width: 480px) {
 
     .customer-ai-widget {
-        position: fixed !important;
-        right: 14px !important;
-        bottom: 90px !important;
-        z-index: 999999 !important;
+        right: 14px;
+        bottom: 90px;
     }
 
     .customer-ai-panel {
-        position: fixed !important;
+        position: fixed;
 
-        inset: 10px !important;
+        top: 12px;
+        left: 10px;
+        right: 10px;
+        bottom: 12px;
 
-        width: auto !important;
-        max-width: none !important;
+        width: auto;
+        max-width: none;
 
-        height: auto !important;
-        max-height: none !important;
-        min-height: 0 !important;
+        height: auto;
+        max-height: none;
 
-        display: flex !important;
-        flex-direction: column !important;
+        min-height: 0;
 
-        margin: 0 !important;
-        padding: 0 !important;
-
-        overflow: hidden !important;
-
-        background: #ffffff !important;
-        color: #000000 !important;
-
-        border: 1px solid #ddd !important;
-        border-radius: 16px !important;
-
-        box-sizing: border-box !important;
-
-        z-index: 999999 !important;
-    }
-
-    .customer-ai-panel[hidden] {
-        display: none !important;
+        border-radius: 16px;
     }
 
     .customer-ai-header {
-        position: relative !important;
-        display: flex !important;
-        flex: 0 0 auto !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
+        padding: 13px;
     }
 
     .customer-ai-messages {
-        position: relative !important;
-        display: flex !important;
-        flex: 1 1 0% !important;
-
-        width: 100% !important;
-        min-height: 0 !important;
-
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
-
-        box-sizing: border-box !important;
-        -webkit-overflow-scrolling: touch;
+        flex: 1 1 0;
+        min-height: 0;
+        overflow-y: auto;
     }
 
     .customer-ai-suggestions {
-        position: relative !important;
-        display: flex !important;
-        flex: 0 0 auto !important;
-
-        width: 100% !important;
-        box-sizing: border-box !important;
+        flex-shrink: 0;
     }
 
     .customer-ai-input-area {
-        position: relative !important;
-        display: flex !important;
-        flex: 0 0 auto !important;
-
-        width: 100% !important;
-        box-sizing: border-box !important;
-        background: #fff !important;
+        flex-shrink: 0;
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
     }
 
     .customer-ai-footer {
-        position: relative !important;
-        flex: 0 0 auto !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
+        flex-shrink: 0;
     }
 
 }
+
