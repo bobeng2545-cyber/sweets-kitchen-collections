@@ -5086,21 +5086,70 @@ body.orders-popup-open {
 }
 
 
-/* MOBILE */
+
+/* =========================================
+   CUSTOMER AI MOBILE DISPLAY FIX
+========================================= */
 
 @media (max-width: 480px) {
 
     .customer-ai-widget {
+        position: fixed !important;
         right: 14px;
         bottom: 90px;
+        z-index: 999999 !important;
     }
 
     .customer-ai-panel {
-        position: fixed;
-        right: 10px;
-        bottom: 155px;
-        width: calc(100vw - 20px);
-        height: min(510px, calc(100dvh - 175px));
+        position: fixed !important;
+
+        top: 15px !important;
+        left: 10px !important;
+        right: 10px !important;
+        bottom: 15px !important;
+
+        width: auto !important;
+        max-width: none !important;
+
+        height: auto !important;
+        max-height: none !important;
+
+        display: flex;
+        flex-direction: column;
+
+        overflow: hidden;
+
+        border-radius: 18px;
+        background: #fff;
+        z-index: 999999 !important;
+    }
+
+    .customer-ai-panel[hidden] {
+        display: none !important;
+    }
+
+    .customer-ai-header {
+        flex-shrink: 0;
+    }
+
+    .customer-ai-messages {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .customer-ai-suggestions {
+        flex-shrink: 0;
+    }
+
+    .customer-ai-input-area {
+        flex-shrink: 0;
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+
+    .customer-ai-footer {
+        flex-shrink: 0;
     }
 
 }
