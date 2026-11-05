@@ -4751,3 +4751,9 @@ body.orders-popup-open {
     background: #451b1b;
     color: #ff7777;
 }
+
+/* Keep inactive sections completely hidden */
+
+#flashSaleSection[hidden] {
+    display: none !important;
+}
