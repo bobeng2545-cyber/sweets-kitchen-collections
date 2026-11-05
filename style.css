@@ -4935,25 +4935,25 @@ body.orders-popup-open {
     font-size: 18px;
 }
 
+
+/* =========================================
+   CUSTOMER AI MESSAGE TEXT
+========================================= */
+
 .customer-ai-message-content {
-    padding: 11px 13px;
-    border-radius: 12px;
+    color: #000 !important;
     background: #fff;
-    color: #222;
-    font-size: 13px;
-    line-height: 1.6;
-    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.05);
-    overflow-wrap: anywhere;
 }
 
 .customer-ai-message.user .customer-ai-message-content {
+    color: #fff !important;
     background: #176b55;
-    color: #fff;
 }
 
 .customer-ai-message-content strong {
     display: block;
     margin-bottom: 5px;
+    color: #000;
 }
 
 .customer-ai-message-content p {
@@ -5010,6 +5010,12 @@ body.orders-popup-open {
     border-radius: 25px;
     outline: none;
     font-size: 13px;
+    color: #000;
+    background: #fff;
+}
+
+.customer-ai-input-area input::placeholder {
+    color: #777;
 }
 
 .customer-ai-input-area input:focus {
@@ -5041,6 +5047,37 @@ body.orders-popup-open {
     color: #888;
     text-align: center;
     font-size: 10px;
+}
+
+
+/* CIRCULAR CUSTOMER AI ICON */
+
+.customer-ai-launcher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #176b55;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.customer-ai-launcher:hover {
+    transform: scale(1.08);
+}
+
+.customer-ai-launcher .material-symbols-outlined {
+    font-size: 30px;
+}
+
+.customer-ai-launcher-text {
+    display: none;
 }
 
 
