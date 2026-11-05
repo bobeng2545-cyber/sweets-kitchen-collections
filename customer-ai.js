@@ -228,23 +228,53 @@
     }
 
 
-    /* CLOSE WITH ESCAPE */
+    
+/* =========================================
+   CLOSE AI WHEN CLICKING OUTSIDE
+========================================= */
 
-    document.addEventListener(
-        "keydown",
-        function (event) {
+document.addEventListener(
+    "click",
+    function (event) {
 
-            if (
-                event.key === "Escape" &&
-                !panel.hidden
-            ) {
+        if (panel.hidden) return;
 
-                closeAssistant();
+        // Keep the assistant open when clicking
+        // inside the chat panel or its launcher.
 
-            }
+        if (
+            panel.contains(event.target) ||
+            launcher.contains(event.target)
+        ) {
+            return;
+        }
+
+        // Close when clicking anywhere outside.
+
+        closeAssistant();
+
+    }
+);
+
+
+/* CLOSE WITH ESCAPE */
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (
+            event.key === "Escape" &&
+            !panel.hidden
+        ) {
+
+            closeAssistant();
 
         }
-    );
+
+    }
+);
+
 
 
     console.log(
