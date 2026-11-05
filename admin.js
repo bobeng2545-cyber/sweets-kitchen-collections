@@ -138,6 +138,20 @@ const productCategoryFilter =
 const addProductButton =
     document.getElementById("addProductButton");
 
+/* MASTER STOREFRONT VISIBILITY CONTROL */
+
+const storefrontVisibilityToggle =
+    document.getElementById("storefrontVisibilityToggle");
+
+const storefrontControlStatus =
+    document.getElementById("storefrontControlStatus");
+
+const storefrontControlDescription =
+    document.getElementById("storefrontControlDescription");
+
+const storefrontControlMessage =
+    document.getElementById("storefrontControlMessage");
+
 /* Categories */
 
 const categoriesTableBody =
@@ -562,6 +576,219 @@ async function verifyAdministrator(user) {
     return true;
 }
 
+/* =========================================================
+   MASTER STOREFRONT VISIBILITY CONTROL
+========================================================= */
+
+/* DISPLAY CURRENT STOREFRONT STATUS */
+
+function renderStorefrontControl() {
+
+    if (
+        !storefrontVisibilityToggle ||
+        !storefrontControlStatus ||
+        !storefrontControlDescription
+    ) {
+        return;
+    }
+
+    storefrontVisibilityToggle.checked =
+        storefrontProductsHidden;
+
+    if (storefrontProductsHidden) {
+
+        storefrontControlStatus.textContent = "PRODUCTS HIDDEN";
+
+        storefrontControlDescription.textContent =
+            "Customers cannot currently see storefront products.";
+
+    } else {
+
+        storefrontControlStatus.textContent = "STORE ACTIVE";
+
+        storefrontControlDescription.textContent =
+            "Your active products are visible to customers.";
+
+    }
+}
+
+
+/* LOAD STOREFRONT VISIBILITY FROM SUPABASE */
+
+async function loadStorefrontControl() {
+
+    if (!storefrontVisibilityToggle) return;
+
+    storefrontVisibilityToggle.disabled = true;
+
+    if (storefrontControlStatus) {
+        storefrontControlStatus.textContent = "Loading status...";
+    }
+
+    hideTableMessage(storefrontControlMessage);
+
+    try {
+
+        const { data, error } = await supabase
+            .from("storefront_settings")
+            .select("products_hidden")
+            .eq("id", "main")
+            .maybeSingle();
+
+        if (error) throw error;
+
+        if (!data) {
+
+            throw new Error(
+                "The storefront settings record was not found."
+            );
+
+        }
+
+        storefrontProductsHidden =
+            data.products_hidden === true;
+
+        renderStorefrontControl();
+
+        storefrontVisibilityToggle.disabled = false;
+
+    } catch (error) {
+
+        console.error(
+            "STOREFRONT CONTROL LOADING ERROR:",
+            error
+        );
+
+        if (storefrontControlStatus) {
+            storefrontControlStatus.textContent =
+                "STATUS UNAVAILABLE";
+        }
+
+        if (storefrontControlDescription) {
+            storefrontControlDescription.textContent =
+                "Unable to retrieve storefront visibility.";
+        }
+
+        showMessage(
+            storefrontControlMessage,
+            error.message || "Unable to load storefront settings.",
+            "error"
+        );
+
+        storefrontVisibilityToggle.disabled = true;
+
+    }
+
+}
+
+
+/* UPDATE STOREFRONT VISIBILITY */
+
+async function updateStorefrontControl() {
+
+    if (
+        !storefrontVisibilityToggle ||
+        storefrontControlSaving
+    ) {
+        return;
+    }
+
+    const previousStatus = storefrontProductsHidden;
+
+    const newStatus = storefrontVisibilityToggle.checked;
+
+    if (newStatus === previousStatus) return;
+
+    const confirmed = window.confirm(
+        newStatus
+            ? "Hide ALL products from customers? Your products will remain saved in the admin dashboard."
+            : "Make your active products visible to customers again?"
+    );
+
+    if (!confirmed) {
+
+        storefrontVisibilityToggle.checked =
+            previousStatus;
+
+        return;
+    }
+
+    storefrontControlSaving = true;
+
+    storefrontVisibilityToggle.disabled = true;
+
+    hideTableMessage(storefrontControlMessage);
+
+    try {
+
+        const { data, error } = await supabase
+            .from("storefront_settings")
+            .update({
+                products_hidden: newStatus,
+                updated_at: new Date().toISOString()
+            })
+            .eq("id", "main")
+            .select("products_hidden")
+            .maybeSingle();
+
+        if (error) throw error;
+
+        if (!data) {
+
+            throw new Error(
+                "The setting was not updated. Check your administrator permissions."
+            );
+
+        }
+
+        storefrontProductsHidden =
+            data.products_hidden === true;
+
+        renderStorefrontControl();
+
+        showMessage(
+            storefrontControlMessage,
+            storefrontProductsHidden
+                ? "All storefront products have been hidden successfully."
+                : "Storefront product visibility has been restored successfully.",
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "STOREFRONT CONTROL UPDATE ERROR:",
+            error
+        );
+
+        storefrontProductsHidden = previousStatus;
+
+        renderStorefrontControl();
+
+        showMessage(
+            storefrontControlMessage,
+            error.message || "Unable to update storefront visibility.",
+            "error"
+        );
+
+    } finally {
+
+        storefrontControlSaving = false;
+
+        storefrontVisibilityToggle.disabled = false;
+
+    }
+
+}
+
+
+/* SWITCH EVENT */
+
+storefrontVisibilityToggle?.addEventListener(
+    "change",
+    updateStorefrontControl
+);
+
 
 /* SIGN IN */
 
@@ -757,6 +984,7 @@ sidebarOverlay.addEventListener("click", closeSidebar);
 ========================================================= */
 
 async function loadDashboardData() {
+
     if (dashboardLoading) return;
 
     dashboardLoading = true;
@@ -764,16 +992,19 @@ async function loadDashboardData() {
     clearGlobalMessage();
 
     try {
-       await Promise.all([
-          loadCategories(),
-          loadProducts(),
-          loadOrders(),
-          loadFlashSales()
-       ]);
+
+        await Promise.all([
+            loadCategories(),
+            loadProducts(),
+            loadOrders(),
+            loadFlashSales(),
+            loadStorefrontControl()
+        ]);
 
         updateDashboardStatistics();
 
     } catch (error) {
+
         console.error("Dashboard loading error:", error);
 
         showGlobalMessage(
@@ -782,8 +1013,11 @@ async function loadDashboardData() {
         );
 
     } finally {
+
         dashboardLoading = false;
+
     }
+
 }
 
 
