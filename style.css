@@ -4752,10 +4752,23 @@ body.orders-popup-open {
     color: #ff7777;
 }
 
-/* Keep inactive sections completely hidden */
+/* =========================================
+   FLASH SALE VISIBILITY CONTROL
+========================================= */
 
+/* Keep Flash Sale completely hidden until activated */
 #flashSaleSection[hidden] {
     display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Display only when JavaScript activates it */
+#flashSaleSection:not([hidden]) {
+    display: block;
+    visibility: visible;
+    opacity: 1;
 }
 
 
