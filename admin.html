@@ -345,61 +345,149 @@
 
 
             <!-- PRODUCTS -->
-            <section class="dashboard-section" id="section-products">
+<section class="dashboard-section" id="section-products">
 
-                <div class="section-heading">
-                    <div>
-                        <h2>Product Inventory</h2>
-                        <p>Add and manage products displayed in your online store.</p>
-                    </div>
+    <div class="section-heading">
+        <div>
+            <h2>Product Inventory</h2>
+            <p>Add and manage products displayed in your online store.</p>
+        </div>
 
-                    <button type="button" class="primary-button compact" id="addProductButton">
-                        + Add Product
-                    </button>
-                </div>
+        <button
+            type="button"
+            class="primary-button compact"
+            id="addProductButton"
+        >
+            + Add Product
+        </button>
+    </div>
 
-                <div class="content-card">
 
-                    <div class="toolbar">
-                        <input
-                            type="search"
-                            id="searchProducts"
-                            placeholder="Search products..."
-                        >
+    <!-- MASTER STOREFRONT VISIBILITY CONTROL -->
 
-                        <select id="productCategoryFilter">
-                            <option value="">All categories</option>
-                        </select>
-                    </div>
+    <div class="content-card storefront-control-card">
 
-                    <p id="productsMessage" class="table-message" role="status"></p>
+        <div class="storefront-control-header">
 
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Category</th>
-                                    <th>Price</th>
-                                    <th>Stock</th>
-                                    <th>Visibility</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
+            <div>
+                <span class="material-symbols-outlined">
+                    storefront
+                </span>
 
-                            <tbody id="productsTableBody">
-                                <tr>
-                                    <td colspan="6" class="empty-cell">
-                                        Products will appear here.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <h3>Overall Storefront Control</h3>
 
-                </div>
+                <p>
+                    Temporarily hide all products from customers
+                    while you update your inventory.
+                </p>
+            </div>
 
-            </section>
+            <span
+                id="storefrontControlStatus"
+                class="storefront-control-status"
+            >
+                Loading status...
+            </span>
+
+        </div>
+
+
+        <div class="storefront-control-action">
+
+            <div>
+                <strong>Hide All Storefront Products</strong>
+
+                <p id="storefrontControlDescription">
+                    Checking storefront visibility...
+                </p>
+            </div>
+
+            <label
+                class="storefront-switch"
+                for="storefrontVisibilityToggle"
+            >
+
+                <input
+                    type="checkbox"
+                    id="storefrontVisibilityToggle"
+                    disabled
+                >
+
+                <span class="storefront-slider"></span>
+
+            </label>
+
+        </div>
+
+
+        <p
+            id="storefrontControlMessage"
+            class="table-message"
+            role="status"
+            aria-live="polite"
+        ></p>
+
+    </div>
+
+
+    <!-- PRODUCT INVENTORY TABLE -->
+
+    <div class="content-card">
+
+        <div class="toolbar">
+
+            <input
+                type="search"
+                id="searchProducts"
+                placeholder="Search products..."
+            >
+
+            <select id="productCategoryFilter">
+                <option value="">All categories</option>
+            </select>
+
+        </div>
+
+
+        <p
+            id="productsMessage"
+            class="table-message"
+            role="status"
+        ></p>
+
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Visibility</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="productsTableBody">
+
+                    <tr>
+                        <td colspan="6" class="empty-cell">
+                            Products will appear here.
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
 
 
 <!-- CATEGORIES -->
