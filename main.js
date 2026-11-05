@@ -65,7 +65,9 @@ function initializeSweetWebsite() {
 
 let storefrontProductsHidden = false;
 
-let storefrontVisibilityCheckInProgress = false;
+let storefrontVisibilityInitialized = false;
+
+let storefrontVisibilityCheckPromise = null;
 
 
 /* HIDE OR SHOW ALL PRODUCT SECTIONS */
@@ -81,120 +83,169 @@ function applyStorefrontVisibility() {
     const flashSaleSection =
         document.getElementById("flashSaleSection");
 
+    /*
+       Keep product sections hidden until
+       Supabase confirms the saved setting.
+    */
+
+    const shouldHideProducts =
+        !storefrontVisibilityInitialized ||
+        storefrontProductsHidden;
+
     if (productsSection) {
-        productsSection.hidden = storefrontProductsHidden;
+        productsSection.hidden = shouldHideProducts;
     }
 
     if (newArrivalsSection) {
-        newArrivalsSection.hidden = storefrontProductsHidden;
+        newArrivalsSection.hidden = shouldHideProducts;
     }
 
     if (flashSaleSection) {
-        flashSaleSection.hidden = storefrontProductsHidden;
+        flashSaleSection.hidden = shouldHideProducts;
     }
 }
 
 
 /* LOAD THE SAVED SETTING FROM SUPABASE */
 
-async function loadStorefrontVisibility() {
+function loadStorefrontVisibility() {
 
     if (!supabaseClient) {
 
         console.error(
-            "Cannot check storefront visibility. Supabase is unavailable."
+            "Supabase is unavailable. Storefront products will remain hidden."
         );
 
         storefrontProductsHidden = true;
+        storefrontVisibilityInitialized = true;
 
         applyStorefrontVisibility();
 
-        return;
+        return Promise.resolve();
     }
 
-    if (storefrontVisibilityCheckInProgress) return;
+    /*
+       If another visibility check is already running,
+       wait for that same request instead of starting
+       another one.
+    */
 
-    storefrontVisibilityCheckInProgress = true;
+    if (storefrontVisibilityCheckPromise) {
+        return storefrontVisibilityCheckPromise;
+    }
 
-    try {
+    storefrontVisibilityCheckPromise = (async function () {
 
-        const { data, error } = await supabaseClient
-            .from("storefront_settings")
-            .select("products_hidden")
-            .eq("id", "main")
-            .maybeSingle();
+        try {
 
-        if (error) throw error;
+            const { data, error } = await supabaseClient
+                .from("storefront_settings")
+                .select("products_hidden")
+                .eq("id", "main")
+                .maybeSingle();
 
-        if (!data) {
-            throw new Error(
-                "The storefront visibility setting was not found."
+            if (error) {
+                throw error;
+            }
+
+            if (!data) {
+
+                throw new Error(
+                    "The storefront visibility setting was not found."
+                );
+            }
+
+            const previousStatus =
+                storefrontProductsHidden;
+
+            const wasAlreadyInitialized =
+                storefrontVisibilityInitialized;
+
+            storefrontProductsHidden =
+                data.products_hidden === true;
+
+            storefrontVisibilityInitialized = true;
+
+            applyStorefrontVisibility();
+
+
+            /*
+               IMPORTANT:
+
+               When the admin switches ON:
+               Hide the sections immediately.
+               DO NOT reload the page.
+
+               When the admin switches OFF:
+               Reload once so the products can
+               load again from Supabase.
+            */
+
+            if (
+                wasAlreadyInitialized &&
+                previousStatus === true &&
+                storefrontProductsHidden === false
+            ) {
+
+                console.log(
+                    "Storefront is active again. Reloading products..."
+                );
+
+                window.location.reload();
+
+                return;
+            }
+
+            console.log(
+                "Storefront visibility:",
+                storefrontProductsHidden
+                    ? "ALL PRODUCTS HIDDEN"
+                    : "PRODUCTS VISIBLE"
             );
+
+        } catch (error) {
+
+            console.error(
+                "STOREFRONT VISIBILITY ERROR:",
+                error
+            );
+
+            /*
+               Fail safely.
+               Do not display products if the setting
+               cannot be verified.
+            */
+
+            storefrontProductsHidden = true;
+
+            storefrontVisibilityInitialized = true;
+
+            applyStorefrontVisibility();
+
+        } finally {
+
+            storefrontVisibilityCheckPromise = null;
         }
 
-        const previousStatus = storefrontProductsHidden;
+    })();
 
-        storefrontProductsHidden =
-            data.products_hidden === true;
-
-        applyStorefrontVisibility();
-
-        /*
-         * If the admin changes the setting while
-         * a customer is browsing, reload the page.
-         *
-         * This restores the original product cards
-         * and reloads all product-related displays.
-         */
-
-        if (
-            previousStatus !== storefrontProductsHidden &&
-            window.sweetWebsiteInitialized
-        ) {
-
-            window.location.reload();
-
-            return;
-        }
-
-        console.log(
-            "Storefront visibility:",
-            storefrontProductsHidden
-                ? "ALL PRODUCTS HIDDEN"
-                : "PRODUCTS VISIBLE"
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Could not retrieve storefront visibility:",
-            error
-        );
-
-        /*
-         * Fail safely: if the visibility setting
-         * cannot be verified, do not display products.
-         */
-
-        storefrontProductsHidden = true;
-
-        applyStorefrontVisibility();
-
-    } finally {
-
-        storefrontVisibilityCheckInProgress = false;
-    }
+    return storefrontVisibilityCheckPromise;
 }
+
+
+/* INITIAL STOREFRONT VISIBILITY CHECK */
+
+loadStorefrontVisibility();
 
 
 /* CHECK FOR ADMIN CHANGES EVERY 10 SECONDS */
 
-loadStorefrontVisibility();
-
 window.setInterval(function () {
 
     if (!document.hidden) {
+
         loadStorefrontVisibility();
+
     }
 
 }, 10000);
