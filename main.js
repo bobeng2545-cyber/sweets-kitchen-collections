@@ -1042,7 +1042,7 @@ function updateProductStock(card, stock) {
        9. ADD PRODUCTS TO CART
     ================================================= */
 
-    function addProductToCart(button) {
+    function addProductToCart(button, quantity = 1) {
 
                if (storefrontProductsHidden) {
 
@@ -1054,6 +1054,16 @@ function updateProductStock(card, stock) {
         }
 
         if (button.disabled) return;
+
+       const requestedQuantity = Number(quantity);
+
+if (
+    !Number.isInteger(requestedQuantity) ||
+    requestedQuantity < 1
+) {
+    alert("Please select a valid product quantity.");
+    return;
+}
 
         const name =
             (button.dataset.name || "").trim();
@@ -1088,10 +1098,33 @@ function updateProductStock(card, stock) {
             );
         });
 
+       // PREVENT ADDING MORE THAN AVAILABLE STOCK.
+
+const hasStockLimit =
+    button.dataset.stock !== undefined &&
+    button.dataset.stock !== "";
+
+const stockLimit = Number(button.dataset.stock);
+
+const alreadyInCart =
+    existingProduct?.quantity || 0;
+
+if (
+    hasStockLimit &&
+    alreadyInCart + requestedQuantity > stockLimit
+) {
+
+    alert(
+        `Only ${Math.max(0, stockLimit - alreadyInCart)} more units are available.`
+    );
+
+    return;
+}
+
         if (existingProduct) {
 
             existingProduct.price = price;
-            existingProduct.quantity++;
+            existingProduct.quantity += requestedQuantity;
 
             existingProduct.flashSaleId =
                 button.dataset.flashSaleId || null;
@@ -1105,7 +1138,7 @@ function updateProductStock(card, stock) {
                 productId: productId,
                 name: name,
                 price: price,
-                quantity: 1,
+                quantity: requestedQuantity,
                 flashSaleId: button.dataset.flashSaleId || null,
                 originalPrice:
                     Number(button.dataset.originalPrice) || price
@@ -1138,7 +1171,10 @@ function updateProductStock(card, stock) {
 
         if (!button) return;
 
-        addProductToCart(button);
+        const quantity =
+    Number(button.dataset.quantity) || 1;
+
+addProductToCart(button, quantity);
     });
 
 
@@ -1423,6 +1459,30 @@ productDetailsOverlay.innerHTML = `
                      class="product-details-description">
                 </div>
 
+                <div class="product-details-quantity">
+
+    <label>Quantity</label>
+
+    <div class="product-details-quantity-controls">
+
+        <button type="button"
+                id="productDetailsDecrease"
+                aria-label="Decrease quantity">
+            −
+        </button>
+
+        <span id="productDetailsQuantityValue">1</span>
+
+        <button type="button"
+                id="productDetailsIncrease"
+                aria-label="Increase quantity">
+            +
+        </button>
+
+    </div>
+
+</div>
+
                 <p id="productDetailsStock"
                    class="product-details-stock">
                 </p>
@@ -1466,6 +1526,76 @@ const productDetailsStock =
 
 const productDetailsCartArea =
     document.getElementById("productDetailsCartArea");
+
+/* =========================================
+   PRODUCT DETAILS QUANTITY CONTROLS
+========================================= */
+
+const productDetailsDecrease =
+    document.getElementById("productDetailsDecrease");
+
+const productDetailsIncrease =
+    document.getElementById("productDetailsIncrease");
+
+const productDetailsQuantityValue =
+    document.getElementById("productDetailsQuantityValue");
+
+let productDetailsSelectedQuantity = 1;
+
+let productDetailsMaxStock = null;
+
+let productDetailsAddButton = null;
+
+
+function updateProductDetailsQuantity() {
+
+    productDetailsQuantityValue.textContent =
+        productDetailsSelectedQuantity;
+
+    productDetailsDecrease.disabled =
+        productDetailsSelectedQuantity <= 1;
+
+    productDetailsIncrease.disabled =
+        productDetailsMaxStock !== null &&
+        productDetailsSelectedQuantity >= productDetailsMaxStock;
+
+    if (productDetailsAddButton) {
+
+        productDetailsAddButton.dataset.quantity =
+            String(productDetailsSelectedQuantity);
+    }
+}
+
+
+// DECREASE QUANTITY
+
+productDetailsDecrease.addEventListener("click", function () {
+
+    if (productDetailsSelectedQuantity > 1) {
+
+        productDetailsSelectedQuantity--;
+
+        updateProductDetailsQuantity();
+    }
+
+});
+
+
+// INCREASE QUANTITY
+
+productDetailsIncrease.addEventListener("click", function () {
+
+    if (
+        productDetailsMaxStock === null ||
+        productDetailsSelectedQuantity < productDetailsMaxStock
+    ) {
+
+        productDetailsSelectedQuantity++;
+
+        updateProductDetailsQuantity();
+    }
+
+});
 
 
 // OPEN PRODUCT DETAILS
@@ -1586,19 +1716,62 @@ function openProductDetails(card) {
         "Stock information unavailable";
 
 
-    // ADD TO CART BUTTON
+    // =========================================
+// PRODUCT DETAILS QUANTITY AND ADD TO CART
+// =========================================
 
-    productDetailsCartArea.replaceChildren();
+productDetailsCartArea.replaceChildren();
 
-    if (cartButton) {
+productDetailsAddButton = null;
 
-        const detailsAddButton =
-            cartButton.cloneNode(true);
+// Reset quantity whenever a new product opens.
 
-        detailsAddButton.classList.add("product-details-add");
+productDetailsSelectedQuantity = 1;
 
-        productDetailsCartArea.appendChild(detailsAddButton);
+// Determine available stock.
+
+const stockText = stock?.textContent || "";
+
+const stockMatch = stockText.match(
+    /(?:Available:\s*|Low stock:\s*)(\d+)|(\d+)\s*left/i
+);
+
+productDetailsMaxStock =
+    /out of stock/i.test(stockText)
+        ? 0
+        : stockMatch
+            ? Number(stockMatch[1] || stockMatch[2])
+            : null;
+
+
+// Get the original Add to Cart button.
+
+if (cartButton) {
+
+    const detailsAddButton =
+        cartButton.cloneNode(true);
+
+    detailsAddButton.classList.add("product-details-add");
+
+    productDetailsAddButton = detailsAddButton;
+
+    // Pass the selected quantity to the cart.
+
+    detailsAddButton.dataset.quantity =
+        String(productDetailsSelectedQuantity);
+
+    // Pass available stock to the cart.
+
+    if (productDetailsMaxStock !== null) {
+
+        detailsAddButton.dataset.stock =
+            String(productDetailsMaxStock);
     }
+
+    productDetailsCartArea.appendChild(detailsAddButton);
+}
+
+updateProductDetailsQuantity();
 
 
     // SHOW POPUP
