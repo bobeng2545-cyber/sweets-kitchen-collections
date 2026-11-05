@@ -5822,3 +5822,73 @@ body.dark-mode .product-details-close {
     white-space: pre-wrap !important;
     line-height: 1.9 !important;
 }
+
+/* =========================================
+   PRODUCT DETAILS QUANTITY SELECTOR
+========================================= */
+
+.product-details-quantity {
+    margin: 20px 0;
+}
+
+.product-details-quantity label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.product-details-quantity-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 18px;
+    padding: 7px 12px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.product-details-quantity-controls button {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 7px;
+    background: #f0f0f0;
+    color: #222;
+    font-size: 22px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.product-details-quantity-controls button:hover:not(:disabled) {
+    background: #198754;
+    color: #fff;
+}
+
+.product-details-quantity-controls button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.product-details-quantity-controls span {
+    min-width: 24px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 700;
+    color: #222;
+}
+
+body.dark-mode .product-details-quantity-controls {
+    background: #222;
+    border-color: #444;
+}
+
+body.dark-mode .product-details-quantity-controls button {
+    background: #333;
+    color: #fff;
+}
+
+body.dark-mode .product-details-quantity-controls span {
+    color: #fff;
+}
