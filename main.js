@@ -3440,11 +3440,10 @@ customerCity.addEventListener(
             const subtotal = cart.reduce(function (sum, item) {
                 return sum + item.price * item.quantity;
             }, 0);
-
-            const estimatedTotal = subtotal * 1.01;
-
-            paymentTotal.textContent =
-                formatMoney(estimatedTotal);
+           
+           selectedDeliveryFee = 0;
+           deliveryFeeLoaded = false;
+           updateCheckoutTotal();
 
             paymentReference.textContent =
                 "Generated securely when checkout starts.";
@@ -3453,6 +3452,10 @@ customerCity.addEventListener(
 
             paymentOverlay.hidden = false;
             paymentOverlay.style.display = "flex";
+
+           if (customerRegion.value) {
+              loadDeliveryTowns();
+           }
         }
 
 
@@ -3577,7 +3580,23 @@ customerCity.addEventListener(
 
                                     customerPhone: customerPhone.value.trim(),
 
-                                    deliveryAddress: deliveryAddress.value.trim(),
+                                    deliveryRegion: customerRegion.value.trim(),
+                                   
+                                   deliveryTown: customerCity.value.trim(),
+                                   
+                                   ghanaPostGPS: customerDigitalAddress
+                                      ? customerDigitalAddress.value.trim()
+                                      : "",
+                                   
+                                   deliveryAddress: deliveryAddress.value.trim(),
+                                   
+                                   deliveryLandmark: deliveryLandmark
+                                      ? deliveryLandmark.value.trim()
+                                      : "",
+                                   
+                                   deliveryInstructions: deliveryInstructions
+                                      ? deliveryInstructions.value.trim()
+                                      : "",
 
                                     network: network,
 
