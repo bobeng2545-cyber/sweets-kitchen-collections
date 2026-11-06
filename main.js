@@ -3394,7 +3394,163 @@ customerCity.addEventListener(
     }
 );
 
+       
+/* =========================================
+   DELIVERY METHOD MANAGEMENT
+========================================= */
 
+const deliveryMethod =
+    document.getElementById("deliveryMethod");
+
+const deliveryMethodMessage =
+    document.getElementById("deliveryMethodMessage");
+
+
+function setDeliveryFieldVisibility(
+    fieldId,
+    visible
+) {
+
+    const field = document.getElementById(fieldId);
+
+    const label = document.querySelector(
+        `label[for="${fieldId}"]`
+    );
+
+    if (field) {
+        field.style.display = visible ? "" : "none";
+    }
+
+    if (label) {
+        label.style.display = visible ? "" : "none";
+    }
+}
+
+
+function applyDeliveryMethod() {
+
+    const method = deliveryMethod.value;
+
+    const isTransport = method === "transport";
+    const isCampus = method === "ucc_campus";
+    const isPickup = method === "mankessim_pickup";
+
+    /* SHOW OR HIDE LOCATION FIELDS */
+
+    setDeliveryFieldVisibility(
+        "customerRegion",
+        isTransport
+    );
+
+    setDeliveryFieldVisibility(
+        "customerCity",
+        isTransport
+    );
+
+    setDeliveryFieldVisibility(
+        "customerDigitalAddress",
+        isTransport
+    );
+
+    setDeliveryFieldVisibility(
+        "deliveryAddress",
+        isTransport || isCampus
+    );
+
+    setDeliveryFieldVisibility(
+        "deliveryLandmark",
+        isTransport
+    );
+
+    setDeliveryFieldVisibility(
+        "deliveryInstructions",
+        isTransport || isCampus
+    );
+
+
+    /* UPDATE ADDRESS REQUIREMENTS */
+
+    customerRegion.required = isTransport;
+    customerCity.required = isTransport;
+
+    deliveryAddress.required =
+        isTransport || isCampus;
+
+
+    /* UPDATE ADDRESS LABEL AND PLACEHOLDER */
+
+    const addressLabel = document.querySelector(
+        'label[for="deliveryAddress"]'
+    );
+
+    if (addressLabel) {
+
+        addressLabel.innerHTML = isCampus
+            ? 'Campus Hall / Hostel / Room / Delivery Point <span>*</span>'
+            : 'House Address / Street <span>*</span>';
+    }
+
+    deliveryAddress.placeholder = isCampus
+        ? "Enter your UCC hall, hostel, room number or campus delivery point"
+        : "Enter your house address and street";
+
+
+    /* HANDLE DELIVERY FEES */
+
+    if (isCampus || isPickup) {
+
+        selectedDeliveryFee = 0;
+        deliveryFeeLoaded = true;
+
+        customerRegion.value = "";
+        customerCity.innerHTML =
+            '<option value="">Select your region first</option>';
+
+        customerCity.disabled = true;
+
+    } else {
+
+        selectedDeliveryFee = 0;
+        deliveryFeeLoaded = false;
+    }
+
+
+    /* CUSTOMER MESSAGES */
+
+    if (isCampus) {
+
+        deliveryMethodMessage.textContent =
+            "Free delivery within UCC Campus. Enter your hall, hostel or campus delivery point.";
+
+    } else if (isPickup) {
+
+        deliveryMethodMessage.textContent =
+            "Free customer pickup in Mankessim. You will collect your order from our agreed pickup point.";
+
+    } else if (isTransport) {
+
+        deliveryMethodMessage.textContent =
+            "Choose your region and town to calculate the transport delivery fee.";
+
+    } else {
+
+        deliveryMethodMessage.textContent =
+            "Select how you would like to receive your order.";
+    }
+
+
+    updateCheckoutTotal();
+}
+
+
+/* DELIVERY METHOD CHANGE */
+
+deliveryMethod.addEventListener(
+    "change",
+    applyDeliveryMethod
+);
+
+       
         if (
             !checkoutButton ||
             !paymentOverlay ||
