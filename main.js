@@ -3237,10 +3237,6 @@ function updateCheckoutTotal() {
 
 async function loadDeliveryTowns() {
 
-   console.log("Loading delivery towns...");
-   
-   console.log("Selected region:", customerRegion.value);
-
     const region = customerRegion.value.trim();
 
     selectedDeliveryFee = 0;
@@ -3284,8 +3280,6 @@ async function loadDeliveryTowns() {
         if (error) {
             throw error;
         }
-
-       console.log("Delivery towns returned from Supabase:", data);
 
         customerCity.replaceChildren();
 
