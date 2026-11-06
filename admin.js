@@ -2007,6 +2007,8 @@ async function loadOrders() {
             customer_email,
             customer_phone,
             delivery_address,
+            delivery_region,
+            delivery_town,
             items,
             created_at
         `)
@@ -2959,11 +2961,13 @@ function openAdminOrderDetails(order) {
     customerGrid.className = "admin-order-info-grid";
 
     customerGrid.append(
-        createOrderInfoItem("Customer Name", order.customer_name),
-        createOrderInfoItem("Email Address", order.customer_email),
-        createOrderInfoItem("Phone Number", order.customer_phone),
-        createOrderInfoItem("Delivery Address", order.delivery_address)
-    );
+    createOrderInfoItem("Customer Name", order.customer_name),
+    createOrderInfoItem("Email Address", order.customer_email),
+    createOrderInfoItem("Phone Number", order.customer_phone),
+    createOrderInfoItem("Delivery Region", order.delivery_region),
+    createOrderInfoItem("Delivery Town", order.delivery_town),
+    createOrderInfoItem("Delivery Address", order.delivery_address)
+);
 
     customer.appendChild(customerGrid);
 
