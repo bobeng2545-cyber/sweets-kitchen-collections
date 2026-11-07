@@ -3772,194 +3772,191 @@ updateCheckoutTotal();
                     });
 
 
-                    const { data, error } =
-                        await supabaseClient.functions.invoke(
-                            "initialize-paystack",
-                            {
-                                body: {
+                   
+const { data, error } = await supabase.functions.invoke(
+    "initialize-paystack",
+    {
+        body: {
 
-                                    action: "initialize",
+            action: "initialize",
 
-                                    email: customerEmail.value.trim(),
+            email: customerEmail.value.trim(),
 
-                                    customerName: customerName.value.trim(),
+            customerName: customerName.value.trim(),
 
-                                    customerPhone: customerPhone.value.trim(),
+            customerPhone: customerPhone.value.trim(),
 
-                                    deliveryRegion: customerRegion.value.trim(),
-                                   
-                                   deliveryTown: customerCity.value.trim(),
-                                   
-                                   ghanaPostGPS: customerDigitalAddress
-                                      ? customerDigitalAddress.value.trim()
-                                      : "",
-                                   
-                                   deliveryAddress: deliveryAddress.value.trim(),
-                                   
-                                   deliveryLandmark: deliveryLandmark
-                                      ? deliveryLandmark.value.trim()
-                                      : "",
-                                   
-                                   deliveryInstructions: deliveryInstructions
-                                      ? deliveryInstructions.value.trim()
-                                      : "",
+            // DELIVERY METHOD
+            deliveryMethod:
+                document.getElementById("deliveryMethod")?.value || "",
 
-                                    network: network,
+            // UCC CAMPUS DELIVERY
+            uccHallHostel:
+                document.getElementById("deliveryMethod")?.value === "ucc_campus"
+                    ? document.getElementById("uccHallHostel")?.value.trim() || ""
+                    : "",
 
-                                    items: items
-                                }
-                            }
-                        );
+            // TRANSPORT DELIVERY DETAILS
+            deliveryRegion:
+                document.getElementById("deliveryMethod")?.value === "transport"
+                    ? customerRegion.value.trim()
+                    : "",
 
+            deliveryTown:
+                document.getElementById("deliveryMethod")?.value === "transport"
+                    ? customerCity.value.trim()
+                    : "",
 
-                    if (error) {
+            ghanaPostGPS:
+                document.getElementById("deliveryMethod")?.value === "transport"
+                    ? (customerDigitalAddress
+                        ? customerDigitalAddress.value.trim()
+                        : "")
+                    : "",
 
-                        console.error(
-                            "Checkout function error:",
-                            error
-                        );
+            deliveryAddress:
+                document.getElementById("deliveryMethod")?.value === "transport"
+                    ? deliveryAddress.value.trim()
+                    : "",
 
-                        if (error.context) {
+            deliveryLandmark:
+                document.getElementById("deliveryMethod")?.value === "transport"
+                    ? (deliveryLandmark
+                        ? deliveryLandmark.value.trim()
+                        : "")
+                    : "",
 
-                            try {
+            deliveryInstructions:
+                document.getElementById("deliveryMethod")?.value === "transport"
+                    ? (deliveryInstructions
+                        ? deliveryInstructions.value.trim()
+                        : "")
+                    : "",
 
-                                console.error(
-                                    "Server response:",
-                                    await error.context.clone().text()
-                                );
+            network: network,
 
-                            } catch (readError) {
-
-                                console.error(
-                                    "Could not read server response:",
-                                    readError
-                                );
-                            }
-                        }
-
-                        throw new Error(
-                            data?.error ||
-                            "Payment could not be initialized. Please check the payment server logs."
-                        );
-                    }
+            items: items
+        }
+    }
+);
 
 
-                    if (!data || !data.authorization_url) {
+if (error) {
 
-                        throw new Error(
-                            data?.error ||
-                            "Paystack did not return a payment link."
-                        );
-                    }
+    console.error(
+        "Checkout function error:",
+        error
+    );
 
+    if (error.context) {
 
-                    if (
-                        !data.reference ||
-                        !data.notification_token
-                    ) {
+        try {
 
-                        throw new Error(
-                            "Payment started without notification access details. Please contact the store."
-                        );
-                    }
+            console.error(
+                "Server response:",
+                await error.context.clone().text()
+            );
 
+        } catch (readError) {
 
-                    const notificationStorageKey =
-                        "sweet_order_notification_" + data.reference;
-
-
-                    try {
-
-                        localStorage.setItem(
-                            notificationStorageKey,
-                            JSON.stringify({
-
-                                reference: data.reference,
-
-                                token: data.notification_token,
-
-                                savedAt: new Date().toISOString()
-                            })
-                        );
-
-                    } catch (storageError) {
-
-                        console.error(
-                            "Notification token could not be saved:",
-                            storageError
-                        );
-
-                        throw new Error(
-                            "Your order notification access could not be saved. Please enable browser storage and try again."
-                        );
-                    }
-
-
-                    paymentReference.textContent =
-                        data.reference;
-
-                    console.log(
-                        "Payment initialized successfully.",
-                        data.reference
-                    );
-
-                    console.log(
-                        "Private order notification access saved."
-                    );
-
-                    window.location.href =
-                        data.authorization_url;
-
-                } catch (error) {
-
-                    console.error(
-                        "Paystack checkout error:",
-                        error
-                    );
-
-                    alert(
-                        error.message ||
-                        "Payment could not start. Please try again."
-                    );
-
-                    confirmButton.disabled = false;
-
-                    confirmButton.textContent =
-                        originalButtonText;
-                }
-            }
-        );
-
-
-        if (closePayment) {
-            closePayment.addEventListener(
-                "click",
-                closePaymentWindow
+            console.error(
+                "Could not read server response:",
+                readError
             );
         }
+    }
 
-        if (closePaymentBottom) {
-            closePaymentBottom.addEventListener(
-                "click",
-                closePaymentWindow
-            );
-        }
+    throw new Error(
+        data?.error ||
+        "Payment could not be initialized. Please check the payment server logs."
+    );
+}
 
-        paymentOverlay.addEventListener(
-            "click",
-            function (event) {
 
-                if (event.target === paymentOverlay) {
-                    closePaymentWindow();
-                }
-            }
-        );
+if (!data || !data.authorization_url) {
 
-        closePaymentWindow();
+    throw new Error(
+        data?.error ||
+        "Paystack did not return a payment link."
+    );
+}
 
-        console.log("Checkout interface initialized.");
 
-    })();
+if (
+    !data.reference ||
+    !data.notification_token
+) {
+
+    throw new Error(
+        "Payment started without notification access details. Please contact the store."
+    );
+}
+
+
+const notificationStorageKey =
+    "sweet_order_notification_" + data.reference;
+
+
+try {
+
+    localStorage.setItem(
+        notificationStorageKey,
+        JSON.stringify({
+
+            reference: data.reference,
+
+            token: data.notification_token,
+
+            savedAt: new Date().toISOString()
+        })
+    );
+
+} catch (storageError) {
+
+    console.error(
+        "Notification token could not be saved:",
+        storageError
+    );
+
+    throw new Error(
+        "Your order notification access could not be saved. Please enable browser storage and try again."
+    );
+}
+
+
+paymentReference.textContent =
+    data.reference;
+
+console.log(
+    "Payment initialized successfully.",
+    data.reference
+);
+
+console.log(
+    "Private order notification access saved."
+);
+
+window.location.href =
+    data.authorization_url;
+
+} catch (error) {
+
+    console.error(
+        "Paystack checkout error:",
+        error
+    );
+
+    alert(
+        error.message ||
+        "Payment could not start. Please try again."
+    );
+
+    confirmButton.disabled = false;
+
+    confirmButton.textContent =
+        originalButtonText;
+}
+
 
 
     
