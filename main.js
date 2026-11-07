@@ -3176,7 +3176,7 @@ deliveryBreakdown.innerHTML = `
     </div>
 `;
 
-if (paymentTotal.parentElement) {
+if (paymentTotal && paymentTotal.parentElement) {
     paymentTotal.parentElement.insertAdjacentElement(
         "beforebegin",
         deliveryBreakdown
@@ -3232,14 +3232,33 @@ function updateCheckoutTotal() {
 
 
 /* =========================================
+   RESET DELIVERY FEE
+========================================= */
+
+function resetDeliveryFee() {
+
+    selectedDeliveryFee = 0;
+    deliveryFeeLoaded = false;
+
+    updateCheckoutTotal();
+}
+
+
+/* =========================================
    LOAD TOWNS FOR SELECTED REGION
 ========================================= */
 
 async function loadDeliveryTowns() {
 
-   console.log("Loading delivery towns...");
-   
-   console.log("Selected region:", customerRegion.value);
+    if (
+        deliveryMethod.value !== "transport" ||
+        !customerRegion ||
+        !customerCity
+    ) {
+        return;
+    }
+
+    console.log("Loading delivery towns...");
 
     const region = customerRegion.value.trim();
 
@@ -3285,7 +3304,10 @@ async function loadDeliveryTowns() {
             throw error;
         }
 
-       console.log("Delivery towns returned from Supabase:", data);
+        console.log(
+            "Delivery towns returned from Supabase:",
+            data
+        );
 
         customerCity.replaceChildren();
 
@@ -3322,8 +3344,6 @@ async function loadDeliveryTowns() {
                 " — " +
                 formatMoney(Number(town.delivery_fee));
 
-            // Used only for displaying the estimated fee.
-            // The payment server verifies the actual fee again.
             option.dataset.fee = String(town.delivery_fee);
 
             customerCity.appendChild(option);
@@ -3354,12 +3374,104 @@ async function loadDeliveryTowns() {
 
 
 /* =========================================
+   DELIVERY METHOD CHANGE
+========================================= */
+
+function updateDeliveryMethod() {
+
+    const method = deliveryMethod.value;
+
+    // Hide both delivery-specific sections first.
+
+    uccCampusLocationGroup.hidden = true;
+
+    transportDeliveryFields.hidden = true;
+
+    // Reset the delivery fee whenever the method changes.
+
+    selectedDeliveryFee = 0;
+    deliveryFeeLoaded = false;
+
+    if (method === "ucc_campus") {
+
+        uccCampusLocationGroup.hidden = false;
+
+        selectedDeliveryFee = 0;
+        deliveryFeeLoaded = true;
+
+        deliveryMethodMessage.textContent =
+            "Free delivery to your UCC hall or hostel. Enter your hall or hostel name.";
+
+    }
+
+    else if (method === "mankessim_pickup") {
+
+        selectedDeliveryFee = 0;
+        deliveryFeeLoaded = true;
+
+        deliveryMethodMessage.textContent =
+            "You have selected free customer pickup at Mankessim. No delivery address is required.";
+
+    }
+
+    else if (method === "transport") {
+
+        transportDeliveryFields.hidden = false;
+
+        selectedDeliveryFee = 0;
+        deliveryFeeLoaded = false;
+
+        deliveryMethodMessage.textContent =
+            "Select your region and town. Your transport delivery fee will be calculated automatically.";
+
+        // Reset the town selection when switching to transport.
+
+        customerCity.innerHTML = `
+            <option value="">Select your region first</option>
+        `;
+
+        customerCity.disabled = true;
+
+        if (customerRegion.value) {
+            loadDeliveryTowns();
+        }
+
+    }
+
+    else {
+
+        deliveryMethodMessage.textContent =
+            "Select how you would like to receive your order.";
+
+    }
+
+    updateCheckoutTotal();
+}
+
+
+/* =========================================
+   DELIVERY METHOD LISTENER
+========================================= */
+
+deliveryMethod.addEventListener(
+    "change",
+    updateDeliveryMethod
+);
+
+
+/* =========================================
    REGION CHANGE
 ========================================= */
 
 customerRegion.addEventListener(
     "change",
-    loadDeliveryTowns
+    function () {
+
+        if (deliveryMethod.value === "transport") {
+            loadDeliveryTowns();
+        }
+
+    }
 );
 
 
@@ -3370,6 +3482,10 @@ customerRegion.addEventListener(
 customerCity.addEventListener(
     "change",
     function () {
+
+        if (deliveryMethod.value !== "transport") {
+            return;
+        }
 
         const selectedOption =
             customerCity.selectedOptions[0];
@@ -3387,6 +3503,7 @@ customerCity.addEventListener(
             deliveryFeeLoaded =
                 Number.isFinite(selectedDeliveryFee) &&
                 selectedDeliveryFee >= 0;
+
         }
 
         updateCheckoutTotal();
@@ -3490,22 +3607,105 @@ customerCity.addEventListener(
                     return;
                 }
 
-                if (
-                   !customerEmail.value.trim() ||
-                   !customerEmail.checkValidity() ||
-                   !customerName.value.trim() ||
-                   !customerPhone.value.trim() ||
-                   !customerRegion.value.trim() ||
-                   !customerCity.value.trim() ||
-                   !deliveryAddress.value.trim()
-                ) {
-                   
-                   alert(
-                      "Please complete your customer details, region, town and exact delivery address."
-                   );
-                   
-                   return;
-                }
+                /* =========================================
+   CUSTOMER INFORMATION VALIDATION
+========================================= */
+
+if (
+    !customerName.value.trim() ||
+    !customerEmail.value.trim() ||
+    !customerEmail.checkValidity() ||
+    !customerPhone.value.trim()
+) {
+
+    alert(
+        "Please enter your full name, valid email address and phone number."
+    );
+
+    return;
+}
+
+
+/* =========================================
+   DELIVERY METHOD VALIDATION
+========================================= */
+
+const selectedMethod = deliveryMethod.value;
+
+if (!selectedMethod) {
+
+    alert("Please choose a delivery method.");
+
+    return;
+}
+
+
+/* =========================================
+   UCC CAMPUS VALIDATION
+========================================= */
+
+if (selectedMethod === "ucc_campus") {
+
+    if (!uccHallHostel.value.trim()) {
+
+        alert(
+            "Please enter your UCC hall or hostel name."
+        );
+
+        uccHallHostel.focus();
+
+        return;
+    }
+
+}
+
+
+/* =========================================
+   TRANSPORT DELIVERY VALIDATION
+========================================= */
+
+if (selectedMethod === "transport") {
+
+    if (
+        !customerRegion.value.trim() ||
+        !customerCity.value.trim() ||
+        !deliveryAddress.value.trim()
+    ) {
+
+        alert(
+            "Please select your region and town and enter your exact delivery address."
+        );
+
+        return;
+    }
+
+    if (!deliveryFeeLoaded) {
+
+        alert(
+            "Please select a valid delivery town so we can calculate your delivery fee."
+        );
+
+        return;
+    }
+
+}
+
+
+/* =========================================
+   VALIDATE FREE DELIVERY METHODS
+========================================= */
+
+if (
+    selectedMethod === "ucc_campus" ||
+    selectedMethod === "mankessim_pickup"
+) {
+
+    selectedDeliveryFee = 0;
+    deliveryFeeLoaded = true;
+
+}
+
+updateCheckoutTotal();
                
                if (!deliveryFeeLoaded) {
                   
