@@ -640,127 +640,75 @@
                    required>
 
             <!-- DELIVERY INFORMATION -->
-<div class="checkout-section-heading delivery-heading">
-    <span class="material-symbols-outlined">local_shipping</span>
-    <div>
-        <h3>Delivery Information</h3>
-        <p>Choose how you would like to receive your order.</p>
-    </div>
-</div>
+            <div class="checkout-section-heading delivery-heading">
+                <span class="material-symbols-outlined">local_shipping</span>
+                <div>
+                    <h3>Delivery Information</h3>
+                    <p>Where should we deliver your order?</p>
+                </div>
+            </div>
 
-<!-- DELIVERY METHOD -->
-<label for="deliveryMethod">
-    Choose Delivery Method <span>*</span>
-</label>
+            <label for="customerRegion">Region <span>*</span></label>
 
-<select id="deliveryMethod" required>
-    <option value="">Select delivery method</option>
-    <option value="ucc_campus">UCC Campus – FREE Delivery</option>
-    <option value="mankessim_pickup">Customer Pickup – Mankessim (FREE)</option>
-    <option value="transport">Transport Delivery</option>
+<select id="customerRegion" required>
+    <option value="">Select your region</option>
+    <option value="Ahafo Region">Ahafo Region</option>
+    <option value="Ashanti Region">Ashanti Region</option>
+    <option value="Bono Region">Bono Region</option>
+    <option value="Bono East Region">Bono East Region</option>
+    <option value="Central Region">Central Region</option>
+    <option value="Eastern Region">Eastern Region</option>
+    <option value="Greater Accra Region">Greater Accra Region</option>
+    <option value="North East Region">North East Region</option>
+    <option value="Northern Region">Northern Region</option>
+    <option value="Oti Region">Oti Region</option>
+    <option value="Savannah Region">Savannah Region</option>
+    <option value="Upper East Region">Upper East Region</option>
+    <option value="Upper West Region">Upper West Region</option>
+    <option value="Volta Region">Volta Region</option>
+    <option value="Western Region">Western Region</option>
+    <option value="Western North Region">Western North Region</option>
 </select>
 
-<p id="deliveryMethodMessage" class="delivery-method-message">
-    Select how you would like to receive your order.
-</p>
+            <label for="customerCity">Town / City <span>*</span></label>
 
-<!-- UCC CAMPUS LOCATION -->
-<div id="uccCampusLocationGroup" hidden>
+            <select id="customerCity" required disabled>
+                <option value="">Select your region first</option>
+            </select>
 
-    <label for="uccHallHostel">
-        UCC Hall / Hostel Name <span>*</span>
-    </label>
+            <label for="customerDigitalAddress">
+                GhanaPost GPS Address
+            </label>
 
-    <input
-        type="text"
-        id="uccHallHostel"
-        name="uccHallHostel"
-        placeholder="Enter your UCC hall or hostel name"
-        autocomplete="off"
-    >
+            <input type="text"
+                   id="customerDigitalAddress"
+                   placeholder="e.g. GA-123-4567">
 
-    <small>
-        Free campus delivery is available only when you provide
-        your UCC hall or hostel name.
-    </small>
+            <label for="deliveryAddress">
+                House Address / Street <span>*</span>
+            </label>
 
-</div>
+            <textarea id="deliveryAddress"
+                      placeholder="Enter your house number, street name or residential area"
+                      rows="3"
+                      autocomplete="street-address"
+                      required></textarea>
 
-<!-- TRANSPORT DELIVERY FIELDS -->
-<div id="transportDeliveryFields" hidden>
+            <label for="deliveryLandmark">Nearby Landmark</label>
 
-    <label for="customerRegion">
-        Region <span>*</span>
-    </label>
+            <input type="text"
+                   id="deliveryLandmark"
+                   placeholder="e.g. Near the community hospital">
 
-    <select id="customerRegion">
-        <option value="">Select your region</option>
-        <option value="Ahafo Region">Ahafo Region</option>
-        <option value="Ashanti Region">Ashanti Region</option>
-        <option value="Bono Region">Bono Region</option>
-        <option value="Bono East Region">Bono East Region</option>
-        <option value="Central Region">Central Region</option>
-        <option value="Eastern Region">Eastern Region</option>
-        <option value="Greater Accra Region">Greater Accra Region</option>
-        <option value="North East Region">North East Region</option>
-        <option value="Northern Region">Northern Region</option>
-        <option value="Oti Region">Oti Region</option>
-        <option value="Savannah Region">Savannah Region</option>
-        <option value="Upper East Region">Upper East Region</option>
-        <option value="Upper West Region">Upper West Region</option>
-        <option value="Volta Region">Volta Region</option>
-        <option value="Western Region">Western Region</option>
-        <option value="Western North Region">Western North Region</option>
-    </select>
+            <label for="deliveryInstructions">
+                Additional Delivery Instructions
+            </label>
 
-    <label for="customerCity">
-        Town / City <span>*</span>
-    </label>
+            <textarea id="deliveryInstructions"
+                      placeholder="Any special directions for finding your location?"
+                      rows="2"></textarea>
 
-    <select id="customerCity" disabled>
-        <option value="">Select your region first</option>
-    </select>
-
-    <label for="customerDigitalAddress">
-        GhanaPost GPS Address
-    </label>
-
-    <input
-        type="text"
-        id="customerDigitalAddress"
-        placeholder="e.g. GA-123-4567"
-    >
-
-    <label for="deliveryAddress">
-        House Address / Street <span>*</span>
-    </label>
-
-    <textarea
-        id="deliveryAddress"
-        placeholder="Enter your house number, street name or residential area"
-        rows="3"
-        autocomplete="street-address"
-    ></textarea>
-
-    <label for="deliveryLandmark">Nearby Landmark</label>
-
-    <input
-        type="text"
-        id="deliveryLandmark"
-        placeholder="e.g. Near the community hospital"
-    >
-
-    <label for="deliveryInstructions">
-        Additional Delivery Instructions
-    </label>
-
-    <textarea
-        id="deliveryInstructions"
-        placeholder="Any special directions for finding your location?"
-        rows="2"
-    ></textarea>
-
-</div>
+        </div>
 
         <!-- PAYMENT INFORMATION -->
         <div class="checkout-section-heading payment-heading">
