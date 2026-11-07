@@ -3145,6 +3145,25 @@ const deliveryLandmark =
 const deliveryInstructions =
     document.getElementById("deliveryInstructions");
 
+/* =========================================
+   DELIVERY METHOD ELEMENTS
+========================================= */
+
+const deliveryMethod =
+    document.getElementById("deliveryMethod");
+
+const deliveryMethodMessage =
+    document.getElementById("deliveryMethodMessage");
+
+const uccCampusLocationGroup =
+    document.getElementById("uccCampusLocationGroup");
+
+const uccHallHostel =
+    document.getElementById("uccHallHostel");
+
+const transportDeliveryFields =
+    document.getElementById("transportDeliveryFields");
+
         const confirmButton =
             document.getElementById("confirmPaymentInstructions");
 
