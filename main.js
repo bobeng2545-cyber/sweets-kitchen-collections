@@ -3772,182 +3772,194 @@ updateCheckoutTotal();
                     });
 
 
-                   
+                    const { data, error } =
+                        await supabaseClient.functions.invoke(
+                            "initialize-paystack",
+                            {
+                                body: {
 
-const selectedDeliveryMethod =
-    document.getElementById("deliveryMethod")?.value || "";
+                                    action: "initialize",
 
-const { data, error } = await supabase.functions.invoke(
-    "initialize-paystack",
-    {
-        body: {
-            action: "initialize",
+                                    email: customerEmail.value.trim(),
 
-            email: customerEmail.value.trim(),
-            customerName: customerName.value.trim(),
-            customerPhone: customerPhone.value.trim(),
+                                    customerName: customerName.value.trim(),
 
-            deliveryMethod: selectedDeliveryMethod,
+                                    customerPhone: customerPhone.value.trim(),
 
-            uccHallHostel:
-                selectedDeliveryMethod === "ucc_campus"
-                    ? (document.getElementById("uccHallHostel")?.value.trim() || "")
-                    : "",
+                                    deliveryRegion: customerRegion.value.trim(),
+                                   
+                                   deliveryTown: customerCity.value.trim(),
+                                   
+                                   ghanaPostGPS: customerDigitalAddress
+                                      ? customerDigitalAddress.value.trim()
+                                      : "",
+                                   
+                                   deliveryAddress: deliveryAddress.value.trim(),
+                                   
+                                   deliveryLandmark: deliveryLandmark
+                                      ? deliveryLandmark.value.trim()
+                                      : "",
+                                   
+                                   deliveryInstructions: deliveryInstructions
+                                      ? deliveryInstructions.value.trim()
+                                      : "",
 
-            deliveryRegion:
-                selectedDeliveryMethod === "transport"
-                    ? customerRegion.value.trim()
-                    : "",
+                                    network: network,
 
-            deliveryTown:
-                selectedDeliveryMethod === "transport"
-                    ? customerCity.value.trim()
-                    : "",
-
-            ghanaPostGPS:
-                selectedDeliveryMethod === "transport"
-                    ? (customerDigitalAddress?.value.trim() || "")
-                    : "",
-
-            deliveryAddress:
-                selectedDeliveryMethod === "transport"
-                    ? deliveryAddress.value.trim()
-                    : "",
-
-            deliveryLandmark:
-                selectedDeliveryMethod === "transport"
-                    ? (deliveryLandmark?.value.trim() || "")
-                    : "",
-
-            deliveryInstructions:
-                selectedDeliveryMethod === "transport"
-                    ? (deliveryInstructions?.value.trim() || "")
-                    : "",
-
-            network: network,
-            items: items
-        }
-    }
-);
+                                    items: items
+                                }
+                            }
+                        );
 
 
+                    if (error) {
 
-if (error) {
+                        console.error(
+                            "Checkout function error:",
+                            error
+                        );
 
-    console.error(
-        "Checkout function error:",
-        error
-    );
+                        if (error.context) {
 
-    if (error.context) {
+                            try {
 
-        try {
+                                console.error(
+                                    "Server response:",
+                                    await error.context.clone().text()
+                                );
 
-            console.error(
-                "Server response:",
-                await error.context.clone().text()
+                            } catch (readError) {
+
+                                console.error(
+                                    "Could not read server response:",
+                                    readError
+                                );
+                            }
+                        }
+
+                        throw new Error(
+                            data?.error ||
+                            "Payment could not be initialized. Please check the payment server logs."
+                        );
+                    }
+
+
+                    if (!data || !data.authorization_url) {
+
+                        throw new Error(
+                            data?.error ||
+                            "Paystack did not return a payment link."
+                        );
+                    }
+
+
+                    if (
+                        !data.reference ||
+                        !data.notification_token
+                    ) {
+
+                        throw new Error(
+                            "Payment started without notification access details. Please contact the store."
+                        );
+                    }
+
+
+                    const notificationStorageKey =
+                        "sweet_order_notification_" + data.reference;
+
+
+                    try {
+
+                        localStorage.setItem(
+                            notificationStorageKey,
+                            JSON.stringify({
+
+                                reference: data.reference,
+
+                                token: data.notification_token,
+
+                                savedAt: new Date().toISOString()
+                            })
+                        );
+
+                    } catch (storageError) {
+
+                        console.error(
+                            "Notification token could not be saved:",
+                            storageError
+                        );
+
+                        throw new Error(
+                            "Your order notification access could not be saved. Please enable browser storage and try again."
+                        );
+                    }
+
+
+                    paymentReference.textContent =
+                        data.reference;
+
+                    console.log(
+                        "Payment initialized successfully.",
+                        data.reference
+                    );
+
+                    console.log(
+                        "Private order notification access saved."
+                    );
+
+                    window.location.href =
+                        data.authorization_url;
+
+                } catch (error) {
+
+                    console.error(
+                        "Paystack checkout error:",
+                        error
+                    );
+
+                    alert(
+                        error.message ||
+                        "Payment could not start. Please try again."
+                    );
+
+                    confirmButton.disabled = false;
+
+                    confirmButton.textContent =
+                        originalButtonText;
+                }
+            }
+        );
+
+
+        if (closePayment) {
+            closePayment.addEventListener(
+                "click",
+                closePaymentWindow
             );
+        }
 
-        } catch (readError) {
-
-            console.error(
-                "Could not read server response:",
-                readError
+        if (closePaymentBottom) {
+            closePaymentBottom.addEventListener(
+                "click",
+                closePaymentWindow
             );
         }
-    }
 
-    throw new Error(
-        data?.error ||
-        "Payment could not be initialized. Please check the payment server logs."
-    );
-}
+        paymentOverlay.addEventListener(
+            "click",
+            function (event) {
 
+                if (event.target === paymentOverlay) {
+                    closePaymentWindow();
+                }
+            }
+        );
 
-if (!data || !data.authorization_url) {
+        closePaymentWindow();
 
-    throw new Error(
-        data?.error ||
-        "Paystack did not return a payment link."
-    );
-}
+        console.log("Checkout interface initialized.");
 
-
-if (
-    !data.reference ||
-    !data.notification_token
-) {
-
-    throw new Error(
-        "Payment started without notification access details. Please contact the store."
-    );
-}
-
-
-const notificationStorageKey =
-    "sweet_order_notification_" + data.reference;
-
-
-try {
-
-    localStorage.setItem(
-        notificationStorageKey,
-        JSON.stringify({
-
-            reference: data.reference,
-
-            token: data.notification_token,
-
-            savedAt: new Date().toISOString()
-        })
-    );
-
-} catch (storageError) {
-
-    console.error(
-        "Notification token could not be saved:",
-        storageError
-    );
-
-    throw new Error(
-        "Your order notification access could not be saved. Please enable browser storage and try again."
-    );
-}
-
-
-paymentReference.textContent =
-    data.reference;
-
-console.log(
-    "Payment initialized successfully.",
-    data.reference
-);
-
-console.log(
-    "Private order notification access saved."
-);
-
-window.location.href =
-    data.authorization_url;
-
-} catch (error) {
-
-    console.error(
-        "Paystack checkout error:",
-        error
-    );
-
-    alert(
-        error.message ||
-        "Payment could not start. Please try again."
-    );
-
-    confirmButton.disabled = false;
-
-    confirmButton.textContent =
-        originalButtonText;
-}
-
+    })();
 
 
     
