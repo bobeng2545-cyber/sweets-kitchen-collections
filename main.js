@@ -3818,80 +3818,80 @@ client.auth.onAuthStateChange((event, session) => {
                 );
 
 
-                /* =====================================
-                   INITIALIZE PAYSTACK
-                ===================================== */
+                
+/* =====================================
+   INITIALIZE PAYSTACK
+===================================== */
 
-                const { data, error } =
-                    await supabaseClient.functions.invoke(
-                        "initialize-paystack",
-                        {
-                            body: {
+const method =
+    document.getElementById("deliveryMethod")?.value || "";
 
-                                action: "initialize",
+const isCampus = method === "ucc_campus";
 
-                                email:
-                                    customerEmail.value.trim(),
+const isTransport = method === "transport";
 
-                                customerName:
-                                    customerName.value.trim(),
+const uccHallHostel =
+    document.getElementById("uccHallHostel");
 
-                                customerPhone:
-                                    customerPhone.value.trim(),
+const { data, error } =
+    await supabaseClient.functions.invoke(
+        "initialize-paystack",
+        {
+            body: {
 
-                                /* DELIVERY METHOD */
+                action: "initialize",
 
-                                deliveryMethod: method,
+                email: customerEmail.value.trim(),
 
-                                /* UCC CAMPUS */
+                customerName: customerName.value.trim(),
 
-                                uccHallHostel: isCampus
-                                    ? uccHallHostel.value.trim()
-                                    : "",
+                customerPhone: customerPhone.value.trim(),
 
-                                /* TRANSPORT DETAILS */
+                // DELIVERY METHOD
+                deliveryMethod: method,
 
-                                deliveryRegion: isTransport
-                                    ? customerRegion.value.trim()
-                                    : "",
+                // UCC CAMPUS
+                uccHallHostel: isCampus
+                    ? (uccHallHostel?.value.trim() || "")
+                    : "",
 
-                                deliveryTown: isTransport
-                                    ? customerCity.value.trim()
-                                    : "",
+                // TRANSPORT DETAILS
+                deliveryRegion: isTransport
+                    ? customerRegion.value.trim()
+                    : "",
 
-                                ghanaPostGPS:
-                                    isTransport && customerDigitalAddress
-                                        ? customerDigitalAddress.value.trim()
-                                        : "",
+                deliveryTown: isTransport
+                    ? customerCity.value.trim()
+                    : "",
 
-                                deliveryAddress: isTransport
-                                    ? deliveryAddress.value.trim()
-                                    : "",
+                ghanaPostGPS:
+                    isTransport && customerDigitalAddress
+                        ? customerDigitalAddress.value.trim()
+                        : "",
 
-                                deliveryLandmark:
-                                    isTransport && deliveryLandmark
-                                        ? deliveryLandmark.value.trim()
-                                        : "",
+                deliveryAddress: isTransport
+                    ? deliveryAddress.value.trim()
+                    : "",
 
-                                deliveryInstructions:
-                                    isTransport && deliveryInstructions
-                                        ? deliveryInstructions.value.trim()
-                                        : "",
+                deliveryLandmark:
+                    isTransport && deliveryLandmark
+                        ? deliveryLandmark.value.trim()
+                        : "",
 
-                                /* PAYMENT NETWORK */
+                deliveryInstructions:
+                    isTransport && deliveryInstructions
+                        ? deliveryInstructions.value.trim()
+                        : "",
 
-                                network: network,
+                // PAYMENT NETWORK
+                network: network,
 
-                                /* PRODUCTS */
+                // PRODUCTS
+                items: items
+            }
+        }
+    );
 
-                                items: items
-
-                                /* No delivery fee is sent.
-                                   The server must calculate all
-                                   charges independently. */
-                            }
-                        }
-                    );
 
 
                 /* =====================================
