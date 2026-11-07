@@ -3773,72 +3773,63 @@ updateCheckoutTotal();
 
 
                    
+
+const selectedDeliveryMethod =
+    document.getElementById("deliveryMethod")?.value || "";
+
 const { data, error } = await supabase.functions.invoke(
     "initialize-paystack",
     {
         body: {
-
             action: "initialize",
 
             email: customerEmail.value.trim(),
-
             customerName: customerName.value.trim(),
-
             customerPhone: customerPhone.value.trim(),
 
-            // DELIVERY METHOD
-            deliveryMethod:
-                document.getElementById("deliveryMethod")?.value || "",
+            deliveryMethod: selectedDeliveryMethod,
 
-            // UCC CAMPUS DELIVERY
             uccHallHostel:
-                document.getElementById("deliveryMethod")?.value === "ucc_campus"
-                    ? document.getElementById("uccHallHostel")?.value.trim() || ""
+                selectedDeliveryMethod === "ucc_campus"
+                    ? (document.getElementById("uccHallHostel")?.value.trim() || "")
                     : "",
 
-            // TRANSPORT DELIVERY DETAILS
             deliveryRegion:
-                document.getElementById("deliveryMethod")?.value === "transport"
+                selectedDeliveryMethod === "transport"
                     ? customerRegion.value.trim()
                     : "",
 
             deliveryTown:
-                document.getElementById("deliveryMethod")?.value === "transport"
+                selectedDeliveryMethod === "transport"
                     ? customerCity.value.trim()
                     : "",
 
             ghanaPostGPS:
-                document.getElementById("deliveryMethod")?.value === "transport"
-                    ? (customerDigitalAddress
-                        ? customerDigitalAddress.value.trim()
-                        : "")
+                selectedDeliveryMethod === "transport"
+                    ? (customerDigitalAddress?.value.trim() || "")
                     : "",
 
             deliveryAddress:
-                document.getElementById("deliveryMethod")?.value === "transport"
+                selectedDeliveryMethod === "transport"
                     ? deliveryAddress.value.trim()
                     : "",
 
             deliveryLandmark:
-                document.getElementById("deliveryMethod")?.value === "transport"
-                    ? (deliveryLandmark
-                        ? deliveryLandmark.value.trim()
-                        : "")
+                selectedDeliveryMethod === "transport"
+                    ? (deliveryLandmark?.value.trim() || "")
                     : "",
 
             deliveryInstructions:
-                document.getElementById("deliveryMethod")?.value === "transport"
-                    ? (deliveryInstructions
-                        ? deliveryInstructions.value.trim()
-                        : "")
+                selectedDeliveryMethod === "transport"
+                    ? (deliveryInstructions?.value.trim() || "")
                     : "",
 
             network: network,
-
             items: items
         }
     }
 );
+
 
 
 if (error) {
