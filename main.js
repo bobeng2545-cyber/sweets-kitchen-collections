@@ -3094,672 +3094,1002 @@ client.auth.onAuthStateChange((event, session) => {
 
 
 
-    /* =================================================
-       14. PAYSTACK CHECKOUT + NOTIFICATION TOKEN
-    ================================================= */
+    
+/* =================================================
+   14. PAYSTACK CHECKOUT + NOTIFICATION TOKEN
+   FREE DELIVERY VERSION
+   UCC CAMPUS + MANKESSIM PICKUP + TRANSPORT
+================================================= */
 
-    (function setupPaystackCheckout() {
+(function setupPaystackCheckout() {
 
-        const paymentOverlay =
-            document.getElementById("paymentOverlay");
+    /* =========================================
+       CHECKOUT ELEMENTS
+    ========================================= */
 
-        const closePayment =
-            document.getElementById("closePayment");
+    const checkoutButton =
+        document.getElementById("checkoutButton");
 
-        const closePaymentBottom =
-            document.getElementById("closePaymentBottom");
+    const paymentOverlay =
+        document.getElementById("paymentOverlay");
 
-        const paymentNetwork =
-            document.getElementById("paymentNetwork");
+    const closePayment =
+        document.getElementById("closePayment");
 
-        const paymentTotal =
-            document.getElementById("paymentTotal");
+    const closePaymentBottom =
+        document.getElementById("closePaymentBottom");
 
-        const paymentReference =
-            document.getElementById("paymentReference");
+    const paymentNetwork =
+        document.getElementById("paymentNetwork");
 
-        const customerEmail =
-            document.getElementById("customerEmail");
+    const paymentTotal =
+        document.getElementById("paymentTotal");
 
-        const customerName =
-            document.getElementById("customerName");
+    const paymentReference =
+        document.getElementById("paymentReference");
 
-        const customerPhone =
-            document.getElementById("customerPhone");
+    const customerEmail =
+        document.getElementById("customerEmail");
 
-        const deliveryAddress =
-            document.getElementById("deliveryAddress");
+    const customerName =
+        document.getElementById("customerName");
 
-       const customerRegion =
-    document.getElementById("customerRegion");
+    const customerPhone =
+        document.getElementById("customerPhone");
 
-const customerCity =
-    document.getElementById("customerCity");
+    const deliveryAddress =
+        document.getElementById("deliveryAddress");
 
-const customerDigitalAddress =
-    document.getElementById("customerDigitalAddress");
+    const customerRegion =
+        document.getElementById("customerRegion");
 
-const deliveryLandmark =
-    document.getElementById("deliveryLandmark");
+    let customerCity =
+        document.getElementById("customerCity");
 
-const deliveryInstructions =
-    document.getElementById("deliveryInstructions");
+    const customerDigitalAddress =
+        document.getElementById("customerDigitalAddress");
 
-        const confirmButton =
-            document.getElementById("confirmPaymentInstructions");
+    const deliveryLandmark =
+        document.getElementById("deliveryLandmark");
 
-       /* =========================================
-   AUTOMATIC DELIVERY PRICING
-========================================= */
+    const deliveryInstructions =
+        document.getElementById("deliveryInstructions");
 
-let selectedDeliveryFee = 0;
-let deliveryFeeLoaded = false;
+    /* =========================================
+       DELIVERY METHOD ELEMENTS
+    ========================================= */
 
-const deliveryBreakdown = document.createElement("div");
+    const deliveryMethod =
+        document.getElementById("deliveryMethod");
 
-deliveryBreakdown.className = "checkout-fee-breakdown";
+    const deliveryMethodMessage =
+        document.getElementById("deliveryMethodMessage");
 
-deliveryBreakdown.innerHTML = `
-    <div class="checkout-fee-row">
-        <span>Product subtotal</span>
-        <strong id="checkoutSubtotal">GH₵0.00</strong>
-    </div>
+    const uccCampusLocationGroup =
+        document.getElementById("uccCampusLocationGroup");
 
-    <div class="checkout-fee-row">
-        <span>Service charge (0.5%)</span>
-        <strong id="checkoutServiceCharge">GH₵0.00</strong>
-    </div>
+    const uccHallHostel =
+        document.getElementById("uccHallHostel");
 
-    <div class="checkout-fee-row">
-        <span>Delivery fee</span>
-        <strong id="checkoutDeliveryFee">Not selected</strong>
-    </div>
-`;
+    const transportDeliveryFields =
+        document.getElementById("transportDeliveryFields");
 
-if (paymentTotal.parentElement) {
-    paymentTotal.parentElement.insertAdjacentElement(
-        "beforebegin",
-        deliveryBreakdown
-    );
-}
-
-const checkoutSubtotal =
-    deliveryBreakdown.querySelector("#checkoutSubtotal");
-
-const checkoutServiceCharge =
-    deliveryBreakdown.querySelector("#checkoutServiceCharge");
-
-const checkoutDeliveryFee =
-    deliveryBreakdown.querySelector("#checkoutDeliveryFee");
+    const confirmButton =
+        document.getElementById("confirmPaymentInstructions");
 
 
-/* =========================================
-   UPDATE CHECKOUT TOTAL
-========================================= */
+    /* =========================================
+       CONVERT OLD TOWN DROPDOWN TO TEXT INPUT
 
-function updateCheckoutTotal() {
+       We no longer use delivery_pricing to
+       load towns or calculate delivery fees.
+    ========================================= */
 
-    const subtotal = cart.reduce(function (sum, item) {
+    if (
+        customerCity &&
+        customerCity.tagName === "SELECT"
+    ) {
 
-        return sum +
-            Number(item.price) *
-            Number(item.quantity);
+        const townInput =
+            document.createElement("input");
 
-    }, 0);
+        townInput.type = "text";
+        townInput.id = "customerCity";
 
-    const serviceCharge =
-        Math.round(subtotal * 0.005 * 100) / 100;
+        townInput.name =
+            customerCity.name || "customerCity";
 
-    const total =
-        subtotal +
-        serviceCharge +
-        selectedDeliveryFee;
+        townInput.className =
+            customerCity.className;
 
-    checkoutSubtotal.textContent =
-        formatMoney(subtotal);
+        townInput.placeholder =
+            "Enter your town or city";
 
-    checkoutServiceCharge.textContent =
-        formatMoney(serviceCharge);
+        townInput.autocomplete =
+            "address-level2";
 
-    checkoutDeliveryFee.textContent =
-        deliveryFeeLoaded
-            ? formatMoney(selectedDeliveryFee)
-            : "Not selected";
+        townInput.required = false;
 
-    paymentTotal.textContent =
-        formatMoney(total);
-}
+        townInput.value = "";
+
+        customerCity.replaceWith(townInput);
+
+        customerCity = townInput;
+    }
 
 
-/* =========================================
-   LOAD TOWNS FOR SELECTED REGION
-========================================= */
+    /* =========================================
+       BASIC CHECKOUT VALIDATION
+    ========================================= */
 
-async function loadDeliveryTowns() {
+    if (
+        !checkoutButton ||
+        !paymentOverlay ||
+        !paymentNetwork ||
+        !paymentTotal ||
+        !paymentReference ||
+        !customerEmail ||
+        !customerName ||
+        !customerPhone ||
+        !deliveryMethod ||
+        !confirmButton
+    ) {
 
-   console.log("Loading delivery towns...");
-   
-   console.log("Selected region:", customerRegion.value);
+        console.warn(
+            "Checkout unavailable: required HTML elements are missing."
+        );
 
-    const region = customerRegion.value.trim();
+        return;
+    }
 
-    selectedDeliveryFee = 0;
-    deliveryFeeLoaded = false;
 
-    customerCity.innerHTML = `
-        <option value="">Loading available towns...</option>
+    /* =========================================
+       DELIVERY FEE
+
+       ALL DELIVERY OPTIONS ARE FREE.
+    ========================================= */
+
+    const selectedDeliveryFee = 0;
+
+
+    /* =========================================
+       CHECKOUT FEE BREAKDOWN
+    ========================================= */
+
+    const deliveryBreakdown =
+        document.createElement("div");
+
+    deliveryBreakdown.className =
+        "checkout-fee-breakdown";
+
+    deliveryBreakdown.innerHTML = `
+        <div class="checkout-fee-row">
+            <span>Product subtotal</span>
+            <strong id="checkoutSubtotal">
+                GH₵0.00
+            </strong>
+        </div>
+
+        <div class="checkout-fee-row">
+            <span>Service charge (0.5%)</span>
+            <strong id="checkoutServiceCharge">
+                GH₵0.00
+            </strong>
+        </div>
+
+        <div class="checkout-fee-row">
+            <span>Delivery fee</span>
+            <strong id="checkoutDeliveryFee">
+                FREE
+            </strong>
+        </div>
     `;
 
-    customerCity.disabled = true;
+    if (paymentTotal.parentElement) {
 
-    updateCheckoutTotal();
-
-    if (!region) {
-
-        customerCity.innerHTML = `
-            <option value="">Select your region first</option>
-        `;
-
-        return;
+        paymentTotal.parentElement.insertAdjacentElement(
+            "beforebegin",
+            deliveryBreakdown
+        );
     }
 
-    if (!supabaseClient) {
-
-        customerCity.innerHTML = `
-            <option value="">Delivery service unavailable</option>
-        `;
-
-        return;
-    }
-
-    try {
-
-        const { data, error } = await supabaseClient
-            .from("delivery_pricing")
-            .select("region, town, delivery_fee")
-            .eq("region", region)
-            .eq("is_active", true)
-            .order("town", { ascending: true });
-
-        if (error) {
-            throw error;
-        }
-
-       console.log("Delivery towns returned from Supabase:", data);
-
-        customerCity.replaceChildren();
-
-        const placeholder = document.createElement("option");
-
-        placeholder.value = "";
-        placeholder.textContent = "Select your town/city";
-
-        customerCity.appendChild(placeholder);
-
-        if (!data || data.length === 0) {
-
-            const option = document.createElement("option");
-
-            option.value = "";
-            option.textContent =
-                "No delivery towns available in this region";
-
-            customerCity.appendChild(option);
-
-            customerCity.disabled = true;
-
-            return;
-        }
-
-        data.forEach(function (town) {
-
-            const option = document.createElement("option");
-
-            option.value = town.town;
-
-            option.textContent =
-                town.town +
-                " — " +
-                formatMoney(Number(town.delivery_fee));
-
-            // Used only for displaying the estimated fee.
-            // The payment server verifies the actual fee again.
-            option.dataset.fee = String(town.delivery_fee);
-
-            customerCity.appendChild(option);
-
-        });
-
-        customerCity.disabled = false;
-
-    } catch (error) {
-
-        console.error(
-            "Delivery town loading failed:",
-            error
+    const checkoutSubtotal =
+        deliveryBreakdown.querySelector(
+            "#checkoutSubtotal"
         );
 
-        customerCity.innerHTML = `
-            <option value="">Could not load towns. Try again.</option>
-        `;
-
-        customerCity.disabled = true;
-
-        alert(
-            "We could not load delivery towns. Please try again."
+    const checkoutServiceCharge =
+        deliveryBreakdown.querySelector(
+            "#checkoutServiceCharge"
         );
 
+    const checkoutDeliveryFee =
+        deliveryBreakdown.querySelector(
+            "#checkoutDeliveryFee"
+        );
+
+
+    /* =========================================
+       CALCULATE CHECKOUT TOTAL
+
+       TOTAL = SUBTOTAL + 0.5% SERVICE CHARGE
+
+       DELIVERY = GH₵0.00
+    ========================================= */
+
+    function updateCheckoutTotal() {
+
+        const subtotal = cart.reduce(
+            function (sum, item) {
+
+                return sum +
+                    Number(item.price) *
+                    Number(item.quantity);
+
+            },
+            0
+        );
+
+        const serviceCharge =
+            Math.round(
+                subtotal * 0.005 * 100
+            ) / 100;
+
+        const total =
+            subtotal +
+            serviceCharge +
+            selectedDeliveryFee;
+
+        checkoutSubtotal.textContent =
+            formatMoney(subtotal);
+
+        checkoutServiceCharge.textContent =
+            formatMoney(serviceCharge);
+
+        checkoutDeliveryFee.textContent =
+            "FREE";
+
+        paymentTotal.textContent =
+            formatMoney(total);
+
+        return {
+            subtotal: subtotal,
+            serviceCharge: serviceCharge,
+            deliveryFee: 0,
+            total: total
+        };
     }
-}
 
 
-/* =========================================
-   REGION CHANGE
-========================================= */
+    /* =========================================
+       DELIVERY METHOD SWITCHING
+    ========================================= */
 
-customerRegion.addEventListener(
-    "change",
-    loadDeliveryTowns
-);
+    function applyDeliveryMethod() {
+
+        const method =
+            deliveryMethod.value;
+
+        const isCampus =
+            method === "ucc_campus";
+
+        const isPickup =
+            method === "mankessim_pickup";
+
+        const isTransport =
+            method === "transport";
 
 
-/* =========================================
-   TOWN CHANGE
-========================================= */
+        /* Show the correct delivery fields */
 
-customerCity.addEventListener(
-    "change",
-    function () {
+        if (uccCampusLocationGroup) {
 
-        const selectedOption =
-            customerCity.selectedOptions[0];
+            uccCampusLocationGroup.hidden =
+                !isCampus;
+        }
 
-        if (!selectedOption || !customerCity.value) {
+        if (transportDeliveryFields) {
 
-            selectedDeliveryFee = 0;
-            deliveryFeeLoaded = false;
+            transportDeliveryFields.hidden =
+                !isTransport;
+        }
+
+
+        /* Required fields */
+
+        if (uccHallHostel) {
+
+            uccHallHostel.required =
+                isCampus;
+        }
+
+        if (customerRegion) {
+
+            customerRegion.required =
+                isTransport;
+        }
+
+        if (customerCity) {
+
+            customerCity.required =
+                isTransport;
+        }
+
+        if (deliveryAddress) {
+
+            deliveryAddress.required =
+                isTransport;
+        }
+
+
+        /* Clear fields that do not apply */
+
+        if (isCampus) {
+
+            if (customerRegion) {
+                customerRegion.value = "";
+            }
+
+            if (customerCity) {
+                customerCity.value = "";
+            }
+
+            if (customerDigitalAddress) {
+                customerDigitalAddress.value = "";
+            }
+
+            if (deliveryAddress) {
+                deliveryAddress.value = "";
+            }
+
+            if (deliveryLandmark) {
+                deliveryLandmark.value = "";
+            }
+
+            if (deliveryInstructions) {
+                deliveryInstructions.value = "";
+            }
+
+        } else if (isPickup) {
+
+            if (uccHallHostel) {
+                uccHallHostel.value = "";
+            }
+
+            if (customerRegion) {
+                customerRegion.value = "";
+            }
+
+            if (customerCity) {
+                customerCity.value = "";
+            }
+
+            if (customerDigitalAddress) {
+                customerDigitalAddress.value = "";
+            }
+
+            if (deliveryAddress) {
+                deliveryAddress.value = "";
+            }
+
+            if (deliveryLandmark) {
+                deliveryLandmark.value = "";
+            }
+
+            if (deliveryInstructions) {
+                deliveryInstructions.value = "";
+            }
+
+        } else if (isTransport) {
+
+            if (uccHallHostel) {
+                uccHallHostel.value = "";
+            }
 
         } else {
 
-            selectedDeliveryFee =
-                Number(selectedOption.dataset.fee);
+            if (uccHallHostel) {
+                uccHallHostel.value = "";
+            }
 
-            deliveryFeeLoaded =
-                Number.isFinite(selectedDeliveryFee) &&
-                selectedDeliveryFee >= 0;
+            if (customerRegion) {
+                customerRegion.value = "";
+            }
+
+            if (customerCity) {
+                customerCity.value = "";
+            }
+
+            if (customerDigitalAddress) {
+                customerDigitalAddress.value = "";
+            }
+
+            if (deliveryAddress) {
+                deliveryAddress.value = "";
+            }
+
+            if (deliveryLandmark) {
+                deliveryLandmark.value = "";
+            }
+
+            if (deliveryInstructions) {
+                deliveryInstructions.value = "";
+            }
+        }
+
+
+        /* Customer instructions */
+
+        if (deliveryMethodMessage) {
+
+            if (isCampus) {
+
+                deliveryMethodMessage.textContent =
+                    "Free UCC Campus Delivery. Enter your UCC hall or hostel name.";
+
+            } else if (isPickup) {
+
+                deliveryMethodMessage.textContent =
+                    "Free customer pickup at Mankessim. No delivery address is required.";
+
+            } else if (isTransport) {
+
+                deliveryMethodMessage.textContent =
+                    "Free transport delivery. Select your region and enter your town and exact delivery address.";
+
+            } else {
+
+                deliveryMethodMessage.textContent =
+                    "Please select how you would like to receive your order.";
+            }
         }
 
         updateCheckoutTotal();
-
     }
-);
 
 
-        if (
-            !checkoutButton ||
-            !paymentOverlay ||
-            !paymentNetwork ||
-            !paymentTotal ||
-            !paymentReference ||
-            !customerEmail ||
-            !customerName ||
-            !customerPhone ||
-            !deliveryAddress ||
-            !confirmButton
-        ) {
+    /* =========================================
+       DELIVERY METHOD EVENT
+    ========================================= */
 
-            console.warn(
-                "Checkout is unavailable because some payment HTML elements are missing."
+    deliveryMethod.addEventListener(
+        "change",
+        applyDeliveryMethod
+    );
+
+
+    /* =========================================
+       CHECKOUT WINDOW
+    ========================================= */
+
+    function closePaymentWindow() {
+
+        paymentOverlay.style.display = "none";
+
+        paymentOverlay.hidden = true;
+    }
+
+
+    function openPaymentWindow() {
+
+        if (storefrontProductsHidden) {
+
+            alert(
+                "Checkout is temporarily unavailable while our store updates its products."
             );
 
             return;
         }
 
+        if (!cart || cart.length === 0) {
 
-        function closePaymentWindow() {
+            alert(
+                "Your cart is empty. Add products before checkout."
+            );
 
-            paymentOverlay.style.display = "none";
-            paymentOverlay.hidden = true;
+            return;
         }
 
+        applyDeliveryMethod();
 
-        function openPaymentWindow() {
+        updateCheckoutTotal();
 
-                       if (storefrontProductsHidden) {
+        paymentReference.textContent =
+            "Generated securely when checkout starts.";
+
+        paymentNetwork.value = "";
+
+        paymentOverlay.hidden = false;
+
+        paymentOverlay.style.display = "flex";
+    }
+
+
+    /* =========================================
+       OPEN CHECKOUT
+    ========================================= */
+
+    checkoutButton.addEventListener(
+        "click",
+        function (event) {
+
+            event.preventDefault();
+
+            openPaymentWindow();
+        }
+    );
+
+
+    /* =========================================
+       CONFIRM PAYMENT
+    ========================================= */
+
+    confirmButton.addEventListener(
+        "click",
+        async function (event) {
+
+            event.preventDefault();
+
+
+            /* Check payment service */
+
+            if (!supabaseClient) {
 
                 alert(
-                    "Checkout is temporarily unavailable while our store updates its products."
+                    "Payment service is unavailable. Please refresh the page."
                 );
 
                 return;
             }
 
-            if (cart.length === 0) {
+
+            /* Check delivery method */
+
+            const method =
+                deliveryMethod.value;
+
+            const isCampus =
+                method === "ucc_campus";
+
+            const isPickup =
+                method === "mankessim_pickup";
+
+            const isTransport =
+                method === "transport";
+
+
+            if (
+                !isCampus &&
+                !isPickup &&
+                !isTransport
+            ) {
 
                 alert(
-                    "Your cart is empty. Add products before checkout."
+                    "Please select how you would like to receive your order."
+                );
+
+                deliveryMethod.focus();
+
+                return;
+            }
+
+
+            /* Customer details */
+
+            if (
+                !customerName.value.trim() ||
+                !customerEmail.value.trim() ||
+                !customerEmail.checkValidity() ||
+                !customerPhone.value.trim()
+            ) {
+
+                alert(
+                    "Please enter your full name, valid email address and phone number."
                 );
 
                 return;
             }
 
-            const subtotal = cart.reduce(function (sum, item) {
-                return sum + item.price * item.quantity;
-            }, 0);
-           
-           selectedDeliveryFee = 0;
-           deliveryFeeLoaded = false;
-           updateCheckoutTotal();
 
-            paymentReference.textContent =
-                "Generated securely when checkout starts.";
+            /* UCC Campus validation */
 
-            paymentNetwork.value = "";
-
-            paymentOverlay.hidden = false;
-            paymentOverlay.style.display = "flex";
-
-           if (customerRegion.value) {
-              loadDeliveryTowns();
-           }
-        }
-
-
-        checkoutButton.addEventListener(
-            "click",
-            function (event) {
-
-                event.preventDefault();
-                openPaymentWindow();
-            }
-        );
-
-
-        confirmButton.addEventListener(
-            "click",
-            async function (event) {
-
-                event.preventDefault();
-
-                if (!supabaseClient) {
-
-                    alert(
-                        "Payment service is unavailable. Please refresh the page."
-                    );
-
-                    return;
-                }
+            if (isCampus) {
 
                 if (
-                   !customerEmail.value.trim() ||
-                   !customerEmail.checkValidity() ||
-                   !customerName.value.trim() ||
-                   !customerPhone.value.trim() ||
-                   !customerRegion.value.trim() ||
-                   !customerCity.value.trim() ||
-                   !deliveryAddress.value.trim()
+                    !uccHallHostel ||
+                    !uccHallHostel.value.trim()
                 ) {
-                   
-                   alert(
-                      "Please complete your customer details, region, town and exact delivery address."
-                   );
-                   
-                   return;
-                }
-               
-               if (!deliveryFeeLoaded) {
-                  
-                  alert(
-                     
-                     "Please select a valid delivery town so we can calculate your delivery fee."
-                  );
-                  
-                  return;
-               }
-
-                const network = paymentNetwork.value;
-
-                if (!["mtn", "telecel", "at"].includes(network)) {
 
                     alert(
-                        "Please select your Mobile Money network."
+                        "Please enter your UCC hall or hostel name."
+                    );
+
+                    if (uccHallHostel) {
+                        uccHallHostel.focus();
+                    }
+
+                    return;
+                }
+            }
+
+
+            /* Transport delivery validation */
+
+            if (isTransport) {
+
+                if (
+                    !customerRegion ||
+                    !customerRegion.value.trim() ||
+                    !customerCity ||
+                    !customerCity.value.trim() ||
+                    !deliveryAddress ||
+                    !deliveryAddress.value.trim()
+                ) {
+
+                    alert(
+                        "Please enter your region, town and exact delivery address."
                     );
 
                     return;
                 }
+            }
 
-                if (cart.length === 0) {
-                    alert("Your cart is empty.");
-                    return;
-                }
 
-                const missingProductId = cart.some(function (item) {
+            /* Mobile Money network */
+
+            const network =
+                paymentNetwork.value;
+
+            if (
+                !["mtn", "telecel", "at"].includes(network)
+            ) {
+
+                alert(
+                    "Please select your Mobile Money network."
+                );
+
+                paymentNetwork.focus();
+
+                return;
+            }
+
+
+            /* Cart validation */
+
+            if (!cart || cart.length === 0) {
+
+                alert("Your cart is empty.");
+
+                return;
+            }
+
+
+            const missingProductId =
+                cart.some(function (item) {
+
                     return !item.productId;
                 });
 
-                if (missingProductId) {
 
-                    alert(
-                        "Checkout is not ready yet. Some products are not connected to the Supabase product database. Please contact the store administrator."
-                    );
+            if (missingProductId) {
 
-                    console.error(
-                        "Checkout blocked: one or more cart products have no Supabase product ID."
-                    );
+                alert(
+                    "Some products are not connected to the product database. Please contact the store administrator."
+                );
 
-                    return;
-                }
+                console.error(
+                    "Checkout blocked: missing product ID."
+                );
 
-                const originalButtonText =
-                    confirmButton.textContent;
+                return;
+            }
 
-                confirmButton.disabled = true;
 
-                confirmButton.textContent =
-                    "Connecting to Paystack...";
+            /* Update displayed total */
 
-                try {
+            updateCheckoutTotal();
 
-                    // Send product IDs and quantities only.
-                    // The server must calculate the final prices.
 
-                    const items = cart.map(function (item) {
+            /* Disable button */
+
+            const originalButtonText =
+                confirmButton.textContent;
+
+            confirmButton.disabled = true;
+
+            confirmButton.textContent =
+                "Connecting to Paystack...";
+
+
+            try {
+
+                /* =====================================
+                   PREPARE ORDER ITEMS
+                ===================================== */
+
+                const items = cart.map(
+                    function (item) {
 
                         return {
                             productId: item.productId,
                             quantity: Number(item.quantity)
                         };
-                    });
+                    }
+                );
 
 
-                    const { data, error } =
-                        await supabaseClient.functions.invoke(
-                            "initialize-paystack",
-                            {
-                                body: {
+                /* =====================================
+                   INITIALIZE PAYSTACK
+                ===================================== */
 
-                                    action: "initialize",
+                const { data, error } =
+                    await supabaseClient.functions.invoke(
+                        "initialize-paystack",
+                        {
+                            body: {
 
-                                    email: customerEmail.value.trim(),
+                                action: "initialize",
 
-                                    customerName: customerName.value.trim(),
+                                email:
+                                    customerEmail.value.trim(),
 
-                                    customerPhone: customerPhone.value.trim(),
+                                customerName:
+                                    customerName.value.trim(),
 
-                                    deliveryRegion: customerRegion.value.trim(),
-                                   
-                                   deliveryTown: customerCity.value.trim(),
-                                   
-                                   ghanaPostGPS: customerDigitalAddress
-                                      ? customerDigitalAddress.value.trim()
-                                      : "",
-                                   
-                                   deliveryAddress: deliveryAddress.value.trim(),
-                                   
-                                   deliveryLandmark: deliveryLandmark
-                                      ? deliveryLandmark.value.trim()
-                                      : "",
-                                   
-                                   deliveryInstructions: deliveryInstructions
-                                      ? deliveryInstructions.value.trim()
-                                      : "",
+                                customerPhone:
+                                    customerPhone.value.trim(),
 
-                                    network: network,
+                                /* DELIVERY METHOD */
 
-                                    items: items
-                                }
-                            }
-                        );
+                                deliveryMethod: method,
 
+                                /* UCC CAMPUS */
 
-                    if (error) {
+                                uccHallHostel: isCampus
+                                    ? uccHallHostel.value.trim()
+                                    : "",
 
-                        console.error(
-                            "Checkout function error:",
-                            error
-                        );
+                                /* TRANSPORT DETAILS */
 
-                        if (error.context) {
+                                deliveryRegion: isTransport
+                                    ? customerRegion.value.trim()
+                                    : "",
 
-                            try {
+                                deliveryTown: isTransport
+                                    ? customerCity.value.trim()
+                                    : "",
 
-                                console.error(
-                                    "Server response:",
-                                    await error.context.clone().text()
-                                );
+                                ghanaPostGPS:
+                                    isTransport && customerDigitalAddress
+                                        ? customerDigitalAddress.value.trim()
+                                        : "",
 
-                            } catch (readError) {
+                                deliveryAddress: isTransport
+                                    ? deliveryAddress.value.trim()
+                                    : "",
 
-                                console.error(
-                                    "Could not read server response:",
-                                    readError
-                                );
+                                deliveryLandmark:
+                                    isTransport && deliveryLandmark
+                                        ? deliveryLandmark.value.trim()
+                                        : "",
+
+                                deliveryInstructions:
+                                    isTransport && deliveryInstructions
+                                        ? deliveryInstructions.value.trim()
+                                        : "",
+
+                                /* PAYMENT NETWORK */
+
+                                network: network,
+
+                                /* PRODUCTS */
+
+                                items: items
+
+                                /* No delivery fee is sent.
+                                   The server must calculate all
+                                   charges independently. */
                             }
                         }
-
-                        throw new Error(
-                            data?.error ||
-                            "Payment could not be initialized. Please check the payment server logs."
-                        );
-                    }
-
-
-                    if (!data || !data.authorization_url) {
-
-                        throw new Error(
-                            data?.error ||
-                            "Paystack did not return a payment link."
-                        );
-                    }
-
-
-                    if (
-                        !data.reference ||
-                        !data.notification_token
-                    ) {
-
-                        throw new Error(
-                            "Payment started without notification access details. Please contact the store."
-                        );
-                    }
-
-
-                    const notificationStorageKey =
-                        "sweet_order_notification_" + data.reference;
-
-
-                    try {
-
-                        localStorage.setItem(
-                            notificationStorageKey,
-                            JSON.stringify({
-
-                                reference: data.reference,
-
-                                token: data.notification_token,
-
-                                savedAt: new Date().toISOString()
-                            })
-                        );
-
-                    } catch (storageError) {
-
-                        console.error(
-                            "Notification token could not be saved:",
-                            storageError
-                        );
-
-                        throw new Error(
-                            "Your order notification access could not be saved. Please enable browser storage and try again."
-                        );
-                    }
-
-
-                    paymentReference.textContent =
-                        data.reference;
-
-                    console.log(
-                        "Payment initialized successfully.",
-                        data.reference
                     );
 
-                    console.log(
-                        "Private order notification access saved."
-                    );
 
-                    window.location.href =
-                        data.authorization_url;
+                /* =====================================
+                   HANDLE PAYSTACK ERROR
+                ===================================== */
 
-                } catch (error) {
+                if (error) {
 
                     console.error(
-                        "Paystack checkout error:",
+                        "Checkout function error:",
                         error
                     );
 
-                    alert(
-                        error.message ||
-                        "Payment could not start. Please try again."
+                    if (error.context) {
+
+                        try {
+
+                            console.error(
+                                "Server response:",
+                                await error.context.clone().text()
+                            );
+
+                        } catch (readError) {
+
+                            console.error(
+                                "Could not read server response:",
+                                readError
+                            );
+                        }
+                    }
+
+                    throw new Error(
+                        data?.error ||
+                        "Payment could not be initialized. Please try again."
+                    );
+                }
+
+
+                /* =====================================
+                   VERIFY PAYMENT RESPONSE
+                ===================================== */
+
+                if (
+                    !data ||
+                    !data.authorization_url
+                ) {
+
+                    throw new Error(
+                        data?.error ||
+                        "Paystack did not return a payment link."
+                    );
+                }
+
+
+                if (
+                    !data.reference ||
+                    !data.notification_token
+                ) {
+
+                    throw new Error(
+                        "Payment started without notification access details. Please contact the store."
+                    );
+                }
+
+
+                /* =====================================
+                   SAVE NOTIFICATION TOKEN
+                ===================================== */
+
+                const notificationStorageKey =
+                    "sweet_order_notification_" +
+                    data.reference;
+
+
+                try {
+
+                    localStorage.setItem(
+                        notificationStorageKey,
+                        JSON.stringify({
+
+                            reference:
+                                data.reference,
+
+                            token:
+                                data.notification_token,
+
+                            savedAt:
+                                new Date().toISOString()
+                        })
                     );
 
-                    confirmButton.disabled = false;
+                } catch (storageError) {
 
-                    confirmButton.textContent =
-                        originalButtonText;
+                    console.error(
+                        "Notification token could not be saved:",
+                        storageError
+                    );
+
+                    throw new Error(
+                        "Your order notification access could not be saved. Please enable browser storage and try again."
+                    );
                 }
+
+
+                /* =====================================
+                   SUCCESS
+                ===================================== */
+
+                paymentReference.textContent =
+                    data.reference;
+
+                console.log(
+                    "Payment initialized successfully:",
+                    data.reference
+                );
+
+                console.log(
+                    "Order notification access saved."
+                );
+
+
+                /* REDIRECT TO PAYSTACK */
+
+                window.location.href =
+                    data.authorization_url;
+
+
+            } catch (error) {
+
+                console.error(
+                    "Paystack checkout error:",
+                    error
+                );
+
+                alert(
+                    error.message ||
+                    "Payment could not start. Please try again."
+                );
+
+                confirmButton.disabled = false;
+
+                confirmButton.textContent =
+                    originalButtonText;
             }
-        );
-
-
-        if (closePayment) {
-            closePayment.addEventListener(
-                "click",
-                closePaymentWindow
-            );
         }
+    );
 
-        if (closePaymentBottom) {
-            closePaymentBottom.addEventListener(
-                "click",
-                closePaymentWindow
-            );
-        }
 
-        paymentOverlay.addEventListener(
+    /* =========================================
+       CLOSE PAYMENT WINDOW
+    ========================================= */
+
+    if (closePayment) {
+
+        closePayment.addEventListener(
             "click",
-            function (event) {
-
-                if (event.target === paymentOverlay) {
-                    closePaymentWindow();
-                }
-            }
+            closePaymentWindow
         );
+    }
 
-        closePaymentWindow();
 
-        console.log("Checkout interface initialized.");
+    if (closePaymentBottom) {
 
-    })();
+        closePaymentBottom.addEventListener(
+            "click",
+            closePaymentWindow
+        );
+    }
+
+
+    paymentOverlay.addEventListener(
+        "click",
+        function (event) {
+
+            if (event.target === paymentOverlay) {
+
+                closePaymentWindow();
+            }
+        }
+    );
+
+
+    /* =========================================
+       INITIALIZE CHECKOUT
+    ========================================= */
+
+    applyDeliveryMethod();
+
+    updateCheckoutTotal();
+
+    closePaymentWindow();
+
+    console.log(
+        "Free delivery checkout initialized successfully."
+    );
+
+})();
+
 
 
     
