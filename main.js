@@ -269,7 +269,7 @@ window.setInterval(function () {
         });
     }
 
-
+   
 /* ======================================
    PRODUCT STOCK DISPLAY
 ====================================== */
@@ -309,7 +309,7 @@ function createStockDisplay(stock) {
        4. CONNECT SUPABASE PRODUCT IDS
     ================================================= */
 
-
+    
 
 async function connectStoreProductIds() {
 
@@ -325,7 +325,7 @@ async function connectStoreProductIds() {
 
         return;
     }
-
+   
     if (!supabaseClient) {
         console.error("Supabase connection is unavailable.");
         return;
@@ -499,7 +499,7 @@ function updateProductStock(card, stock) {
         // Update product description.
         const description = card.querySelector(".product-description");
 
-                if (description) {
+        if (description) {
             description.textContent = product.description || "";
         }
 
@@ -599,7 +599,7 @@ function updateProductStock(card, stock) {
         description.textContent = product.description || "";
 
         const stockDisplay = createStockDisplay(product.stock);
-
+       
        productInfo.append(
           category,
           heading,
@@ -997,7 +997,8 @@ function updateProductStock(card, stock) {
             const increaseButton =
                 document.createElement("button");
 
-                        increaseButton.className = "increase";
+            increaseButton.type = "button";
+            increaseButton.className = "increase";
             increaseButton.dataset.index = index;
             increaseButton.textContent = "+";
 
@@ -1405,7 +1406,7 @@ addProductToCart(button, quantity);
     const flashSaleMessage =
         document.getElementById("flashSaleMessage");
 
-
+   
 /* =================================================
    PRODUCT DETAILS POPUP
    Works with:
@@ -1997,7 +1998,7 @@ console.log("Product Details popup initialized.");
 
             if (!matchingCard) {
 
-                                console.warn(
+                console.warn(
                     "Could not find existing product card for Flash Sale:",
                     product.name
                 );
@@ -2194,7 +2195,7 @@ function updateFlashSaleCountdowns() {
 
        // Keep the section hidden while products are rendering.
        flashSaleSection.hidden = true;
-
+       
        if (flashSaleMessage) {
           flashSaleMessage.hidden = true;
        }
@@ -2270,37 +2271,37 @@ function updateFlashSaleCountdowns() {
             prices.className = "flash-sale-prices";
 
 
-
+            
            const salePrice =
               document.createElement("span");
-
+           
            salePrice.className = "flash-sale-price";
-
+           
            salePrice.textContent =
               formatMoney(discountedPrice);
-
-
+           
+           
            const oldPrice =
               document.createElement("span");
-
+           
            oldPrice.className = "flash-sale-original";
-
+           
            oldPrice.textContent =
               formatMoney(originalPrice);
-
-
+           
+           
            prices.appendChild(salePrice);
            prices.appendChild(oldPrice);
-
-
+           
+           
            // ======================================
            // FLASH SALE COUNTDOWN DISPLAY
            // ======================================
-
+           
            const countdown = document.createElement("div");
-
+           
            countdown.className = "flash-sale-countdown";
-
+           
            countdown.dataset.endsAt = sale.ends_at;
 
 
@@ -2419,12 +2420,12 @@ console.log(
 }
 
    updateFlashSaleCountdowns();
-
+   
    window.setInterval(updateFlashSaleCountdowns, 1000);
 
 
 
-
+    
 
 /* =========================================
    12D. LOAD FLASH SALES FROM SUPABASE
@@ -2497,7 +2498,7 @@ async function loadStoreFlashSales() {
 
         const now = Date.now();
 
-                // CHECK ONLY VALID AND CURRENTLY ACTIVE SALES
+        // CHECK ONLY VALID AND CURRENTLY ACTIVE SALES
         const activeSales = (data || []).filter(sale => {
 
             const start = new Date(sale.starts_at).getTime();
@@ -2613,9 +2614,9 @@ async function loadStoreFlashSales() {
 
        // Update every Flash Sale countdown every second.
        updateFlashSaleCountdowns();
-
+       
        window.setInterval(function () {
-
+          
           if (!document.hidden) {
              updateFlashSaleCountdowns();
           }
@@ -2624,7 +2625,7 @@ async function loadStoreFlashSales() {
     }, 60000);
 
 
-
+    
 // ==========================================
 // 13. CUSTOMER PROFILE
 // PROFILE PICTURE UPLOAD + DISPLAY + REMOVE
@@ -2997,7 +2998,388 @@ const firstName = fullName.trim().split(/\s+/)[0];
     async function refreshProfile() {
         const { data, error } = await client.auth.getSession();
 
-                } else {
+        if (error) {
+            console.error("Session error:", error);
+            showSignedOut();
+            return;
+        }
+
+        if (data.session?.user) {
+            showSignedIn(data.session.user);
+        } else {
+            showSignedOut();
+        }
+    }
+
+    // Listen for login/logout changes
+    client.auth.onAuthStateChange((event, session) => {
+        if (session?.user) {
+            showSignedIn(session.user);
+        } else {
+            showSignedOut();
+        }
+    });
+
+   // ==========================================
+// AUTHENTICATION + 5-MINUTE INACTIVITY LOGOUT
+// ==========================================
+
+const INACTIVITY_LIMIT = 5 * 60 * 1000;
+let inactivityTimer = null;
+let customerIsSignedIn = false;
+
+function resetInactivityTimer() {
+
+    if (!customerIsSignedIn) return;
+
+    clearTimeout(inactivityTimer);
+
+    inactivityTimer = setTimeout(async () => {
+
+        try {
+            const { error } = await client.auth.signOut();
+
+            if (error) {
+                console.error("Automatic logout failed:", error);
+                return;
+            }
+
+            alert(
+                "You have been logged out due to 5 minutes of inactivity. Please sign in again."
+            );
+
+            window.location.replace("./login.html?reason=timeout");
+
+        } catch (error) {
+            console.error("Automatic logout error:", error);
+        }
+
+    }, INACTIVITY_LIMIT);
+}
+
+// Detect customer activity
+[
+    "mousemove",
+    "mousedown",
+    "keydown",
+    "scroll",
+    "touchstart",
+    "click"
+].forEach(eventName => {
+    document.addEventListener(eventName, resetInactivityTimer, {
+        passive: true
+    });
+});
+
+// Listen for login/logout changes
+client.auth.onAuthStateChange((event, session) => {
+
+    customerIsSignedIn = Boolean(session?.user);
+
+    clearTimeout(inactivityTimer);
+
+    if (session?.user) {
+        showSignedIn(session.user);
+        resetInactivityTimer();
+    } else {
+        showSignedOut();
+    }
+
+});
+
+    // Load profile when page opens
+    refreshProfile();
+
+})();
+
+
+
+    /* =================================================
+       14. PAYSTACK CHECKOUT + NOTIFICATION TOKEN
+    ================================================= */
+
+    (function setupPaystackCheckout() {
+
+        const paymentOverlay =
+            document.getElementById("paymentOverlay");
+
+        const closePayment =
+            document.getElementById("closePayment");
+
+        const closePaymentBottom =
+            document.getElementById("closePaymentBottom");
+
+        const paymentNetwork =
+            document.getElementById("paymentNetwork");
+
+        const paymentTotal =
+            document.getElementById("paymentTotal");
+
+        const paymentReference =
+            document.getElementById("paymentReference");
+
+        const customerEmail =
+            document.getElementById("customerEmail");
+
+        const customerName =
+            document.getElementById("customerName");
+
+        const customerPhone =
+            document.getElementById("customerPhone");
+
+        const deliveryAddress =
+            document.getElementById("deliveryAddress");
+
+       const customerRegion =
+    document.getElementById("customerRegion");
+
+const customerCity =
+    document.getElementById("customerCity");
+
+const customerDigitalAddress =
+    document.getElementById("customerDigitalAddress");
+
+const deliveryLandmark =
+    document.getElementById("deliveryLandmark");
+
+const deliveryInstructions =
+    document.getElementById("deliveryInstructions");
+
+        const confirmButton =
+            document.getElementById("confirmPaymentInstructions");
+
+       /* =========================================
+   AUTOMATIC DELIVERY PRICING
+========================================= */
+
+let selectedDeliveryFee = 0;
+let deliveryFeeLoaded = false;
+
+const deliveryBreakdown = document.createElement("div");
+
+deliveryBreakdown.className = "checkout-fee-breakdown";
+
+deliveryBreakdown.innerHTML = `
+    <div class="checkout-fee-row">
+        <span>Product subtotal</span>
+        <strong id="checkoutSubtotal">GH₵0.00</strong>
+    </div>
+
+    <div class="checkout-fee-row">
+        <span>Service charge (0.5%)</span>
+        <strong id="checkoutServiceCharge">GH₵0.00</strong>
+    </div>
+
+    <div class="checkout-fee-row">
+        <span>Delivery fee</span>
+        <strong id="checkoutDeliveryFee">Not selected</strong>
+    </div>
+`;
+
+if (paymentTotal.parentElement) {
+    paymentTotal.parentElement.insertAdjacentElement(
+        "beforebegin",
+        deliveryBreakdown
+    );
+}
+
+const checkoutSubtotal =
+    deliveryBreakdown.querySelector("#checkoutSubtotal");
+
+const checkoutServiceCharge =
+    deliveryBreakdown.querySelector("#checkoutServiceCharge");
+
+const checkoutDeliveryFee =
+    deliveryBreakdown.querySelector("#checkoutDeliveryFee");
+
+
+/* =========================================
+   UPDATE CHECKOUT TOTAL
+========================================= */
+
+function updateCheckoutTotal() {
+
+    const subtotal = cart.reduce(function (sum, item) {
+
+        return sum +
+            Number(item.price) *
+            Number(item.quantity);
+
+    }, 0);
+
+    const serviceCharge =
+        Math.round(subtotal * 0.005 * 100) / 100;
+
+    const total =
+        subtotal +
+        serviceCharge +
+        selectedDeliveryFee;
+
+    checkoutSubtotal.textContent =
+        formatMoney(subtotal);
+
+    checkoutServiceCharge.textContent =
+        formatMoney(serviceCharge);
+
+    checkoutDeliveryFee.textContent =
+        deliveryFeeLoaded
+            ? formatMoney(selectedDeliveryFee)
+            : "Not selected";
+
+    paymentTotal.textContent =
+        formatMoney(total);
+}
+
+
+/* =========================================
+   LOAD TOWNS FOR SELECTED REGION
+========================================= */
+
+async function loadDeliveryTowns() {
+
+   console.log("Loading delivery towns...");
+   
+   console.log("Selected region:", customerRegion.value);
+
+    const region = customerRegion.value.trim();
+
+    selectedDeliveryFee = 0;
+    deliveryFeeLoaded = false;
+
+    customerCity.innerHTML = `
+        <option value="">Loading available towns...</option>
+    `;
+
+    customerCity.disabled = true;
+
+    updateCheckoutTotal();
+
+    if (!region) {
+
+        customerCity.innerHTML = `
+            <option value="">Select your region first</option>
+        `;
+
+        return;
+    }
+
+    if (!supabaseClient) {
+
+        customerCity.innerHTML = `
+            <option value="">Delivery service unavailable</option>
+        `;
+
+        return;
+    }
+
+    try {
+
+        const { data, error } = await supabaseClient
+            .from("delivery_pricing")
+            .select("region, town, delivery_fee")
+            .eq("region", region)
+            .eq("is_active", true)
+            .order("town", { ascending: true });
+
+        if (error) {
+            throw error;
+        }
+
+       console.log("Delivery towns returned from Supabase:", data);
+
+        customerCity.replaceChildren();
+
+        const placeholder = document.createElement("option");
+
+        placeholder.value = "";
+        placeholder.textContent = "Select your town/city";
+
+        customerCity.appendChild(placeholder);
+
+        if (!data || data.length === 0) {
+
+            const option = document.createElement("option");
+
+            option.value = "";
+            option.textContent =
+                "No delivery towns available in this region";
+
+            customerCity.appendChild(option);
+
+            customerCity.disabled = true;
+
+            return;
+        }
+
+        data.forEach(function (town) {
+
+            const option = document.createElement("option");
+
+            option.value = town.town;
+
+            option.textContent =
+                town.town +
+                " — " +
+                formatMoney(Number(town.delivery_fee));
+
+            // Used only for displaying the estimated fee.
+            // The payment server verifies the actual fee again.
+            option.dataset.fee = String(town.delivery_fee);
+
+            customerCity.appendChild(option);
+
+        });
+
+        customerCity.disabled = false;
+
+    } catch (error) {
+
+        console.error(
+            "Delivery town loading failed:",
+            error
+        );
+
+        customerCity.innerHTML = `
+            <option value="">Could not load towns. Try again.</option>
+        `;
+
+        customerCity.disabled = true;
+
+        alert(
+            "We could not load delivery towns. Please try again."
+        );
+
+    }
+}
+
+
+/* =========================================
+   REGION CHANGE
+========================================= */
+
+customerRegion.addEventListener(
+    "change",
+    loadDeliveryTowns
+);
+
+
+/* =========================================
+   TOWN CHANGE
+========================================= */
+
+customerCity.addEventListener(
+    "change",
+    function () {
+
+        const selectedOption =
+            customerCity.selectedOptions[0];
+
+        if (!selectedOption || !customerCity.value) {
+
+            selectedDeliveryFee = 0;
+            deliveryFeeLoaded = false;
+
+        } else {
 
             selectedDeliveryFee =
                 Number(selectedOption.dataset.fee);
@@ -3009,13 +3391,9 @@ const firstName = fullName.trim().split(/\s+/)[0];
 
         updateCheckoutTotal();
 
-        }
-    );
-}
+    }
+);
 
-
-        // Set the correct checkout fields when the page first loads.
-        applyDeliveryMethod();
 
         if (
             !checkoutButton ||
@@ -3068,8 +3446,10 @@ const firstName = fullName.trim().split(/\s+/)[0];
             const subtotal = cart.reduce(function (sum, item) {
                 return sum + item.price * item.quantity;
             }, 0);
-
-           applyDeliveryMethod();
+           
+           selectedDeliveryFee = 0;
+           deliveryFeeLoaded = false;
+           updateCheckoutTotal();
 
             paymentReference.textContent =
                 "Generated securely when checkout starts.";
@@ -3079,10 +3459,7 @@ const firstName = fullName.trim().split(/\s+/)[0];
             paymentOverlay.hidden = false;
             paymentOverlay.style.display = "flex";
 
-           if (
-               (!deliveryMethod || deliveryMethod.value === "transport") &&
-               customerRegion.value
-           ) {
+           if (customerRegion.value) {
               loadDeliveryTowns();
            }
         }
@@ -3113,67 +3490,32 @@ const firstName = fullName.trim().split(/\s+/)[0];
                     return;
                 }
 
-                const method = deliveryMethod
-                    ? deliveryMethod.value
-                    : "transport";
-
                 if (
-                    !customerEmail.value.trim() ||
-                    !customerEmail.checkValidity() ||
-                    !customerName.value.trim() ||
-                    !customerPhone.value.trim()
+                   !customerEmail.value.trim() ||
+                   !customerEmail.checkValidity() ||
+                   !customerName.value.trim() ||
+                   !customerPhone.value.trim() ||
+                   !customerRegion.value.trim() ||
+                   !customerCity.value.trim() ||
+                   !deliveryAddress.value.trim()
                 ) {
-                    alert(
-                        "Please enter your name, a valid email address and phone number."
-                    );
-                    return;
+                   
+                   alert(
+                      "Please complete your customer details, region, town and exact delivery address."
+                   );
+                   
+                   return;
                 }
-
-                if (method === "ucc_campus") {
-
-                    if (!uccHallHostel || !uccHallHostel.value.trim()) {
-                        alert(
-                            "Please enter your UCC hall or hostel name."
-                        );
-                        if (uccHallHostel) uccHallHostel.focus();
-                        return;
-                    }
-
-                    selectedDeliveryFee = 0;
-                    deliveryFeeLoaded = true;
-
-                } else if (method === "mankessim_pickup") {
-
-                    selectedDeliveryFee = 0;
-                    deliveryFeeLoaded = true;
-
-                } else if (method === "transport") {
-
-                    if (
-                        !customerRegion.value.trim() ||
-                        !customerCity.value.trim() ||
-                        !deliveryAddress.value.trim()
-                    ) {
-                        alert(
-                            "Please select your region and town, and enter your exact delivery address."
-                        );
-                        return;
-                    }
-
-                    if (!deliveryFeeLoaded) {
-                        alert(
-                            "Please select a valid delivery town so we can calculate your delivery fee."
-                        );
-                        return;
-                    }
-
-                } else {
-
-                    alert("Please select a valid delivery method.");
-                    return;
-                }
-
-                updateCheckoutTotal();
+               
+               if (!deliveryFeeLoaded) {
+                  
+                  alert(
+                     
+                     "Please select a valid delivery town so we can calculate your delivery fee."
+                  );
+                  
+                  return;
+               }
 
                 const network = paymentNetwork.value;
 
@@ -3244,35 +3586,23 @@ const firstName = fullName.trim().split(/\s+/)[0];
 
                                     customerPhone: customerPhone.value.trim(),
 
-                                    deliveryMethod: method,
-
-                                    uccHallHostel: method === "ucc_campus" && uccHallHostel
-                                        ? uccHallHostel.value.trim()
-                                        : "",
-
-                                    deliveryRegion: method === "transport"
-                                        ? customerRegion.value.trim()
-                                        : "",
-
-                                    deliveryTown: method === "transport"
-                                        ? customerCity.value.trim()
-                                        : "",
-
-                                    ghanaPostGPS: method === "transport" && customerDigitalAddress
-                                        ? customerDigitalAddress.value.trim()
-                                        : "",
-
-                                    deliveryAddress: method === "transport"
-                                        ? deliveryAddress.value.trim()
-                                        : "",
-
-                                    deliveryLandmark: method === "transport" && deliveryLandmark
-                                        ? deliveryLandmark.value.trim()
-                                        : "",
-
-                                    deliveryInstructions: method === "transport" && deliveryInstructions
-                                        ? deliveryInstructions.value.trim()
-                                        : "",
+                                    deliveryRegion: customerRegion.value.trim(),
+                                   
+                                   deliveryTown: customerCity.value.trim(),
+                                   
+                                   ghanaPostGPS: customerDigitalAddress
+                                      ? customerDigitalAddress.value.trim()
+                                      : "",
+                                   
+                                   deliveryAddress: deliveryAddress.value.trim(),
+                                   
+                                   deliveryLandmark: deliveryLandmark
+                                      ? deliveryLandmark.value.trim()
+                                      : "",
+                                   
+                                   deliveryInstructions: deliveryInstructions
+                                      ? deliveryInstructions.value.trim()
+                                      : "",
 
                                     network: network,
 
@@ -3432,7 +3762,7 @@ const firstName = fullName.trim().split(/\s+/)[0];
     })();
 
 
-
+    
     /* =================================================
        15. MY ORDERS + NOTIFICATION SYSTEM
        SINGLE CONSOLIDATED VERSION
@@ -3496,509 +3826,7 @@ const firstName = fullName.trim().split(/\s+/)[0];
 
         orderStatusSnapshots = JSON.parse(
             localStorage.getItem(SWEET_ORDER_STATUS_KEY) || "{}"
-
-            if (error) {
-            console.error("Session error:", error);
-            showSignedOut();
-            return;
-        }
-
-        if (data.session?.user) {
-            showSignedIn(data.session.user);
-        } else {
-            showSignedOut();
-        }
-    }
-
-    // Listen for login/logout changes
-    client.auth.onAuthStateChange((event, session) => {
-        if (session?.user) {
-            showSignedIn(session.user);
-        } else {
-            showSignedOut();
-        }
-    });
-
-   // ==========================================
-// AUTHENTICATION + 5-MINUTE INACTIVITY LOGOUT
-// ==========================================
-
-const INACTIVITY_LIMIT = 5 * 60 * 1000;
-let inactivityTimer = null;
-let customerIsSignedIn = false;
-
-function resetInactivityTimer() {
-
-    if (!customerIsSignedIn) return;
-
-    clearTimeout(inactivityTimer);
-
-    inactivityTimer = setTimeout(async () => {
-
-        try {
-            const { error } = await client.auth.signOut();
-
-            if (error) {
-                console.error("Automatic logout failed:", error);
-                return;
-            }
-
-            alert(
-                "You have been logged out due to 5 minutes of inactivity. Please sign in again."
-            );
-
-            window.location.replace("./login.html?reason=timeout");
-
-        } catch (error) {
-            console.error("Automatic logout error:", error);
-        }
-
-    }, INACTIVITY_LIMIT);
-}
-
-// Detect customer activity
-[
-    "mousemove",
-    "mousedown",
-    "keydown",
-    "scroll",
-    "touchstart",
-    "click"
-].forEach(eventName => {
-    document.addEventListener(eventName, resetInactivityTimer, {
-        passive: true
-    });
-});
-
-// Listen for login/logout changes
-client.auth.onAuthStateChange((event, session) => {
-
-    customerIsSignedIn = Boolean(session?.user);
-
-    clearTimeout(inactivityTimer);
-
-    if (session?.user) {
-        showSignedIn(session.user);
-        resetInactivityTimer();
-    } else {
-        showSignedOut();
-    }
-
-});
-
-    // Load profile when page opens
-    refreshProfile();
-
-})();
-
-
-
-    /* =================================================
-       14. PAYSTACK CHECKOUT + NOTIFICATION TOKEN
-    ================================================= */
-
-    (function setupPaystackCheckout() {
-
-        const paymentOverlay =
-            document.getElementById("paymentOverlay");
-
-        const closePayment =
-            document.getElementById("closePayment");
-
-        const closePaymentBottom =
-            document.getElementById("closePaymentBottom");
-
-        const paymentNetwork =
-            document.getElementById("paymentNetwork");
-
-        const paymentTotal =
-            document.getElementById("paymentTotal");
-
-        const paymentReference =
-            document.getElementById("paymentReference");
-
-        const customerEmail =
-            document.getElementById("customerEmail");
-
-        const customerName =
-            document.getElementById("customerName");
-
-        const customerPhone =
-            document.getElementById("customerPhone");
-
-        const deliveryAddress =
-            document.getElementById("deliveryAddress");
-
-       const customerRegion =
-    document.getElementById("customerRegion");
-
-const customerCity =
-    document.getElementById("customerCity");
-
-const customerDigitalAddress =
-    document.getElementById("customerDigitalAddress");
-
-const deliveryLandmark =
-    document.getElementById("deliveryLandmark");
-
-const deliveryInstructions =
-    document.getElementById("deliveryInstructions");
-
-/* =========================================
-   DELIVERY METHOD ELEMENTS
-========================================= */
-
-const deliveryMethod =
-    document.getElementById("deliveryMethod");
-
-const deliveryMethodMessage =
-    document.getElementById("deliveryMethodMessage");
-
-const uccCampusLocationGroup =
-    document.getElementById("uccCampusLocationGroup");
-
-const uccHallHostel =
-    document.getElementById("uccHallHostel");
-
-const transportDeliveryFields =
-    document.getElementById("transportDeliveryFields");
-
-        const confirmButton =
-            document.getElementById("confirmPaymentInstructions");
-
-       /* =========================================
-   AUTOMATIC DELIVERY PRICING
-========================================= */
-
-let selectedDeliveryFee = 0;
-let deliveryFeeLoaded = false;
-
-const deliveryBreakdown = document.createElement("div");
-
-deliveryBreakdown.className = "checkout-fee-breakdown";
-
-deliveryBreakdown.innerHTML = `
-    <div class="checkout-fee-row">
-        <span>Product subtotal</span>
-        <strong id="checkoutSubtotal">GH₵0.00</strong>
-    </div>
-
-    <div class="checkout-fee-row">
-        <span>Service charge (0.5%)</span>
-        <strong id="checkoutServiceCharge">GH₵0.00</strong>
-    </div>
-
-    <div class="checkout-fee-row">
-        <span>Delivery fee</span>
-        <strong id="checkoutDeliveryFee">Not selected</strong>
-    </div>
-`;
-
-if (paymentTotal.parentElement) {
-    paymentTotal.parentElement.insertAdjacentElement(
-        "beforebegin",
-        deliveryBreakdown
-    );
-}
-
-const checkoutSubtotal =
-    deliveryBreakdown.querySelector("#checkoutSubtotal");
-
-const checkoutServiceCharge =
-    deliveryBreakdown.querySelector("#checkoutServiceCharge");
-
-const checkoutDeliveryFee =
-    deliveryBreakdown.querySelector("#checkoutDeliveryFee");
-
-
-/* =========================================
-   UPDATE CHECKOUT TOTAL
-========================================= */
-
-function updateCheckoutTotal() {
-
-    const subtotal = cart.reduce(function (sum, item) {
-
-        return sum +
-            Number(item.price) *
-            Number(item.quantity);
-
-    }, 0);
-
-    const serviceCharge =
-        Math.round(subtotal * 0.005 * 100) / 100;
-
-    const total =
-        subtotal +
-        serviceCharge +
-        selectedDeliveryFee;
-
-    checkoutSubtotal.textContent =
-        formatMoney(subtotal);
-
-    checkoutServiceCharge.textContent =
-        formatMoney(serviceCharge);
-
-    checkoutDeliveryFee.textContent =
-        deliveryFeeLoaded
-            ? formatMoney(selectedDeliveryFee)
-            : "Not selected";
-
-    paymentTotal.textContent =
-        formatMoney(total);
-}
-
-
-/* =========================================
-   APPLY SELECTED DELIVERY METHOD
-========================================= */
-
-function applyDeliveryMethod() {
-
-    const method = deliveryMethod
-        ? deliveryMethod.value
-        : "transport";
-
-    const isCampus = method === "ucc_campus";
-    const isPickup = method === "mankessim_pickup";
-    const isTransport = method === "transport";
-
-    if (uccCampusLocationGroup) {
-        uccCampusLocationGroup.hidden = !isCampus;
-    }
-
-    if (transportDeliveryFields) {
-        transportDeliveryFields.hidden = !isTransport;
-    }
-
-    if (uccHallHostel) {
-        uccHallHostel.required = isCampus;
-    }
-
-    if (customerRegion) {
-        customerRegion.required = isTransport;
-    }
-
-    if (customerCity) {
-        customerCity.required = isTransport;
-    }
-
-    if (deliveryAddress) {
-        deliveryAddress.required = isTransport;
-    }
-
-    if (isCampus || isPickup) {
-
-        selectedDeliveryFee = 0;
-        deliveryFeeLoaded = true;
-
-        if (customerRegion) customerRegion.value = "";
-
-        if (customerCity) {
-            customerCity.innerHTML =
-                '<option value="">Select your town/city</option>';
-            customerCity.disabled = true;
-        }
-
-        if (deliveryAddress) deliveryAddress.value = "";
-        if (customerDigitalAddress) customerDigitalAddress.value = "";
-        if (deliveryLandmark) deliveryLandmark.value = "";
-        if (deliveryInstructions) deliveryInstructions.value = "";
-
-    } else {
-
-        selectedDeliveryFee = 0;
-        deliveryFeeLoaded = false;
-
-        if (customerCity) {
-            customerCity.innerHTML =
-                '<option value="">Select your region first</option>';
-            customerCity.disabled = true;
-        }
-    }
-
-    if (deliveryMethodMessage) {
-        if (isCampus) {
-            deliveryMethodMessage.textContent =
-                "Free delivery to UCC Campus. Enter your hall or hostel name. No region or town is required.";
-        } else if (isPickup) {
-            deliveryMethodMessage.textContent =
-                "Free customer pickup at Mankessim. No delivery address is required.";
-        } else {
-            deliveryMethodMessage.textContent =
-                "Choose your region and town to calculate the transport delivery fee.";
-        }
-    }
-
-    updateCheckoutTotal();
-}
-
-
-if (deliveryMethod) {
-    deliveryMethod.addEventListener("change", applyDeliveryMethod);
-}
-
-
-/* =========================================
-   LOAD TOWNS FOR SELECTED REGION
-========================================= */
-
-async function loadDeliveryTowns() {
-
-    if (deliveryMethod && deliveryMethod.value !== "transport") {
-        return;
-    }
-
-   console.log("Loading delivery towns...");
-
-   console.log("Selected region:", customerRegion.value);
-
-    const region = customerRegion.value.trim();
-
-    selectedDeliveryFee = 0;
-    deliveryFeeLoaded = false;
-
-    customerCity.innerHTML = `
-        <option value="">Loading available towns...</option>
-    `;
-
-    customerCity.disabled = true;
-
-    updateCheckoutTotal();
-
-    if (!region) {
-
-        customerCity.innerHTML = `
-            <option value="">Select your region first</option>
-        `;
-
-        return;
-    }
-
-    if (!supabaseClient) {
-
-        customerCity.innerHTML = `
-            <option value="">Delivery service unavailable</option>
-        `;
-
-        return;
-    }
-
-    try {
-
-        const { data, error } = await supabaseClient
-            .from("delivery_pricing")
-            .select("region, town, delivery_fee")
-            .eq("region", region)
-            .eq("is_active", true)
-            .order("town", { ascending: true });
-
-        if (error) {
-            throw error;
-        }
-
-       console.log("Delivery towns returned from Supabase:", data);
-
-        customerCity.replaceChildren();
-
-        const placeholder = document.createElement("option");
-
-        placeholder.value = "";
-        placeholder.textContent = "Select your town/city";
-
-        customerCity.appendChild(placeholder);
-
-        if (!data || data.length === 0) {
-
-            const option = document.createElement("option");
-
-            option.value = "";
-            option.textContent =
-                "No delivery towns available in this region";
-
-            customerCity.appendChild(option);
-
-            customerCity.disabled = true;
-
-            return;
-        }
-
-        data.forEach(function (town) {
-
-            const option = document.createElement("option");
-
-            option.value = town.town;
-
-            option.textContent =
-                town.town +
-                " — " +
-                formatMoney(Number(town.delivery_fee));
-
-            // Used only for displaying the estimated fee.
-            // The payment server verifies the actual fee again.
-            option.dataset.fee = String(town.delivery_fee);
-
-            customerCity.appendChild(option);
-
-        });
-
-        customerCity.disabled = false;
-
-    } catch (error) {
-
-        console.error(
-            "Delivery town loading failed:",
-            error
         );
-
-        customerCity.innerHTML = `
-            <option value="">Could not load towns. Try again.</option>
-        `;
-
-        customerCity.disabled = true;
-
-        alert(
-            "We could not load delivery towns. Please try again."
-        );
-
-    }
-}
-
-
-/* =========================================
-   REGION CHANGE
-========================================= */
-
-if (customerRegion) {
-    customerRegion.addEventListener(
-        "change",
-        function () {
-            if (!deliveryMethod || deliveryMethod.value === "transport") {
-                loadDeliveryTowns();
-            }
-        }
-    );
-}
-
-
-/* =========================================
-   TOWN CHANGE
-========================================= */
-
-if (customerCity) {
-    customerCity.addEventListener(
-        "change",
-        function () {
-
-        const selectedOption =
-            customerCity.selectedOptions[0];
-
-        if (!selectedOption || !customerCity.value) {
-
-            selectedDeliveryFee = 0;
-            deliveryFeeLoaded = false;
-
-           );
 
         if (!Array.isArray(customerNotifications)) {
             customerNotifications = [];
@@ -4288,7 +4116,7 @@ if (customerCity) {
         );
     }
 
-
+   
 /* =================================================
    15G-1. LOAD REAL DATABASE NOTIFICATIONS
 ================================================= */
@@ -4317,7 +4145,7 @@ console.table(
         created_at: item.created_at
     }))
 );
-
+   
     records.forEach(item => {
         if (!item || !item.id) return;
 
@@ -4395,12 +4223,12 @@ console.table(
     }
 
 
-
+    
     /* =================================================
        15I. MARK ALL NOTIFICATIONS AS READ
     ================================================= */
 
-
+    
 if (markAllNotificationsRead) {
     markAllNotificationsRead.addEventListener(
         "click",
@@ -4498,7 +4326,7 @@ if (markAllNotificationsRead) {
                     item.read = true;
                 });
 
-                           saveCustomerNotifications();
+                saveCustomerNotifications();
                 renderCustomerNotifications();
 
             } catch (error) {
@@ -4517,12 +4345,12 @@ if (markAllNotificationsRead) {
 }
 
 
-
+    
     /* =================================================
        15J. CLEAR ALL NOTIFICATIONS
     ================================================= */
 
-
+    
 if (clearNotifications) {
     clearNotifications.addEventListener(
         "click",
@@ -4645,7 +4473,7 @@ if (clearNotifications) {
 
 
 
-
+    
 
 /* =================================================
    15K. ORDER STATUS UPDATE CONTAINER
@@ -4999,7 +4827,7 @@ function createOrderNotificationContainer() {
        15N. RENDER ALL CUSTOMER ORDERS
     ================================================= */
 
-          function renderCustomerOrders(orders) {
+    function renderCustomerOrders(orders) {
         if (!myOrdersList) {
             console.warn("myOrdersList was not found.");
             return;
@@ -5099,7 +4927,7 @@ function createOrderNotificationContainer() {
     });
 
 
-
+    
 /* =================================================
    15P. CHECK AND RETRIEVE COMPLETE ORDERS
 ================================================= */
@@ -5134,7 +4962,7 @@ async function checkOrderNotifications() {
       data: { session },
       error: sessionError
    } = await supabaseClient.auth.getSession();
-
+       
        console.log("MY ORDERS SESSION CHECK:", {
           hasSession: Boolean(session),
           userId: session?.user?.id || null,
