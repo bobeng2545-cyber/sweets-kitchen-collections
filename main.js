@@ -3130,6 +3130,12 @@ client.auth.onAuthStateChange((event, session) => {
         const deliveryAddress =
             document.getElementById("deliveryAddress");
 
+       const customerRegion =
+    document.getElementById("customerRegion");
+
+const customerCity =
+    document.getElementById("customerCity");
+
 const customerDigitalAddress =
     document.getElementById("customerDigitalAddress");
 
