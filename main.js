@@ -306,230 +306,17 @@ function createStockDisplay(stock) {
 
 
     /* =================================================
-   4. CONNECT SUPABASE PRODUCT IDS
-   PRODUCT LOADING + 8 PRODUCTS PER ROW
-   EACH ROW SCROLLS INDEPENDENTLY ON MOBILE
-================================================= */
+       4. CONNECT SUPABASE PRODUCT IDS
+    ================================================= */
 
-/* =================================================
-   PRODUCT ROW LAYOUT STYLES
-================================================= */
-
-(function addSweetProductRowStyles() {
-    if (document.getElementById("sweetProductRowLayoutStyles")) {
-        return;
-    }
-
-    const style = document.createElement("style");
-    style.id = "sweetProductRowLayoutStyles";
-
-    style.textContent = `
-        /* Desktop: preserve the existing product grid layout */
-        #productsGrid > .product-row,
-        #newArrivalsGrid > .product-row {
-            display: contents;
-        }
-
-        /* Mobile: each group of up to 8 products gets its own scroller */
-        @media (max-width: 600px) {
-
-            #productsGrid,
-            #newArrivalsGrid {
-                display: flex !important;
-                flex-direction: column !important;
-                flex-wrap: nowrap !important;
-                align-items: stretch !important;
-                gap: 16px !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                overflow: visible !important;
-                box-sizing: border-box !important;
-            }
-
-            #productsGrid > .product-row,
-            #newArrivalsGrid > .product-row {
-                display: flex !important;
-                flex-direction: row !important;
-                flex-wrap: nowrap !important;
-                align-items: stretch !important;
-                gap: 10px !important;
-                width: 100% !important;
-                min-width: 0 !important;
-                max-width: 100% !important;
-                overflow-x: auto !important;
-                overflow-y: hidden !important;
-                padding: 5px 10px 12px !important;
-                box-sizing: border-box !important;
-                scroll-snap-type: x mandatory;
-                -webkit-overflow-scrolling: touch;
-                overscroll-behavior-x: contain;
-            }
-
-            #productsGrid > .product-row > .product-card,
-            #newArrivalsGrid > .product-row > .product-card {
-                flex: 0 0 135px !important;
-                width: 135px !important;
-                min-width: 135px !important;
-                max-width: 135px !important;
-                margin: 0 !important;
-                scroll-snap-align: start;
-                box-sizing: border-box !important;
-            }
-
-            #productsGrid > .product-row::-webkit-scrollbar,
-            #newArrivalsGrid > .product-row::-webkit-scrollbar {
-                height: 5px;
-            }
-
-            #productsGrid > .product-row::-webkit-scrollbar-thumb,
-            #newArrivalsGrid > .product-row::-webkit-scrollbar-thumb {
-                background: #999;
-                border-radius: 10px;
-            }
-
-            #productsGrid > .product-row::-webkit-scrollbar-track,
-            #newArrivalsGrid > .product-row::-webkit-scrollbar-track {
-                background: #eeeeee;
-                border-radius: 10px;
-            }
-
-            /* Keep filtered-out products out of sight */
-            .product-filter-hidden {
-                display: none !important;
-            }
-        }
-
-        .product-filter-hidden {
-            display: none !important;
-        }
-    `;
-
-    document.head.appendChild(style);
-})();
-
-
-/* =================================================
-   REMOVE OLD ROW WRAPPERS BEFORE REARRANGING
-================================================= */
-
-function unwrapSweetProductRows(grid) {
-
-    if (!grid) return;
-
-    grid.querySelectorAll(":scope > .product-row")
-        .forEach(function (row) {
-
-            while (row.firstChild) {
-                grid.insertBefore(row.firstChild, row);
-            }
-
-            row.remove();
-        });
-
-    const hiddenHolder =
-        grid.querySelector(":scope > .product-filter-hidden");
-
-    if (hiddenHolder) {
-
-        while (hiddenHolder.firstChild) {
-            grid.insertBefore(hiddenHolder.firstChild, hiddenHolder);
-        }
-
-        hiddenHolder.remove();
-    }
-}
-
-
-/* =================================================
-   ARRANGE PRODUCTS INTO ROWS OF 8
-================================================= */
-
-function arrangeSweetProductRows(grid, keepFilteredProductsHidden = false) {
-
-    if (!grid) return;
-
-    // Remove old wrappers first so products can be rearranged.
-    unwrapSweetProductRows(grid);
-
-    const allCards = Array.from(
-        grid.querySelectorAll(
-            ":scope > .product-card:not(.flash-sale-card)"
-        )
-    );
-
-    if (!allCards.length) return;
-
-    let visibleCards = allCards;
-    let hiddenCards = [];
-
-    if (keepFilteredProductsHidden) {
-
-        visibleCards = allCards.filter(function (card) {
-            return card.dataset.filterMatch !== "false";
-        });
-
-        hiddenCards = allCards.filter(function (card) {
-            return card.dataset.filterMatch === "false";
-        });
-    }
-
-    // Remove the cards from their current positions.
-    allCards.forEach(function (card) {
-        card.remove();
-    });
-
-    // Build a separate row for every group of 8 products.
-    const fragment = document.createDocumentFragment();
-
-    for (let i = 0; i < visibleCards.length; i += 8) {
-
-        const row = document.createElement("div");
-
-        row.className = "product-row";
-        row.dataset.productRow = String(
-            Math.floor(i / 8) + 1
-        );
-
-        const rowProducts = visibleCards.slice(i, i + 8);
-
-        rowProducts.forEach(function (card) {
-            card.style.display = "";
-            row.appendChild(card);
-        });
-
-        fragment.appendChild(row);
-    }
-
-    grid.appendChild(fragment);
-
-    // Keep filtered-out products available for the next search,
-    // but do not display them.
-    if (hiddenCards.length) {
-
-        const hiddenHolder = document.createElement("div");
-
-        hiddenHolder.className = "product-filter-hidden";
-        hiddenHolder.setAttribute("aria-hidden", "true");
-
-        hiddenCards.forEach(function (card) {
-            card.style.display = "";
-            hiddenHolder.appendChild(card);
-        });
-
-        grid.appendChild(hiddenHolder);
-    }
-}
-
-
-/* =================================================
-   LOAD PRODUCTS FROM SUPABASE
-================================================= */
+    
 
 async function connectStoreProductIds() {
 
-    // Confirm the master storefront visibility setting first.
+       // Check the master storefront visibility setting first.
     await loadStorefrontVisibility();
 
+    // Stop loading products when the admin has hidden them.
     if (storefrontProductsHidden) {
 
         console.log(
@@ -538,96 +325,114 @@ async function connectStoreProductIds() {
 
         return;
     }
-
+   
     if (!supabaseClient) {
-
-        console.error(
-            "Supabase connection is unavailable."
-        );
-
-        return;
-    }
-
-    const productsGrid =
-        document.getElementById("productsGrid");
-
-    if (!productsGrid) {
-
-        console.error(
-            "Products grid was not found."
-        );
-
+        console.error("Supabase connection is unavailable.");
         return;
     }
 
     const { data, error } = await supabaseClient
         .from("store_products")
-        .select(
-            "id, name, description, price, category, image_url, stock, is_new_arrival"
-        )
+        .select("id, name, description, price, category, image_url, stock, is_new_arrival")
         .eq("is_active", true);
 
     if (error) {
-
-        console.error(
-            "Could not load store products:",
-            error
-        );
-
+        console.error("Could not load store products:", error);
         throw error;
+    }
+
+    const productsGrid = document.getElementById("productsGrid");
+
+    if (!productsGrid) {
+        console.error("Products grid was not found.");
+        return;
     }
 
     const products = data || [];
 
     function normalize(value) {
-
         return String(value || "")
             .toLowerCase()
             .replace(/[^a-z0-9]/g, "");
     }
 
+   // ======================================
+// DISPLAY PRODUCT STOCK QUANTITY
+// ======================================
 
-    /* ======================================
-       PERMANENT PRODUCT DATABASE CONNECTIONS
-    ====================================== */
+function createStockDisplay(stock) {
+    const stockElement = document.createElement("p");
+    stockElement.className = "product-stock";
 
+    if (stock === null || stock === undefined || stock === "") {
+        stockElement.textContent = "Stock information unavailable";
+        stockElement.classList.add("stock-unavailable");
+        return stockElement;
+    }
+
+    const quantity = Number(stock);
+
+    if (!Number.isFinite(quantity) || quantity < 0) {
+        stockElement.textContent = "Stock information unavailable";
+        stockElement.classList.add("stock-unavailable");
+    } else if (quantity === 0) {
+        stockElement.textContent = "Out of stock";
+        stockElement.classList.add("out-of-stock");
+    } else if (quantity <= 5) {
+        stockElement.textContent = `Low stock: ${quantity} left`;
+        stockElement.classList.add("low-stock");
+    } else {
+        stockElement.textContent = `Available: ${quantity}`;
+        stockElement.classList.add("in-stock");
+    }
+
+    return stockElement;
+}
+
+
+function updateProductStock(card, stock) {
+    let stockElement = card.querySelector(".product-stock");
+
+    if (!stockElement) {
+        stockElement = document.createElement("p");
+        stockElement.className = "product-stock";
+
+        const description = card.querySelector(".product-description");
+        const productInfo = card.querySelector(".product-info");
+
+        if (description) {
+            description.insertAdjacentElement(
+                "afterend",
+                stockElement
+            );
+        } else if (productInfo) {
+            productInfo.appendChild(stockElement);
+        } else {
+            card.appendChild(stockElement);
+        }
+    }
+
+    const updatedStock = createStockDisplay(stock);
+
+    stockElement.textContent = updatedStock.textContent;
+    stockElement.className = updatedStock.className;
+}
+
+
+    // Permanent connections for the six existing HTML product cards.
     const PRODUCT_CARD_IDS = {
-
         airfryer: "7ae8e8dd-00f5-48e5-94ce-d0c495996168",
-
         blender: "bba08aa0-d7b7-4678-bf70-3b8e6631b8cf",
-
         kettle: "3c7c050f-7108-43d4-bf8c-a0445c973a8f",
-
         cutleryset: "6996946d-e1ef-4983-ae59-59d84b9e1385",
-
         bowls: "cdac8cef-49c4-460b-b2a0-c5260607b704",
-
         juicermixer: "7e34ba9a-ebdf-461d-87db-429e9c37be77"
     };
 
-
-    /* ======================================
-       REMOVE OLD ROW WRAPPERS
-    ====================================== */
-
-    unwrapSweetProductRows(productsGrid);
-
-
-    /* ======================================
-       REMOVE OLD DATABASE PRODUCT CARDS
-    ====================================== */
-
+    // Remove previously generated database cards before reloading.
     productsGrid
         .querySelectorAll(".database-product-card")
-        .forEach(function (card) {
-            card.remove();
-        });
-
-
-    /* ======================================
-       FIND THE SIX EXISTING HTML PRODUCT CARDS
-    ====================================== */
+        .forEach(card => card.remove());
 
     const existingCards = Array.from(
         productsGrid.querySelectorAll(
@@ -637,18 +442,13 @@ async function connectStoreProductIds() {
 
     const usedProductIds = new Set();
 
-
-    /* ======================================
-       UPDATE EXISTING PRODUCT CARDS
-    ====================================== */
-
-    existingCards.forEach(function (card) {
-
-        const button =
-            card.querySelector(".add-to-cart");
+    // Update the six existing product cards from Supabase.
+    existingCards.forEach(card => {
+        const button = card.querySelector(".add-to-cart");
 
         if (!button) return;
 
+        // Use the original HTML name to identify its permanent database ID.
         const originalName =
             button.dataset.name ||
             card.dataset.name ||
@@ -661,79 +461,66 @@ async function connectStoreProductIds() {
 
         if (!productId) return;
 
-        const product = products.find(function (item) {
-            return String(item.id) === String(productId);
-        });
+        const product = products.find(
+            item => String(item.id) === String(productId)
+        );
 
         if (!product) {
+    console.warn(
+        "Product is inactive, hidden or unavailable:",
+        originalName
+    );
 
-            console.warn(
-                "Product is inactive, hidden or unavailable:",
-                originalName
-            );
+    // Do not display products that are not active in Supabase.
+    card.remove();
 
-            card.remove();
-
-            return;
-        }
+    return;
+}
 
         usedProductIds.add(product.id);
 
+        // Keep the card connected to its permanent database ID.
         card.dataset.productId = product.id;
         card.dataset.name = product.name || "";
         card.dataset.category = product.category || "";
 
         button.dataset.productId = product.id;
         button.dataset.name = product.name || "";
-        button.dataset.price = String(
-            Number(product.price || 0)
-        );
-        button.dataset.originalPrice = String(
-            Number(product.price || 0)
-        );
+        button.dataset.price = String(Number(product.price || 0));
+        button.dataset.originalPrice = String(Number(product.price || 0));
 
         // Update product name.
         const heading = card.querySelector("h3");
 
         if (heading) {
-            heading.textContent =
-                product.name || "Unnamed product";
+            heading.textContent = product.name || "Unnamed product";
         }
 
         // Update product description.
-        const description =
-            card.querySelector(".product-description");
+        const description = card.querySelector(".product-description");
 
         if (description) {
-            description.textContent =
-                product.description || "";
+            description.textContent = product.description || "";
         }
 
-        // Update product stock.
-        updateProductStock(card, product.stock);
+       // Display actual Supabase stock quantity.
+       updateProductStock(card, product.stock);
 
-        // Update category.
-        const category =
-            card.querySelector(".products-category");
+        // Update product category.
+        const category = card.querySelector(".products-category");
 
         if (category) {
-            category.textContent =
-                product.category || "Other";
+            category.textContent = product.category || "Other";
         }
 
         // Update product image.
-        const imageContainer =
-            card.querySelector(".product-image");
+        const imageContainer = card.querySelector(".product-image");
 
         if (imageContainer && product.image_url) {
-
-            let image =
-                imageContainer.querySelector("img");
+            let image = imageContainer.querySelector("img");
 
             if (!image) {
-
                 image = document.createElement("img");
-
                 imageContainer.prepend(image);
             }
 
@@ -747,182 +534,116 @@ async function connectStoreProductIds() {
         );
 
         if (price) {
-
             price.textContent =
                 `GH₵${Number(product.price || 0).toLocaleString("en-GH")}`;
         }
 
-        // Update stock availability.
+        // Update stock status.
         const isOutOfStock =
             product.stock !== null &&
             product.stock !== undefined &&
             Number(product.stock) <= 0;
 
-        button.dataset.databaseOutOfStock =
-            String(isOutOfStock);
-
-        button.dataset.stock =
-            product.stock === null || product.stock === undefined
-                ? ""
-                : String(product.stock);
-
+        button.dataset.databaseOutOfStock = String(isOutOfStock);
         button.disabled = isOutOfStock;
-
         button.textContent = isOutOfStock
             ? "Out of Stock"
             : "Add to cart";
     });
 
-
-    /* ======================================
-       ADD ADDITIONAL PRODUCTS FROM ADMIN
-    ====================================== */
-
-    products.forEach(function (product) {
-
+    // Add any additional products created through the admin dashboard.
+    products.forEach(product => {
         if (usedProductIds.has(product.id)) return;
 
         const card = document.createElement("article");
-
-        card.className =
-            "product-card database-product-card";
+        card.className = "product-card database-product-card";
 
         card.dataset.productId = product.id;
         card.dataset.category = product.category || "";
         card.dataset.name = product.name || "";
 
-        // Product image container.
-        const imageContainer =
-            document.createElement("div");
-
+        const imageContainer = document.createElement("div");
         imageContainer.className = "product-image";
 
         if (product.image_url) {
-
             const image = document.createElement("img");
-
             image.src = product.image_url;
             image.alt = product.name || "Product image";
             image.loading = "lazy";
-
             imageContainer.appendChild(image);
         }
 
-        // Favourite button.
-        const favouriteButton =
-            document.createElement("button");
-
+        const favouriteButton = document.createElement("button");
         favouriteButton.type = "button";
         favouriteButton.className = "favourite-button";
-
         favouriteButton.setAttribute(
             "aria-label",
-            `Add ${product.name || "product"} to favourites`
+            `Add ${product.name} to favourites`
         );
-
         favouriteButton.textContent = "💖";
 
         imageContainer.appendChild(favouriteButton);
 
-
-        // Product information.
-        const productInfo =
-            document.createElement("div");
-
+        const productInfo = document.createElement("div");
         productInfo.className = "product-info";
 
-        const category =
-            document.createElement("p");
-
+        const category = document.createElement("p");
         category.className = "products-category";
         category.textContent = product.category || "Other";
 
-        const heading =
-            document.createElement("h3");
+        const heading = document.createElement("h3");
+        heading.textContent = product.name || "Unnamed product";
 
-        heading.textContent =
-            product.name || "Unnamed product";
-
-        const description =
-            document.createElement("p");
-
+        const description = document.createElement("p");
         description.className = "product-description";
-        description.textContent =
-            product.description || "";
+        description.textContent = product.description || "";
 
-        const stockDisplay =
-            createStockDisplay(product.stock);
+        const stockDisplay = createStockDisplay(product.stock);
+       
+       productInfo.append(
+          category,
+          heading,
+          description,
+          stockDisplay
+       );
 
-        productInfo.append(
-            category,
-            heading,
-            description,
-            stockDisplay
-        );
-
-
-        // Product price and cart button.
-        const productBottom =
-            document.createElement("div");
-
+        const productBottom = document.createElement("div");
         productBottom.className = "product-buttom";
 
-        const price =
-            document.createElement("strong");
-
+        const price = document.createElement("strong");
         price.textContent =
             `GH₵${Number(product.price || 0).toLocaleString("en-GH")}`;
 
-        const addButton =
-            document.createElement("button");
-
+        const addButton = document.createElement("button");
         addButton.type = "button";
         addButton.className = "add-to-cart";
         addButton.textContent = "Add to cart";
-
         addButton.dataset.name = product.name || "";
-        addButton.dataset.price =
-            String(Number(product.price || 0));
-
+        addButton.dataset.price = String(Number(product.price || 0));
         addButton.dataset.productId = product.id;
-
-        addButton.dataset.originalPrice =
-            String(Number(product.price || 0));
-
-        addButton.dataset.stock =
-            product.stock === null || product.stock === undefined
-                ? ""
-                : String(product.stock);
+        addButton.dataset.originalPrice = String(Number(product.price || 0));
 
         const isOutOfStock =
             product.stock !== null &&
             product.stock !== undefined &&
             Number(product.stock) <= 0;
 
-        addButton.dataset.databaseOutOfStock =
-            String(isOutOfStock);
+        addButton.dataset.databaseOutOfStock = String(isOutOfStock);
 
         if (isOutOfStock) {
-
             addButton.disabled = true;
             addButton.textContent = "Out of Stock";
         }
 
         productBottom.append(price, addButton);
-
-        card.append(
-            imageContainer,
-            productInfo,
-            productBottom
-        );
+        card.append(imageContainer, productInfo, productBottom);
 
         productsGrid.appendChild(card);
     });
 
-
-    /* =========================================
-       DISPLAY PRODUCTS MARKED AS NEW ARRIVALS
-    ========================================= */
+       // =========================================
+    // DISPLAY PRODUCTS MARKED AS NEW ARRIVALS
+    // =========================================
 
     const newArrivalsSection =
         document.getElementById("newArrivalsSection");
@@ -932,58 +653,45 @@ async function connectStoreProductIds() {
 
     if (newArrivalsSection && newArrivalsGrid) {
 
-        unwrapSweetProductRows(newArrivalsGrid);
-
+        // Remove previous New Arrival cards before reloading.
         newArrivalsGrid
             .querySelectorAll(".new-arrival-product-card")
-            .forEach(function (card) {
-                card.remove();
-            });
+            .forEach(card => card.remove());
 
-        const newArrivalProducts = products.filter(
-            function (product) {
-                return product.is_new_arrival === true;
-            }
+        // Get active products marked as New Arrivals.
+        const newArrivalProducts = products.filter(product =>
+            product.is_new_arrival === true
         );
 
-        newArrivalProducts.forEach(function (product) {
+        newArrivalProducts.forEach(product => {
 
+            // Find the product's existing card in the normal catalogue.
             const originalCard = Array.from(
                 productsGrid.querySelectorAll(".product-card")
-            ).find(function (card) {
-
-                return (
-                    String(card.dataset.productId) ===
-                    String(product.id)
-                );
-            });
+            ).find(card =>
+                String(card.dataset.productId) === String(product.id)
+            );
 
             if (!originalCard) {
-
                 console.warn(
                     "New Arrival card not found:",
                     product.name
                 );
-
                 return;
             }
 
-            // Clone the original card.
-            const arrivalCard =
-                originalCard.cloneNode(true);
+            // Clone the original card to preserve its product details.
+            const arrivalCard = originalCard.cloneNode(true);
 
-            arrivalCard.classList.add(
-                "new-arrival-product-card"
-            );
+            arrivalCard.classList.add("new-arrival-product-card");
 
-            // Add NEW badge.
+            // Add the NEW badge to the product image.
             const imageContainer =
                 arrivalCard.querySelector(".product-image");
 
             if (imageContainer) {
 
-                const badge =
-                    document.createElement("span");
+                const badge = document.createElement("span");
 
                 badge.className = "new-arrival-badge";
                 badge.textContent = "NEW";
@@ -993,41 +701,26 @@ async function connectStoreProductIds() {
 
             newArrivalsGrid.appendChild(arrivalCard);
 
-            // Keep New Arrivals separate from Sweet Products.
-            originalCard.remove();
+           // Remove the original from Sweet Products.
+           // It will now appear only in New Arrivals.
+           originalCard.remove();
         });
 
-        // Arrange New Arrivals in rows as well.
-        arrangeSweetProductRows(newArrivalsGrid);
-
+        // Hide the section when there are no New Arrivals.
         newArrivalsSection.hidden =
             newArrivalProducts.length === 0;
     }
-
-
-    /* ======================================
-       ARRANGE MAIN SWEET PRODUCTS
-    ====================================== */
-
-    arrangeSweetProductRows(productsGrid);
 
     console.log(
         "Store products loaded successfully:",
         products.length
     );
-
-    console.log(
-        "Products have been arranged into independent rows of up to 8."
-    );
 }
 
 
-/* =================================================
-   START PRODUCT LOADING
-   FLASH SALES WAIT FOR THIS PROMISE
-================================================= */
 
-const productIdsReady = connectStoreProductIds();
+    // IMPORTANT: Flash Sales will wait for this promise.
+    const productIdsReady = connectStoreProductIds();
 
 
     /* =================================================
@@ -1539,293 +1232,164 @@ addProductToCart(button, quantity);
 
 
     /* =================================================
-   11. PRODUCT SEARCH AND CATEGORY FILTERING
+       11. PRODUCT SEARCH AND CATEGORY FILTERING
+    ================================================= */
 
-   FEATURES:
-   1. Search by product name.
-   2. Search by product category.
-   3. Filter by selected category.
-   4. Keep New Arrivals and Flash Sales separate.
-   5. Regroup matching products into rows of up to 8.
-   6. Give every row its own horizontal scroll control.
-================================================= */
+    const searchInput =
+        document.getElementById("searchInput");
 
-const searchInput =
-    document.getElementById("searchInput");
+    const searchButton =
+        document.getElementById("searchButton");
 
-const searchButton =
-    document.getElementById("searchButton");
+    const categoryButtons =
+        document.querySelectorAll(".category-btn");
 
-const categoryButtons =
-    document.querySelectorAll(".category-btn");
+    const productSection =
+        document.getElementById("products");
 
-const productSection =
-    document.getElementById("products");
+    const productsGrid =
+        document.getElementById("productsGrid");
 
-const productsGrid =
-    document.getElementById("productsGrid");
+    let selectedCategory = "all";
 
-let selectedCategory = "all";
-
-let searchMessage =
-    document.getElementById("searchMessage");
+    let searchMessage =
+        document.getElementById("searchMessage");
 
 
-/* =================================================
-   CREATE SEARCH MESSAGE IF IT DOES NOT EXIST
-================================================= */
+    if (!searchMessage && productsGrid) {
 
-if (!searchMessage && productsGrid) {
+        searchMessage = document.createElement("p");
 
-    searchMessage = document.createElement("p");
+        searchMessage.id = "searchMessage";
+        searchMessage.textContent = "No matching products found.";
+        searchMessage.style.textAlign = "center";
+        searchMessage.style.padding = "20px";
+        searchMessage.style.display = "none";
 
-    searchMessage.id = "searchMessage";
-
-    searchMessage.textContent =
-        "No matching products found.";
-
-    searchMessage.style.textAlign = "center";
-    searchMessage.style.padding = "20px";
-    searchMessage.style.display = "none";
-
-    productsGrid.insertAdjacentElement(
-        "afterend",
-        searchMessage
-    );
-}
-
-
-/* =================================================
-   FILTER PRODUCTS
-================================================= */
-
-function filterProducts() {
-
-    if (!productsGrid) return;
-
-    const searchTerm = searchInput
-        ? searchInput.value.trim().toLowerCase()
-        : "";
-
-    // Only search products in the main Sweet Products catalogue.
-    // New Arrivals and Flash Sales remain separate.
-    const productCards = Array.from(
-        productsGrid.querySelectorAll(
-            ".product-card:not(.flash-sale-card)"
-        )
-    );
-
-    let matchingProducts = 0;
-
-    productCards.forEach(function (card) {
-
-        const productName = (
-            card.dataset.name ||
-            card.querySelector("h3")?.textContent ||
-            ""
-        ).trim().toLowerCase();
-
-        const productCategory = (
-            card.dataset.category || ""
-        ).trim().toLowerCase();
-
-        const displayedCategory = (
-            card.querySelector(".products-category")?.textContent ||
-            ""
-        ).trim().toLowerCase();
-
-        // Search product name and category.
-        const matchesSearch =
-            searchTerm === "" ||
-            productName.includes(searchTerm) ||
-            productCategory.includes(searchTerm) ||
-            displayedCategory.includes(searchTerm);
-
-        // Check selected category.
-        const matchesCategory =
-            selectedCategory === "all" ||
-            productCategory === selectedCategory ||
-            displayedCategory === selectedCategory;
-
-        const matches =
-            matchesSearch && matchesCategory;
-
-        // Save the result so the row arranger can regroup products.
-        card.dataset.filterMatch =
-            matches ? "true" : "false";
-
-        if (matches) {
-
-            card.style.display = "";
-
-            matchingProducts++;
-
-        } else {
-
-            card.style.display = "none";
-        }
-    });
-
-
-    /* =========================================
-       REBUILD ROWS AFTER FILTERING
-
-       Matching products are regrouped into
-       rows of up to 8 products.
-
-       Products that do not match remain stored
-       in a hidden holder so another search can
-       bring them back.
-    ========================================= */
-
-    arrangeSweetProductRows(
-        productsGrid,
-        true
-    );
-
-
-    /* =========================================
-       SHOW OR HIDE NO-RESULTS MESSAGE
-    ========================================= */
-
-    if (searchMessage) {
-
-        searchMessage.style.display =
-            matchingProducts === 0
-                ? "block"
-                : "none";
+        productsGrid.insertAdjacentElement(
+            "afterend",
+            searchMessage
+        );
     }
-}
 
 
-/* =================================================
-   SEARCH AND SCROLL TO PRODUCTS
-================================================= */
+    function filterProducts() {
 
-function searchAndScroll() {
+        const searchTerm = searchInput
+            ? searchInput.value.trim().toLowerCase()
+            : "";
 
-    filterProducts();
+        // Filter only products inside the main Sweet Products catalogue.
+       // New Arrivals and Flash Sales remain separate.
+       const productCards = productsGrid
+          ? productsGrid.querySelectorAll(
+             ".product-card:not(.flash-sale-card)"
+          )
+          : [];
 
-    if (productSection) {
+        let matchingProducts = 0;
 
-        productSection.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
+        productCards.forEach(function (card) {
+
+            const productName = (
+                card.dataset.name ||
+                card.querySelector("h3")?.textContent ||
+                ""
+            ).toLowerCase();
+
+            const productCategory = (
+                card.dataset.category || ""
+            ).toLowerCase();
+
+            const displayedCategory = (
+                card.querySelector(".products-category")?.textContent ||
+                ""
+            ).trim().toLowerCase();
+
+            const matchesSearch =
+                productName.includes(searchTerm) ||
+                productCategory.includes(searchTerm) ||
+                displayedCategory.includes(searchTerm);
+
+            const matchesCategory =
+                selectedCategory === "all" ||
+                productCategory === selectedCategory ||
+                displayedCategory === selectedCategory;
+
+            if (matchesSearch && matchesCategory) {
+
+                card.style.display = "";
+                matchingProducts++;
+
+            } else {
+
+                card.style.display = "none";
+            }
         });
+
+        if (searchMessage) {
+            searchMessage.style.display =
+                matchingProducts === 0 ? "block" : "none";
+        }
     }
-}
 
 
-/* =================================================
-   SEARCH BUTTON
-================================================= */
+    function searchAndScroll() {
 
-if (searchButton) {
+        filterProducts();
 
-    searchButton.addEventListener(
-        "click",
-        searchAndScroll
-    );
-}
+        if (productSection) {
+            productSection.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        }
+    }
 
 
-/* =================================================
-   SEARCH INPUT
-================================================= */
+    if (searchButton) {
+        searchButton.addEventListener("click", searchAndScroll);
+    }
 
-if (searchInput) {
+    if (searchInput) {
 
-    // Filter as the customer types.
-    searchInput.addEventListener(
-        "input",
-        filterProducts
-    );
+        searchInput.addEventListener("input", filterProducts);
 
-    // Search when Enter is pressed.
-    searchInput.addEventListener(
-        "keydown",
-        function (event) {
+        searchInput.addEventListener("keydown", function (event) {
 
             if (event.key === "Enter") {
-
                 event.preventDefault();
-
                 searchAndScroll();
             }
-        }
-    );
-}
+        });
+    }
 
 
-/* =================================================
-   CATEGORY BUTTONS
-================================================= */
+    categoryButtons.forEach(function (button) {
 
-categoryButtons.forEach(function (button) {
-
-    button.addEventListener(
-        "click",
-        function () {
+        button.addEventListener("click", function () {
 
             selectedCategory = (
                 button.dataset.category || "all"
             ).trim().toLowerCase();
 
+            categoryButtons.forEach(function (categoryButton) {
+                categoryButton.classList.remove("active");
+            });
 
-            // Remove active status from all categories.
-            categoryButtons.forEach(
-                function (categoryButton) {
-
-                    categoryButton.classList.remove(
-                        "active"
-                    );
-                }
-            );
-
-
-            // Activate the selected category.
             button.classList.add("active");
 
-
-            // Apply category filtering.
             filterProducts();
 
-
-            // Move the customer to the products section.
             if (productSection) {
-
                 productSection.scrollIntoView({
                     behavior: "smooth",
                     block: "start"
                 });
             }
-        }
-    );
-});
+        });
+    });
 
-
-/* =================================================
-   INITIAL PRODUCT FILTER
-================================================= */
-
-// Display all products when the page first loads.
-if (productsGrid) {
-
-    selectedCategory = "all";
-
-    const activeCategoryButton =
-        document.querySelector(
-            '.category-btn[data-category="all"]'
-        );
-
-    if (activeCategoryButton) {
-        activeCategoryButton.classList.add("active");
-    }
-
-    // The product loader may still be completing.
-    // This also ensures the initial HTML cards are arranged.
-    filterProducts();
-}
 
     /* =================================================
        12. FLASH SALE PRODUCTS
