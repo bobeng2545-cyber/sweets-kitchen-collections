@@ -6033,3 +6033,57 @@ body.dark-mode .product-details-quantity-controls span {
         height: 4px;
     }
 }
+
+
+/* =========================================
+   INDEPENDENT HORIZONTAL PRODUCT ROWS
+========================================= */
+
+@media (max-width: 600px) {
+
+    #productsGrid,
+    #newArrivalsGrid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 14px !important;
+        width: 100% !important;
+        overflow: visible !important;
+    }
+
+    #productsGrid > .product-row,
+    #newArrivalsGrid > .product-row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 10px !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        padding: 5px 5px 12px !important;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+    }
+
+    #productsGrid > .product-row > .product-card,
+    #newArrivalsGrid > .product-row > .product-card {
+        flex: 0 0 135px !important;
+        width: 135px !important;
+        min-width: 135px !important;
+        max-width: 135px !important;
+        scroll-snap-align: start;
+    }
+
+    #productsGrid .product-image,
+    #newArrivalsGrid .product-image {
+        width: 100% !important;
+        height: 110px !important;
+    }
+
+    #productsGrid .product-image img,
+    #newArrivalsGrid .product-image img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+}
