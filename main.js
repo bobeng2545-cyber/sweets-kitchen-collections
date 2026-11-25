@@ -641,8 +641,10 @@ function updateProductStock(card, stock) {
         productsGrid.appendChild(card);
     });
 
-       // =========================================
+       
+    // =========================================
     // DISPLAY PRODUCTS MARKED AS NEW ARRIVALS
+    // AND ARRANGE PRODUCTS INTO ROWS OF 8
     // =========================================
 
     const newArrivalsSection =
@@ -651,21 +653,23 @@ function updateProductStock(card, stock) {
     const newArrivalsGrid =
         document.getElementById("newArrivalsGrid");
 
+
+    // -----------------------------------------
+    // DISPLAY NEW ARRIVALS SEPARATELY
+    // -----------------------------------------
+
     if (newArrivalsSection && newArrivalsGrid) {
 
-        // Remove previous New Arrival cards before reloading.
         newArrivalsGrid
             .querySelectorAll(".new-arrival-product-card")
             .forEach(card => card.remove());
 
-        // Get active products marked as New Arrivals.
         const newArrivalProducts = products.filter(product =>
             product.is_new_arrival === true
         );
 
         newArrivalProducts.forEach(product => {
 
-            // Find the product's existing card in the normal catalogue.
             const originalCard = Array.from(
                 productsGrid.querySelectorAll(".product-card")
             ).find(card =>
@@ -680,12 +684,10 @@ function updateProductStock(card, stock) {
                 return;
             }
 
-            // Clone the original card to preserve its product details.
             const arrivalCard = originalCard.cloneNode(true);
 
             arrivalCard.classList.add("new-arrival-product-card");
 
-            // Add the NEW badge to the product image.
             const imageContainer =
                 arrivalCard.querySelector(".product-image");
 
@@ -701,26 +703,69 @@ function updateProductStock(card, stock) {
 
             newArrivalsGrid.appendChild(arrivalCard);
 
-           // Remove the original from Sweet Products.
-           // It will now appear only in New Arrivals.
-           originalCard.remove();
+            // Remove from the normal catalogue.
+            originalCard.remove();
         });
 
-        // Hide the section when there are no New Arrivals.
         newArrivalsSection.hidden =
             newArrivalProducts.length === 0;
     }
+
+
+    // -----------------------------------------
+    // ARRANGE PRODUCTS INTO INDEPENDENT ROWS
+    // MAXIMUM 8 PRODUCTS PER ROW
+    // -----------------------------------------
+
+    function arrangeProductsIntoRows(grid) {
+
+        if (!grid) return;
+
+        // Collect product cards only.
+        // Flash Sale cards are not included.
+        const cards = Array.from(
+            grid.querySelectorAll(
+                ":scope > .product-card:not(.flash-sale-card)"
+            )
+        );
+
+        // Remove previously generated product rows.
+        grid.querySelectorAll(
+            ":scope > .product-row"
+        ).forEach(row => row.remove());
+
+        if (cards.length === 0) return;
+
+        // Create a new independent row after every 8 cards.
+        for (let i = 0; i < cards.length; i += 8) {
+
+            const row = document.createElement("div");
+
+            row.className = "product-row";
+
+            const rowCards = cards.slice(i, i + 8);
+
+            rowCards.forEach(card => {
+                row.appendChild(card);
+            });
+
+            grid.appendChild(row);
+        }
+    }
+
+
+    // Arrange normal Sweet Products.
+    arrangeProductsIntoRows(productsGrid);
+
+    // Arrange New Arrivals independently.
+    arrangeProductsIntoRows(newArrivalsGrid);
+
 
     console.log(
         "Store products loaded successfully:",
         products.length
     );
-}
 
-
-
-    // IMPORTANT: Flash Sales will wait for this promise.
-    const productIdsReady = connectStoreProductIds();
 
 
     /* =================================================
