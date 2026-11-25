@@ -642,9 +642,11 @@ function updateProductStock(card, stock) {
     });
 
        
+    
     // =========================================
-    // DISPLAY PRODUCTS MARKED AS NEW ARRIVALS
-    // AND ARRANGE PRODUCTS INTO ROWS OF 8
+    // DISPLAY NEW ARRIVALS
+    // AND ARRANGE FEATURED PRODUCTS + NEW ARRIVALS
+    // INTO ROWS OF 8 PRODUCTS
     // =========================================
 
     const newArrivalsSection =
@@ -655,43 +657,96 @@ function updateProductStock(card, stock) {
 
 
     // -----------------------------------------
+    // REMOVE OLD ROW WRAPPERS SAFELY
+    // -----------------------------------------
+
+    function unwrapProductRows(grid) {
+
+        if (!grid) return;
+
+        const existingRows = Array.from(
+            grid.querySelectorAll(":scope > .product-row")
+        );
+
+        existingRows.forEach(row => {
+
+            Array.from(row.children).forEach(card => {
+                grid.insertBefore(card, row);
+            });
+
+            row.remove();
+        });
+    }
+
+
+    // Make sure both grids are ready for arrangement.
+    unwrapProductRows(productsGrid);
+    unwrapProductRows(newArrivalsGrid);
+
+
+    // -----------------------------------------
     // DISPLAY NEW ARRIVALS SEPARATELY
     // -----------------------------------------
 
     if (newArrivalsSection && newArrivalsGrid) {
 
+        // Remove previously generated New Arrival cards.
         newArrivalsGrid
-            .querySelectorAll(".new-arrival-product-card")
+            .querySelectorAll(
+                ":scope > .new-arrival-product-card"
+            )
             .forEach(card => card.remove());
 
+
+        // Get products marked as New Arrivals.
         const newArrivalProducts = products.filter(product =>
             product.is_new_arrival === true
         );
 
+
         newArrivalProducts.forEach(product => {
 
+            // Find the matching product in Featured Products.
             const originalCard = Array.from(
-                productsGrid.querySelectorAll(".product-card")
+                productsGrid.querySelectorAll(
+                    ":scope > .product-card"
+                )
             ).find(card =>
                 String(card.dataset.productId) === String(product.id)
             );
 
+
             if (!originalCard) {
+
                 console.warn(
                     "New Arrival card not found:",
                     product.name
                 );
+
                 return;
             }
 
+
+            // Clone the original product card.
             const arrivalCard = originalCard.cloneNode(true);
 
-            arrivalCard.classList.add("new-arrival-product-card");
+            arrivalCard.classList.add(
+                "new-arrival-product-card"
+            );
 
+
+            // Add NEW badge to the product image.
             const imageContainer =
                 arrivalCard.querySelector(".product-image");
 
+
             if (imageContainer) {
+
+                // Prevent duplicate badges.
+                imageContainer
+                    .querySelectorAll(".new-arrival-badge")
+                    .forEach(badge => badge.remove());
+
 
                 const badge = document.createElement("span");
 
@@ -701,63 +756,81 @@ function updateProductStock(card, stock) {
                 imageContainer.prepend(badge);
             }
 
+
+            // Add the product to New Arrivals.
             newArrivalsGrid.appendChild(arrivalCard);
 
-            // Remove from the normal catalogue.
+
+            // Remove it from Featured Products.
             originalCard.remove();
         });
 
+
+        // Hide New Arrivals if no products are available.
         newArrivalsSection.hidden =
-            newArrivalProducts.length === 0;
+            newArrivalsGrid.querySelectorAll(
+                ":scope > .product-card"
+            ).length === 0;
     }
 
 
     // -----------------------------------------
-    // ARRANGE PRODUCTS INTO INDEPENDENT ROWS
-    // MAXIMUM 8 PRODUCTS PER ROW
+    // ARRANGE PRODUCTS INTO ROWS OF 8
     // -----------------------------------------
 
     function arrangeProductsIntoRows(grid) {
 
         if (!grid) return;
 
-        // Collect product cards only.
-        // Flash Sale cards are not included.
+
+        // First unwrap any previously created rows.
+        unwrapProductRows(grid);
+
+
+        // Collect all direct product cards.
         const cards = Array.from(
             grid.querySelectorAll(
                 ":scope > .product-card:not(.flash-sale-card)"
             )
         );
 
-        // Remove previously generated product rows.
-        grid.querySelectorAll(
-            ":scope > .product-row"
-        ).forEach(row => row.remove());
 
         if (cards.length === 0) return;
 
-        // Create a new independent row after every 8 cards.
+
+        // Create a separate row for every 8 products.
         for (let i = 0; i < cards.length; i += 8) {
 
             const row = document.createElement("div");
 
             row.className = "product-row";
 
+
+            // Select a maximum of 8 cards for this row.
             const rowCards = cards.slice(i, i + 8);
+
 
             rowCards.forEach(card => {
                 row.appendChild(card);
             });
+
 
             grid.appendChild(row);
         }
     }
 
 
-    // Arrange normal Sweet Products.
+    // -----------------------------------------
+    // ARRANGE FEATURED PRODUCTS
+    // -----------------------------------------
+
     arrangeProductsIntoRows(productsGrid);
 
-    // Arrange New Arrivals independently.
+
+    // -----------------------------------------
+    // ARRANGE NEW ARRIVALS
+    // -----------------------------------------
+
     arrangeProductsIntoRows(newArrivalsGrid);
 
 
@@ -765,6 +838,8 @@ function updateProductStock(card, stock) {
         "Store products loaded successfully:",
         products.length
     );
+}
+
 
 
 
