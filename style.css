@@ -6033,3 +6033,97 @@ body.dark-mode .product-details-quantity-controls span {
         height: 4px;
     }
 }
+
+
+/* =====================================================
+   SWEET PRODUCTS — INDEPENDENT ROW SCROLLING
+   Maximum of 8 products per row
+===================================================== */
+
+/* Desktop: preserve the existing grid appearance */
+#productsGrid > .product-row {
+    display: contents;
+}
+
+/* Mobile layout */
+@media (max-width: 600px) {
+
+    /* Main products container */
+    #productsGrid {
+        display: flex !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        gap: 18px !important;
+        width: 100% !important;
+        overflow: visible !important;
+        padding: 0 !important;
+    }
+
+    /* Each row has its own horizontal scrollbar */
+    #productsGrid > .product-row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+
+        width: 100% !important;
+        min-width: 0 !important;
+
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+
+        padding: 5px 12px 14px !important;
+        box-sizing: border-box !important;
+
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+
+        scrollbar-width: thin;
+        scrollbar-color: #999 #eeeeee;
+    }
+
+    /* Individual product cards */
+    #productsGrid > .product-row > .product-card {
+        flex: 0 0 145px !important;
+        width: 145px !important;
+        min-width: 145px !important;
+        max-width: 145px !important;
+
+        scroll-snap-align: start;
+        box-sizing: border-box;
+    }
+
+    /* Each row's scrollbar */
+    #productsGrid > .product-row::-webkit-scrollbar {
+        height: 5px;
+    }
+
+    #productsGrid > .product-row::-webkit-scrollbar-thumb {
+        background: #999;
+        border-radius: 20px;
+    }
+
+    #productsGrid > .product-row::-webkit-scrollbar-track {
+        background: #eeeeee;
+        border-radius: 20px;
+    }
+
+    /* Hide empty rows */
+    #productsGrid > .product-row[hidden] {
+        display: none !important;
+    }
+}
+
+/* =====================================================
+   DARK MODE SUPPORT
+===================================================== */
+
+body.dark-mode #productsGrid > .product-row::-webkit-scrollbar-track {
+    background: #292929;
+}
+
+body.dark-mode #productsGrid > .product-row {
+    scrollbar-color: #777 #292929;
+}
