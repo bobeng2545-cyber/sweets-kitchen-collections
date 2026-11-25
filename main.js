@@ -641,12 +641,8 @@ function updateProductStock(card, stock) {
         productsGrid.appendChild(card);
     });
 
-       
-    
-    // =========================================
-    // DISPLAY NEW ARRIVALS
-    // AND ARRANGE FEATURED PRODUCTS + NEW ARRIVALS
-    // INTO ROWS OF 8 PRODUCTS
+       // =========================================
+    // DISPLAY PRODUCTS MARKED AS NEW ARRIVALS
     // =========================================
 
     const newArrivalsSection =
@@ -655,98 +651,45 @@ function updateProductStock(card, stock) {
     const newArrivalsGrid =
         document.getElementById("newArrivalsGrid");
 
-
-    // -----------------------------------------
-    // REMOVE OLD ROW WRAPPERS SAFELY
-    // -----------------------------------------
-
-    function unwrapProductRows(grid) {
-
-        if (!grid) return;
-
-        const existingRows = Array.from(
-            grid.querySelectorAll(":scope > .product-row")
-        );
-
-        existingRows.forEach(row => {
-
-            Array.from(row.children).forEach(card => {
-                grid.insertBefore(card, row);
-            });
-
-            row.remove();
-        });
-    }
-
-
-    // Make sure both grids are ready for arrangement.
-    unwrapProductRows(productsGrid);
-    unwrapProductRows(newArrivalsGrid);
-
-
-    // -----------------------------------------
-    // DISPLAY NEW ARRIVALS SEPARATELY
-    // -----------------------------------------
-
     if (newArrivalsSection && newArrivalsGrid) {
 
-        // Remove previously generated New Arrival cards.
+        // Remove previous New Arrival cards before reloading.
         newArrivalsGrid
-            .querySelectorAll(
-                ":scope > .new-arrival-product-card"
-            )
+            .querySelectorAll(".new-arrival-product-card")
             .forEach(card => card.remove());
 
-
-        // Get products marked as New Arrivals.
+        // Get active products marked as New Arrivals.
         const newArrivalProducts = products.filter(product =>
             product.is_new_arrival === true
         );
 
-
         newArrivalProducts.forEach(product => {
 
-            // Find the matching product in Featured Products.
+            // Find the product's existing card in the normal catalogue.
             const originalCard = Array.from(
-                productsGrid.querySelectorAll(
-                    ":scope > .product-card"
-                )
+                productsGrid.querySelectorAll(".product-card")
             ).find(card =>
                 String(card.dataset.productId) === String(product.id)
             );
 
-
             if (!originalCard) {
-
                 console.warn(
                     "New Arrival card not found:",
                     product.name
                 );
-
                 return;
             }
 
-
-            // Clone the original product card.
+            // Clone the original card to preserve its product details.
             const arrivalCard = originalCard.cloneNode(true);
 
-            arrivalCard.classList.add(
-                "new-arrival-product-card"
-            );
+            arrivalCard.classList.add("new-arrival-product-card");
 
-
-            // Add NEW badge to the product image.
+            // Add the NEW badge to the product image.
             const imageContainer =
                 arrivalCard.querySelector(".product-image");
 
-
             if (imageContainer) {
-
-                // Prevent duplicate badges.
-                imageContainer
-                    .querySelectorAll(".new-arrival-badge")
-                    .forEach(badge => badge.remove());
-
 
                 const badge = document.createElement("span");
 
@@ -756,83 +699,17 @@ function updateProductStock(card, stock) {
                 imageContainer.prepend(badge);
             }
 
-
-            // Add the product to New Arrivals.
             newArrivalsGrid.appendChild(arrivalCard);
 
-
-            // Remove it from Featured Products.
-            originalCard.remove();
+           // Remove the original from Sweet Products.
+           // It will now appear only in New Arrivals.
+           originalCard.remove();
         });
 
-
-        // Hide New Arrivals if no products are available.
+        // Hide the section when there are no New Arrivals.
         newArrivalsSection.hidden =
-            newArrivalsGrid.querySelectorAll(
-                ":scope > .product-card"
-            ).length === 0;
+            newArrivalProducts.length === 0;
     }
-
-
-    // -----------------------------------------
-    // ARRANGE PRODUCTS INTO ROWS OF 8
-    // -----------------------------------------
-
-    function arrangeProductsIntoRows(grid) {
-
-        if (!grid) return;
-
-
-        // First unwrap any previously created rows.
-        unwrapProductRows(grid);
-
-
-        // Collect all direct product cards.
-        const cards = Array.from(
-            grid.querySelectorAll(
-                ":scope > .product-card:not(.flash-sale-card)"
-            )
-        );
-
-
-        if (cards.length === 0) return;
-
-
-        // Create a separate row for every 8 products.
-        for (let i = 0; i < cards.length; i += 8) {
-
-            const row = document.createElement("div");
-
-            row.className = "product-row";
-
-
-            // Select a maximum of 8 cards for this row.
-            const rowCards = cards.slice(i, i + 8);
-
-
-            rowCards.forEach(card => {
-                row.appendChild(card);
-            });
-
-
-            grid.appendChild(row);
-        }
-    }
-
-
-    // -----------------------------------------
-    // ARRANGE FEATURED PRODUCTS
-    // -----------------------------------------
-
-    arrangeProductsIntoRows(productsGrid);
-
-
-    // -----------------------------------------
-    // ARRANGE NEW ARRIVALS
-    // -----------------------------------------
-
-    arrangeProductsIntoRows(newArrivalsGrid);
-
 
     console.log(
         "Store products loaded successfully:",
@@ -841,6 +718,9 @@ function updateProductStock(card, stock) {
 }
 
 
+
+    // IMPORTANT: Flash Sales will wait for this promise.
+    const productIdsReady = connectStoreProductIds();
 
 
     /* =================================================
