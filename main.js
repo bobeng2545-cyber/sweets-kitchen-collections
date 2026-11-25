@@ -706,83 +706,16 @@ function updateProductStock(card, stock) {
            originalCard.remove();
         });
 
-        
         // Hide the section when there are no New Arrivals.
         newArrivalsSection.hidden =
             newArrivalProducts.length === 0;
     }
-
-    /* =====================================================
-       ARRANGE FEATURED PRODUCTS AND NEW ARRIVALS
-       INTO SEPARATE ROWS OF EIGHT
-
-       Each row has its own horizontal scrolling area.
-       Flash Sales are not affected.
-    ===================================================== */
-
-    function arrangeProductsIntoRows(grid) {
-
-        if (!grid) return;
-
-        // Remove previous row wrappers without deleting products.
-        Array.from(grid.children)
-            .filter(child =>
-                child.classList.contains("product-row")
-            )
-            .forEach(row => {
-
-                while (row.firstElementChild) {
-                    grid.insertBefore(
-                        row.firstElementChild,
-                        row
-                    );
-                }
-
-                row.remove();
-            });
-
-        // Get all product cards directly inside this grid.
-        const cards = Array.from(grid.children).filter(card =>
-            card.classList.contains("product-card")
-        );
-
-        // Put a maximum of eight products in each row.
-        for (let index = 0; index < cards.length; index += 8) {
-
-            const row = document.createElement("div");
-
-            row.className = "product-row";
-
-            row.setAttribute("role", "group");
-
-            row.setAttribute(
-                "aria-label",
-                `Products ${index + 1} to ${Math.min(index + 8, cards.length)}`
-            );
-
-            cards.slice(index, index + 8).forEach(card => {
-                row.appendChild(card);
-            });
-
-            grid.appendChild(row);
-        }
-    }
-
-    // Arrange Featured Products.
-    arrangeProductsIntoRows(productsGrid);
-
-    // Arrange New Arrivals independently.
-    const newArrivalsGrid =
-        document.getElementById("newArrivalsGrid");
-
-    arrangeProductsIntoRows(newArrivalsGrid);
 
     console.log(
         "Store products loaded successfully:",
         products.length
     );
 }
-
 
 
 
