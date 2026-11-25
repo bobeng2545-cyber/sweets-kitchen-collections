@@ -6033,3 +6033,208 @@ body.dark-mode .product-details-quantity-controls span {
         height: 4px;
     }
 }
+
+
+/* =====================================================
+   FEATURED PRODUCTS + NEW ARRIVALS
+   MAXIMUM 8 PRODUCTS PER ROW
+   MOBILE ROWS SCROLL INDEPENDENTLY
+===================================================== */
+
+/* Keep the original desktop grid layout intact.
+   The row wrappers do not change desktop presentation. */
+
+.products-grid > .product-row,
+.new-arrivals-grid > .product-row {
+    display: contents;
+}
+
+
+/* =====================================================
+   MOBILE PRODUCT ROW LAYOUT
+===================================================== */
+
+@media (max-width: 600px) {
+
+    /* MAIN PRODUCT CONTAINERS */
+
+    .products-grid,
+    .new-arrivals-grid {
+
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+
+        gap: 12px !important;
+
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+
+        padding: 10px 12px 14px !important;
+
+        overflow: visible !important;
+    }
+
+
+    /* EACH ROW HAS ITS OWN SCROLL AREA */
+
+    .products-grid > .product-row,
+    .new-arrivals-grid > .product-row {
+
+        display: flex !important;
+        flex: 0 0 auto !important;
+
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+
+        align-items: stretch !important;
+
+        gap: 9px !important;
+
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+
+        padding: 5px 2px 9px !important;
+
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+
+        overscroll-behavior-x: contain;
+
+        scroll-behavior: smooth;
+        scroll-snap-type: x proximity;
+
+        -webkit-overflow-scrolling: touch;
+
+        scrollbar-width: thin;
+    }
+
+
+    /* INDIVIDUAL ROW SCROLLBARS */
+
+    .products-grid > .product-row::-webkit-scrollbar,
+    .new-arrivals-grid > .product-row::-webkit-scrollbar {
+
+        height: 4px;
+    }
+
+    .products-grid > .product-row::-webkit-scrollbar-thumb,
+    .new-arrivals-grid > .product-row::-webkit-scrollbar-thumb {
+
+        background: #d69e2e;
+        border-radius: 10px;
+    }
+
+
+    /* PRODUCT CARDS */
+
+    .products-grid > .product-row > .product-card,
+    .new-arrivals-grid > .product-row > .product-card {
+
+        display: flex !important;
+        flex-direction: column !important;
+
+        flex: 0 0 135px !important;
+
+        width: 135px !important;
+        min-width: 135px !important;
+        max-width: 135px !important;
+
+        min-height: 100% !important;
+
+        border-radius: 9px !important;
+
+        overflow: hidden !important;
+
+        scroll-snap-align: start;
+    }
+
+
+    /* PRODUCT IMAGES */
+
+    .products-grid > .product-row .product-image,
+    .new-arrivals-grid > .product-row .product-image {
+
+        flex: 0 0 110px !important;
+
+        width: 100% !important;
+
+        height: 110px !important;
+        min-height: 110px !important;
+
+        overflow: hidden !important;
+    }
+
+
+    .products-grid > .product-row .product-image img,
+    .new-arrivals-grid > .product-row .product-image img {
+
+        display: block !important;
+
+        width: 100% !important;
+        height: 100% !important;
+
+        object-fit: cover !important;
+    }
+
+
+    /* PRODUCT INFORMATION */
+
+    .products-grid > .product-row .product-info,
+    .new-arrivals-grid > .product-row .product-info {
+
+        min-width: 0 !important;
+
+        padding: 7px !important;
+    }
+
+
+    .products-grid > .product-row .product-info h3,
+    .new-arrivals-grid > .product-row .product-info h3 {
+
+        font-size: 11px !important;
+        line-height: 1.3 !important;
+
+        margin-bottom: 5px !important;
+    }
+
+
+    .products-grid > .product-row .product-description,
+    .new-arrivals-grid > .product-row .product-description {
+
+        font-size: 10px !important;
+    }
+
+
+    /* PRICE AND BUTTON AREA */
+
+    .products-grid > .product-row .product-buttom,
+    .new-arrivals-grid > .product-row .product-buttom {
+
+        padding: 7px !important;
+        gap: 6px !important;
+    }
+
+
+    .products-grid > .product-row .product-buttom strong,
+    .new-arrivals-grid > .product-row .product-buttom strong {
+
+        font-size: 11px !important;
+    }
+
+
+    /* ADD TO CART BUTTON */
+
+    .products-grid > .product-row .add-to-cart,
+    .new-arrivals-grid > .product-row .add-to-cart {
+
+        min-height: 30px !important;
+
+        padding: 6px 3px !important;
+
+        font-size: 9px !important;
+    }
+
+}
