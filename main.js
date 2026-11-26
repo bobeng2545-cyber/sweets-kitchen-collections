@@ -3212,18 +3212,30 @@ async function loadStoreFlashSales() {
     // ======================================
 
     if (logoutButton) {
-        logoutButton.addEventListener("click", async () => {
-            const { error } = await client.auth.signOut();
+    logoutButton.addEventListener("click", async () => {
+        logoutButton.disabled = true;
 
-            if (error) {
-                console.error("Logout error:", error);
-                return;
-            }
+        const { error } = await client.auth.signOut();
 
-            showSignedOut();
-            window.location.href = "./login.html";
-        });
-    }
+        logoutButton.disabled = false;
+
+        if (error) {
+            console.error("Logout error:", error);
+            showProfileMessage("Could not log out. Please try again.", true);
+            return;
+        }
+
+        showSignedOut();
+
+        if (profileMenu) {
+            profileMenu.hidden = true;
+        }
+
+        if (profileButton) {
+            profileButton.setAttribute("aria-expanded", "false");
+        }
+    });
+}
 
     // ======================================
     // CHECK EXISTING LOGIN SESSION
