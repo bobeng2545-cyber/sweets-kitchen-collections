@@ -4667,22 +4667,43 @@ body.orders-popup-open {
     }
 }
 
+
 /* =========================================
-   NEW ARRIVALS - MATCH FEATURED PRODUCT BUTTON
+   NEW ARRIVALS - MATCH FEATURED PRODUCTS
 ========================================= */
 
-/* Use the same Add to Cart styling as the
-   original Featured Products product cards. */
-
 .new-arrivals-grid .add-to-cart {
-    /* Inherit the original product button design */
     width: 100%;
+    min-height: 42px;
+    padding: 11px 14px;
+    margin-top: 0;
+    border: 0;
+    border-radius: 6px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
-/* Remove the additional emoji added only to New Arrivals */
+/* Hover */
+.new-arrivals-grid .add-to-cart:hover:not(:disabled) {
+    background: #0f45b9;
+}
+
+/* Disabled / Out of stock */
+.new-arrivals-grid .add-to-cart:disabled {
+    background: #9ca3af;
+    color: #fff;
+    cursor: not-allowed;
+}
+
+/* Remove the extra shopping cart emoji */
 .new-arrivals-grid .add-to-cart::before {
     content: none;
 }
+
 
 /* ======================================
    FLASH SALE COUNTDOWN TIMER
