@@ -1339,16 +1339,8 @@ let searchMessage =
 
 // Keep the original catalogue order.
 // This prevents filtering from permanently changing product order.
-let originalProductOrder = [];
 
-if (productsGrid) {
-
-    originalProductOrder = Array.from(
-        productsGrid.querySelectorAll(
-            ".product-card:not(.flash-sale-card)"
-        )
-    );
-}
+   let originalProductOrder = [];
 
 if (!searchMessage && productsGrid) {
 
@@ -1378,6 +1370,22 @@ function filterProducts() {
         : "";
 
     if (!productsGrid) return;
+   
+   // Refresh the catalogue references after Supabase loads products.
+   // This also detects when the original product cards are replaced.
+   const currentCatalogueCards = Array.from(
+      productsGrid.querySelectorAll(
+         ".product-card:not(.flash-sale-card)"
+      )
+   );
+   
+   const catalogueNeedsRefresh =
+      currentCatalogueCards.length !== originalProductOrder.length ||
+      originalProductOrder.some(card => !productsGrid.contains(card));
+   
+   if (catalogueNeedsRefresh) {
+      originalProductOrder = currentCatalogueCards;
+   }
 
     let matchingProducts = 0;
 
