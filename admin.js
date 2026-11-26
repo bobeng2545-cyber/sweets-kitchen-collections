@@ -3521,13 +3521,13 @@ async function deleteFlashSale(id) {
 
    
 
-/* =========================================================
-   11. CUSTOMER MANAGEMENT
+
+/* ==============================================
+   CUSTOMER MANAGEMENT
    Secure Supabase Edge Function integration
-========================================================= */
+============================================== */
 
 let storeCustomers = [];
-let customersLoading = false;
 
 const customerElements = {
     refresh: document.getElementById("refreshCustomersButton"),
@@ -3551,21 +3551,18 @@ const customerElements = {
     profileJoined: document.getElementById("profileCustomerJoined"),
     profileLastSignIn: document.getElementById("profileCustomerLastSignIn"),
     profileAddress: document.getElementById("profileCustomerAddress"),
-
     history: document.getElementById("customerOrderHistoryBody"),
     closeProfile: document.getElementById("closeCustomerProfile")
 };
 
 
-/* CUSTOMER DATE */
+/* CUSTOMER DISPLAY HELPERS */
 
 function customerDate(value) {
     if (!value) return "—";
     return formatDate(value);
 }
 
-
-/* CUSTOMER TEXT */
 
 function customerText(value) {
     if (value === null || value === undefined || value === "") {
@@ -3579,6 +3576,7 @@ function customerText(value) {
 /* CUSTOMER STATISTICS */
 
 function renderCustomerStatistics() {
+
     if (customerElements.total) {
         customerElements.total.textContent = storeCustomers.length;
     }
@@ -3608,9 +3606,10 @@ function renderCustomerStatistics() {
 }
 
 
-/* RENDER CUSTOMER TABLE */
+/* CUSTOMER DIRECTORY */
 
 function renderCustomers() {
+
     const body = customerElements.table;
 
     if (!body) return;
@@ -3619,44 +3618,46 @@ function renderCustomers() {
         customerElements.search?.value || ""
     ).trim().toLowerCase();
 
-    const selectedType = customerElements.filter?.value || "";
+    const type = customerElements.filter?.value || "";
 
-    const filteredCustomers = storeCustomers.filter(customer => {
+    const filtered = storeCustomers.filter(customer => {
+
         const searchable = [
             customer.name,
             customer.email,
             customer.phone
         ].join(" ").toLowerCase();
 
-        const matchesSearch = searchable.includes(query);
-
-        const matchesType =
-            !selectedType || customer.type === selectedType;
-
-        return matchesSearch && matchesType;
+        return (
+            searchable.includes(query) &&
+            (!type || customer.type === type)
+        );
     });
 
     body.replaceChildren();
 
-    if (!filteredCustomers.length) {
+    if (!filtered.length) {
         showEmptyRow(
             body,
             storeCustomers.length
                 ? "No matching customers found."
-                : "No customer records were found.",
+                : "No customer records are available.",
             8
         );
 
         return;
     }
 
-    filteredCustomers.forEach(customer => {
+    filtered.forEach(customer => {
+
         const row = document.createElement("tr");
 
         const nameCell = document.createElement("td");
         const name = document.createElement("strong");
 
-        name.textContent = customer.name || "Unnamed customer";
+        name.textContent =
+            customer.name || "Unnamed customer";
+
         nameCell.appendChild(name);
 
         row.append(
@@ -3681,13 +3682,13 @@ function renderCustomers() {
 
         const actionCell = document.createElement("td");
 
-        const viewButton = createActionButton(
+        const button = createActionButton(
             "View Profile",
             "view-customer",
             customer.id
         );
 
-        actionCell.appendChild(viewButton);
+        actionCell.appendChild(button);
         row.appendChild(actionCell);
 
         body.appendChild(row);
@@ -3698,29 +3699,35 @@ function renderCustomers() {
 /* LOAD CUSTOMER RECORDS */
 
 async function loadCustomers() {
-    if (customersLoading) return;
 
-    customersLoading = true;
-
-    if (customerElements.refresh) {
-        setButtonLoading(
-            customerElements.refresh,
-            true,
-            "Loading customers..."
+    if (!customerElements.table) {
+        console.error(
+            "Customer Management: customersTableBody was not found."
         );
+
+        return;
     }
 
-    showMessage(
+    setButtonLoading(
+        customerElements.refresh,
+        true,
+        "Loading customers..."
+    );
+
+    showTableMessage(
         customerElements.message,
-        "Checking administrator session...",
-        "info"
+        "Verifying administrator session..."
+    );
+
+    showEmptyRow(
+        customerElements.table,
+        "Loading customer records...",
+        8
     );
 
     try {
-        /*
-         * Verify that a valid authenticated session exists.
-         */
 
+        // Always verify the current Supabase session.
         const {
             data: sessionData,
             error: sessionError
@@ -3733,59 +3740,26 @@ async function loadCustomers() {
         const authenticatedUser = sessionData.session?.user;
 
         if (!authenticatedUser) {
+
             currentAdmin = null;
 
-            storeCustomers = [];
-            renderCustomerStatistics();
-
-            if (customerElements.table) {
-                showEmptyRow(
-                    customerElements.table,
-                    "Please sign in to load customer records.",
-                    8
-                );
-            }
-
-            showMessage(
-                customerElements.message,
-                "Your administrator session has expired. Please sign in again.",
-                "error"
+            throw new Error(
+                "Your administrator session has expired. Please sign in again."
             );
-
-            showLogin();
-            return;
         }
 
-        /*
-         * Verify administrator permissions again.
-         */
-
+        // Verify that the authenticated user is a store administrator.
         await verifyAdministrator(authenticatedUser);
 
         currentAdmin = authenticatedUser;
 
-        showMessage(
+        showTableMessage(
             customerElements.message,
-            "Retrieving customer records securely...",
-            "info"
+            "Retrieving customer records securely..."
         );
 
-        if (customerElements.table) {
-            showEmptyRow(
-                customerElements.table,
-                "Loading customer records...",
-                8
-            );
-        }
-
-        /*
-         * Call the protected Edge Function.
-         */
-
-        const {
-            data,
-            error
-        } = await supabase.functions.invoke(
+        // Supabase automatically attaches the current session token.
+        const { data, error } = await supabase.functions.invoke(
             "admin-customer-records",
             {
                 body: {}
@@ -3793,7 +3767,16 @@ async function loadCustomers() {
         );
 
         if (error) {
-            throw error;
+
+            console.error(
+                "Customer Edge Function invocation error:",
+                error
+            );
+
+            throw new Error(
+                error.message ||
+                "The customer records service could not be reached."
+            );
         }
 
         if (
@@ -3812,111 +3795,115 @@ async function loadCustomers() {
         renderCustomerStatistics();
         renderCustomers();
 
-        if (customerElements.profile) {
-            customerElements.profile.hidden = true;
-        }
-
-        showMessage(
+        showTableMessage(
             customerElements.message,
-            `${storeCustomers.length} customer record(s) loaded successfully.`,
-            "success"
+            `${storeCustomers.length} customer record(s) loaded successfully.`
         );
 
     } catch (error) {
-        console.error("CUSTOMER RECORDS ERROR:", error);
+
+        console.error(
+            "Customer Management loading error:",
+            error
+        );
 
         storeCustomers = [];
 
         renderCustomerStatistics();
 
-        if (customerElements.table) {
-            showEmptyRow(
-                customerElements.table,
-                "Customer records could not be loaded.",
-                8
-            );
-        }
-
-        showMessage(
-            customerElements.message,
-            error.message || "Unable to load customer records.",
-            "error"
+        showEmptyRow(
+            customerElements.table,
+            "Customer records could not be loaded.",
+            8
         );
 
-    } finally {
-        customersLoading = false;
+        showTableMessage(
+            customerElements.message,
+            error.message || "Unable to load customer records."
+        );
 
-        if (customerElements.refresh) {
-            setButtonLoading(
-                customerElements.refresh,
-                false
-            );
-        }
+        // Do not silently sign out on a temporary network or function error.
+        // A genuinely missing session is handled on the next sign-in check.
+
+    } finally {
+
+        setButtonLoading(
+            customerElements.refresh,
+            false
+        );
     }
 }
 
 
-/* OPEN CUSTOMER PROFILE */
+/* CUSTOMER PROFILE */
 
 function openCustomerProfile(customerId) {
+
     const customer = storeCustomers.find(
         item => String(item.id) === String(customerId)
     );
 
     if (!customer || !customerElements.profile) return;
 
+    const setText = (element, value) => {
+        if (element) {
+            element.textContent = value;
+        }
+    };
+
     customerElements.profile.hidden = false;
 
-    if (customerElements.profileName) {
-        customerElements.profileName.textContent =
-            customer.name || "Unnamed customer";
-    }
+    setText(
+        customerElements.profileName,
+        customer.name || "Unnamed customer"
+    );
 
-    if (customerElements.profileType) {
-        customerElements.profileType.textContent =
-            customer.type === "registered"
-                ? "Registered customer"
-                : "Guest customer";
-    }
+    setText(
+        customerElements.profileType,
+        customer.type === "registered"
+            ? "Registered customer"
+            : "Guest customer"
+    );
 
-    if (customerElements.profileOrders) {
-        customerElements.profileOrders.textContent =
-            String(customer.order_count || 0);
-    }
+    setText(
+        customerElements.profileOrders,
+        String(customer.order_count || 0)
+    );
 
-    if (customerElements.profileSpent) {
-        customerElements.profileSpent.textContent =
-            formatMoney(customer.total_spent || 0);
-    }
+    setText(
+        customerElements.profileSpent,
+        formatMoney(customer.total_spent || 0)
+    );
 
-    if (customerElements.profileEmail) {
-        customerElements.profileEmail.textContent =
-            customerText(customer.email);
-    }
+    setText(
+        customerElements.profileEmail,
+        customerText(customer.email)
+    );
 
-    if (customerElements.profilePhone) {
-        customerElements.profilePhone.textContent =
-            customerText(customer.phone);
-    }
+    setText(
+        customerElements.profilePhone,
+        customerText(customer.phone)
+    );
 
-    if (customerElements.profileJoined) {
-        customerElements.profileJoined.textContent =
-            customerDate(customer.created_at);
-    }
+    setText(
+        customerElements.profileJoined,
+        customerDate(customer.created_at)
+    );
 
-    if (customerElements.profileLastSignIn) {
-        customerElements.profileLastSignIn.textContent =
-            customerDate(customer.last_sign_in_at);
-    }
+    setText(
+        customerElements.profileLastSignIn,
+        customerDate(customer.last_sign_in_at)
+    );
 
-    if (customerElements.profileAddress) {
-        customerElements.profileAddress.textContent =
-            customerText(customer.last_delivery_address);
-    }
+    setText(
+        customerElements.profileAddress,
+        customerText(customer.last_delivery_address)
+    );
 
     const history = customerElements.history;
 
     if (history) {
+
         history.replaceChildren();
 
         const customerOrders = Array.isArray(customer.order_history)
@@ -3924,23 +3911,35 @@ function openCustomerProfile(customerId) {
             : [];
 
         if (!customerOrders.length) {
+
             showEmptyRow(
                 history,
                 "This customer has not placed an order.",
                 5
             );
+
         } else {
+
             customerOrders.forEach(order => {
+
                 const row = document.createElement("tr");
 
                 row.append(
                     createCell(
-                        order.order_reference || order.id || "—"
+                        order.order_reference || order.id
                     ),
-                    createCell(customerDate(order.created_at)),
-                    createCell(formatMoney(order.total_amount)),
-                    createCell(order.payment_status || "—"),
-                    createCell(order.order_status || "—")
+                    createCell(
+                        customerDate(order.created_at)
+                    ),
+                    createCell(
+                        formatMoney(order.total_amount)
+                    ),
+                    createCell(
+                        order.payment_status || "—"
+                    ),
+                    createCell(
+                        order.order_status || "—"
+                    )
                 );
 
                 history.appendChild(row);
@@ -3958,7 +3957,9 @@ function openCustomerProfile(customerId) {
 /* CUSTOMER TABLE ACTIONS */
 
 if (customerElements.table) {
+
     customerElements.table.addEventListener("click", event => {
+
         const button = event.target.closest(
             'button[data-action="view-customer"]'
         );
@@ -3973,6 +3974,7 @@ if (customerElements.table) {
 /* CUSTOMER SEARCH */
 
 if (customerElements.search) {
+
     customerElements.search.addEventListener(
         "input",
         renderCustomers
@@ -3983,6 +3985,7 @@ if (customerElements.search) {
 /* CUSTOMER TYPE FILTER */
 
 if (customerElements.filter) {
+
     customerElements.filter.addEventListener(
         "change",
         renderCustomers
@@ -3990,9 +3993,10 @@ if (customerElements.filter) {
 }
 
 
-/* REFRESH CUSTOMER RECORDS */
+/* REFRESH CUSTOMER DIRECTORY */
 
 if (customerElements.refresh) {
+
     customerElements.refresh.addEventListener(
         "click",
         loadCustomers
@@ -4003,12 +4007,18 @@ if (customerElements.refresh) {
 /* CLOSE CUSTOMER PROFILE */
 
 if (customerElements.closeProfile) {
-    customerElements.closeProfile.addEventListener("click", () => {
-        if (customerElements.profile) {
-            customerElements.profile.hidden = true;
+
+    customerElements.closeProfile.addEventListener(
+        "click",
+        () => {
+
+            if (customerElements.profile) {
+                customerElements.profile.hidden = true;
+            }
         }
-    });
+    );
 }
+
 
 
 
