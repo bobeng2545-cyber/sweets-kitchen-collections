@@ -6105,3 +6105,29 @@ body.dark-mode .product-details-quantity-controls span {
     min-width: 0 !important;
     max-width: 100% !important;
 }
+
+
+/* =========================================
+   FINAL NEW ARRIVALS BUTTON COLOUR FIX
+   Match Featured Products exactly
+========================================= */
+
+.new-arrivals-grid .product-card .add-to-cart {
+    background-color: #2563eb !important;
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+}
+
+.new-arrivals-grid .product-card .add-to-cart:hover:not(:disabled) {
+    background-color: #0f45b9 !important;
+    background: #0f45b9 !important;
+}
+
+.new-arrivals-grid .product-card .add-to-cart:disabled {
+    background-color: #9ca3af !important;
+    background: #9ca3af !important;
+    color: #ffffff !important;
+}
