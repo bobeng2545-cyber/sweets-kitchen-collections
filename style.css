@@ -6033,3 +6033,66 @@ body.dark-mode .product-details-quantity-controls span {
         height: 4px;
     }
 }
+
+
+/* =====================================================
+   INDEPENDENT HORIZONTAL PRODUCT ROWS
+   Featured Products and New Arrivals
+===================================================== */
+
+#productsGrid > .product-row,
+#newArrivalsGrid > .product-row {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+
+    gap: 20px !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    padding: 5px 10px 16px !important;
+
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+}
+
+/* PRODUCT CARD WIDTH */
+
+#productsGrid > .product-row > .product-card,
+#newArrivalsGrid > .product-row > .product-card {
+    flex: 0 0 260px !important;
+
+    width: 260px !important;
+    min-width: 260px !important;
+    max-width: 260px !important;
+
+    scroll-snap-align: start;
+}
+
+/* MOBILE RESPONSIVENESS */
+
+@media (max-width: 600px) {
+
+    #productsGrid > .product-row,
+    #newArrivalsGrid > .product-row {
+        gap: 12px !important;
+    }
+
+    #productsGrid > .product-row > .product-card,
+    #newArrivalsGrid > .product-row > .product-card {
+        flex: 0 0 135px !important;
+
+        width: 135px !important;
+        min-width: 135px !important;
+        max-width: 135px !important;
+    }
+}
