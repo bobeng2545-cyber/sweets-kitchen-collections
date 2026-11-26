@@ -141,7 +141,25 @@
         <span class="profile-name" id="profileName">Sign in</span>
     </button>
 
-    <div class="profile-menu" id="profileMenu" hidden>
+    
+<div class="profile-menu" id="profileMenu" hidden>
+
+    <!-- GUEST VIEW: NOT SIGNED IN -->
+    <div id="guestProfileContent">
+
+        <div class="guest-profile-message">
+            <p class="profile-menu-title">Welcome!</p>
+            <p>Please sign in to access your account and orders.</p>
+        </div>
+
+        <a href="./login.html" id="profileSignInLink">
+            Sign In / Create Account
+        </a>
+
+    </div>
+
+    <!-- CUSTOMER VIEW: SIGNED IN -->
+    <div id="authenticatedProfileContent" hidden>
 
         <div class="profile-picture-section">
 
@@ -171,7 +189,9 @@
                 Remove Picture
             </button>
 
-            <p id="profilePictureMessage" role="status" aria-live="polite"></p>
+            <p id="profilePictureMessage"
+               role="status"
+               aria-live="polite"></p>
 
         </div>
 
@@ -183,11 +203,12 @@
             <span aria-hidden="true">📦</span> My Orders
         </a>
 
-        <button type="button" id="logoutButton" hidden>
+        <button type="button" id="logoutButton">
             Log out
         </button>
 
     </div>
+
 </div>
 
 
