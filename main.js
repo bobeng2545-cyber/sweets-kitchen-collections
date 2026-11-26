@@ -2632,7 +2632,7 @@ async function loadStoreFlashSales() {
         renderStoreFlashSales(activeSales);
 
         // DISPLAY ONLY AFTER VALID SALES ARE CONFIRMED
-        flashSaleSection.hidden = false;
+        flashSaleSection.hidden = true;
 
         console.log(
             `${activeSales.length} active Flash Sale(s) loaded.`
