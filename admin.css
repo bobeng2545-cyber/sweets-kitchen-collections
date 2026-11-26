@@ -1322,3 +1322,59 @@ td {
         width: calc(100vw - 20px);
     }
 }
+
+
+/* ==========================================
+   CUSTOMER MANAGEMENT
+========================================== */
+
+#customerProfilePanel {
+    margin-top: 24px;
+    scroll-margin-top: 25px;
+}
+
+#customerProfilePanel h3 {
+    margin: 25px 0 14px;
+    color: var(--text-primary, #172033);
+}
+
+#customerProfilePanel .platform-information {
+    margin: 20px 0;
+}
+
+#customerProfilePanel .platform-information > div {
+    min-width: 0;
+}
+
+#customerProfilePanel .platform-information strong {
+    overflow-wrap: anywhere;
+}
+
+#customersTableBody td,
+#customerOrderHistoryBody td {
+    vertical-align: middle;
+}
+
+#customerSearchInput {
+    min-width: 220px;
+}
+
+#customerProfilePanel[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 600px) {
+    #customerProfilePanel {
+        padding: 16px;
+    }
+
+    #customerProfilePanel .card-heading {
+        align-items: flex-start;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    #customerProfilePanel .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
