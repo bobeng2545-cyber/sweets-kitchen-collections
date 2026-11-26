@@ -6160,14 +6160,28 @@ body.dark-mode .product-details-quantity-controls span {
 }
 
 
+
 /* =========================================
    GUEST PROFILE MENU
-   MODERN BLUE CARD STYLE
+   RESPONSIVE MODERN BLUE CARD
 ========================================= */
 
+/* Keep the dropdown within the screen */
+#profileMenu {
+    box-sizing: border-box;
+    left: auto;
+    right: 0;
+    width: min(320px, calc(100vw - 24px));
+    min-width: 0;
+    max-width: calc(100vw - 24px);
+}
+
+/* Guest card */
 #guestProfileContent {
-    position: relative;
-    min-width: 270px;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     padding: 0 0 10px;
     overflow: hidden;
     border: 1px solid #dce9f8;
@@ -6182,17 +6196,15 @@ body.dark-mode .product-details-quantity-controls span {
     box-shadow: 0 12px 30px rgba(20, 55, 100, 0.16);
 }
 
-/* Welcome message area */
-
+/* Welcome area */
 #guestProfileContent .guest-profile-message {
-    position: relative;
-    z-index: 1;
-    padding: 22px 18px 15px;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 22px 16px 15px;
     text-align: center;
 }
 
-/* Circular profile icon */
-
+/* Profile icon */
 #guestProfileContent .guest-profile-message::before {
     content: "person";
     display: flex;
@@ -6203,25 +6215,22 @@ body.dark-mode .product-details-quantity-controls span {
     margin: 0 auto 12px;
     border: 2px solid #1769aa;
     border-radius: 50%;
-    background: #ffffff;
+    background: #fff;
     color: #1769aa;
     font-family: "Material Symbols Outlined";
     font-size: 43px;
-    font-weight: normal;
 }
 
 /* Welcome heading */
-
 #guestProfileContent .guest-profile-message .profile-menu-title {
     margin: 0 0 8px;
-    color: #104b83;
+    color: #104b83 !important;
     font-size: 21px;
     font-weight: 750;
     text-align: center;
 }
 
 /* Supporting text */
-
 #guestProfileContent .guest-profile-message p:last-child {
     margin: 0;
     color: #42566d;
@@ -6230,52 +6239,45 @@ body.dark-mode .product-details-quantity-controls span {
     text-align: center;
 }
 
-/* Sign In / Create Account button */
-
+/* Sign in button */
 #guestProfileContent #profileSignInLink {
-    position: relative;
-    z-index: 1;
+    box-sizing: border-box;
     display: block;
+    width: calc(100% - 32px);
     margin: 5px 16px 12px;
-    padding: 13px 12px;
+    padding: 13px 8px;
     border: 1px solid #1769aa;
     border-radius: 9px;
     background: linear-gradient(135deg, #1976c9, #104b91);
     box-shadow: 0 4px 10px rgba(23, 105, 170, 0.18);
-    color: #ffffff;
+    color: #fff;
     font-size: 13px;
     font-weight: 700;
     text-align: center;
     text-decoration: none;
-    transition:
-        background 0.2s ease,
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    transition: 0.2s ease;
 }
-
-/* Button hover */
 
 #guestProfileContent #profileSignInLink:hover {
     background: linear-gradient(135deg, #105b9e, #0b3970);
-    box-shadow: 0 6px 14px rgba(23, 105, 170, 0.25);
     transform: translateY(-2px);
 }
-
-/* Keyboard accessibility */
 
 #guestProfileContent #profileSignInLink:focus-visible {
     outline: 3px solid #8fc7ff;
     outline-offset: 3px;
 }
 
-/* Mobile display */
-
+/* Small screens */
 @media (max-width: 480px) {
-    #guestProfileContent {
-        min-width: 250px;
+    #profileMenu {
+        width: min(300px, calc(100vw - 20px));
+        max-width: calc(100vw - 20px);
     }
 
     #guestProfileContent .guest-profile-message {
-        padding: 19px 15px 13px;
+        padding: 19px 14px 13px;
     }
 }
