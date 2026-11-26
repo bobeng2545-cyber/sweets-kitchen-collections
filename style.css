@@ -6158,3 +6158,124 @@ body.dark-mode .product-details-quantity-controls span {
     background: #9ca3af !important;
     color: #ffffff !important;
 }
+
+
+/* =========================================
+   GUEST PROFILE MENU
+   MODERN BLUE CARD STYLE
+========================================= */
+
+#guestProfileContent {
+    position: relative;
+    min-width: 270px;
+    padding: 0 0 10px;
+    overflow: hidden;
+    border: 1px solid #dce9f8;
+    border-radius: 14px;
+    background:
+        radial-gradient(
+            ellipse at top right,
+            rgba(147, 197, 253, 0.35),
+            transparent 55%
+        ),
+        linear-gradient(145deg, #eaf4ff, #ffffff 65%);
+    box-shadow: 0 12px 30px rgba(20, 55, 100, 0.16);
+}
+
+/* Welcome message area */
+
+#guestProfileContent .guest-profile-message {
+    position: relative;
+    z-index: 1;
+    padding: 22px 18px 15px;
+    text-align: center;
+}
+
+/* Circular profile icon */
+
+#guestProfileContent .guest-profile-message::before {
+    content: "person";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 62px;
+    height: 62px;
+    margin: 0 auto 12px;
+    border: 2px solid #1769aa;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #1769aa;
+    font-family: "Material Symbols Outlined";
+    font-size: 43px;
+    font-weight: normal;
+}
+
+/* Welcome heading */
+
+#guestProfileContent .guest-profile-message .profile-menu-title {
+    margin: 0 0 8px;
+    color: #104b83;
+    font-size: 21px;
+    font-weight: 750;
+    text-align: center;
+}
+
+/* Supporting text */
+
+#guestProfileContent .guest-profile-message p:last-child {
+    margin: 0;
+    color: #42566d;
+    font-size: 13px;
+    line-height: 1.65;
+    text-align: center;
+}
+
+/* Sign In / Create Account button */
+
+#guestProfileContent #profileSignInLink {
+    position: relative;
+    z-index: 1;
+    display: block;
+    margin: 5px 16px 12px;
+    padding: 13px 12px;
+    border: 1px solid #1769aa;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #1976c9, #104b91);
+    box-shadow: 0 4px 10px rgba(23, 105, 170, 0.18);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+/* Button hover */
+
+#guestProfileContent #profileSignInLink:hover {
+    background: linear-gradient(135deg, #105b9e, #0b3970);
+    box-shadow: 0 6px 14px rgba(23, 105, 170, 0.25);
+    transform: translateY(-2px);
+}
+
+/* Keyboard accessibility */
+
+#guestProfileContent #profileSignInLink:focus-visible {
+    outline: 3px solid #8fc7ff;
+    outline-offset: 3px;
+}
+
+/* Mobile display */
+
+@media (max-width: 480px) {
+    #guestProfileContent {
+        min-width: 250px;
+    }
+
+    #guestProfileContent .guest-profile-message {
+        padding: 19px 15px 13px;
+    }
+}
