@@ -100,9 +100,12 @@ function applyStorefrontVisibility() {
         newArrivalsSection.hidden = shouldHideProducts;
     }
 
-    if (flashSaleSection) {
-        flashSaleSection.hidden = shouldHideProducts;
-    }
+    // Maintenance mode must always hide Flash Sales.
+   // When products are visible, let the Flash Sale loader
+   // decide whether a valid sale exists.
+   if (flashSaleSection && shouldHideProducts) {
+      flashSaleSection.hidden = true;
+   }
 }
 
 
@@ -2631,8 +2634,11 @@ async function loadStoreFlashSales() {
         // RENDER VALID FLASH SALES
         renderStoreFlashSales(activeSales);
 
-        // DISPLAY ONLY AFTER VALID SALES ARE CONFIRMED
-        flashSaleSection.hidden = true;
+        // DISPLAY ONLY WHEN VALID SALES EXIST
+       // AND THE STOREFRONT PRODUCTS ARE VISIBLE.
+       flashSaleSection.hidden =
+          !storefrontVisibilityInitialized ||
+          storefrontProductsHidden;
 
         console.log(
             `${activeSales.length} active Flash Sale(s) loaded.`
