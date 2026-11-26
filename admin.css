@@ -1530,3 +1530,218 @@ td {
     }
 }
 
+
+/* =====================================================
+   PROFESSIONAL CUSTOMER PROFILE
+   SWEET'S KITCHEN & COLLECTIONS
+===================================================== */
+
+#customerProfilePanel {
+    margin-top: 25px;
+    padding: 26px;
+    background: #ffffff;
+    border: 1px solid #e8edf3;
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+}
+
+#customerProfilePanel .card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #edf0f4;
+}
+
+#customerProfileName {
+    margin: 0;
+    color: #172b4d;
+    font-size: 22px;
+    font-weight: 750;
+}
+
+#customerProfileType {
+    margin: 7px 0 0;
+    color: #718096;
+    font-size: 13px;
+}
+
+/* PROFILE STATISTICS */
+
+#customerProfilePanel .stats-grid {
+    margin: 22px 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+#customerProfilePanel .stat-card {
+    padding: 20px;
+    background: #f8fafc;
+    border: 1px solid #e9eef5;
+    border-radius: 12px;
+}
+
+#customerProfilePanel .stat-card p {
+    margin: 0 0 9px;
+    color: #718096;
+    font-size: 12px;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#customerProfilePanel .stat-card h2 {
+    margin: 0;
+    color: #17365d;
+    font-size: 25px;
+    font-weight: 750;
+}
+
+/* CUSTOMER INFORMATION GRID */
+
+.customer-profile-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 22px 0 28px;
+}
+
+.customer-profile-item {
+    min-width: 0;
+    padding: 19px;
+    background: #f8fafc;
+    border: 1px solid #e8edf3;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.2s ease,
+                background 0.2s ease,
+                transform 0.2s ease;
+}
+
+.customer-profile-item:hover {
+    background: #ffffff;
+    border-color: #cbd8e8;
+    transform: translateY(-2px);
+}
+
+.profile-detail-label {
+    color: #718096;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+}
+
+.customer-profile-item strong {
+    color: #243b53;
+    font-size: 14px;
+    font-weight: 650;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.customer-profile-address {
+    grid-column: 1 / -1;
+}
+
+/* CUSTOMER ORDER HISTORY */
+
+#customerProfilePanel > h3 {
+    margin: 28px 0 15px;
+    color: #172b4d;
+    font-size: 17px;
+    font-weight: 750;
+}
+
+#customerProfilePanel .table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #e8edf3;
+    border-radius: 12px;
+}
+
+#customerProfilePanel table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#customerProfilePanel th {
+    padding: 14px;
+    background: #f6f8fb;
+    color: #52647a;
+    font-size: 11px;
+    font-weight: 750;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+
+#customerProfilePanel td {
+    padding: 14px;
+    color: #334155;
+    font-size: 13px;
+    border-top: 1px solid #edf0f4;
+}
+
+/* CLOSE PROFILE BUTTON */
+
+#closeCustomerProfile {
+    border-radius: 9px;
+    padding: 10px 17px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+/* MOBILE RESPONSIVENESS */
+
+@media (max-width: 650px) {
+
+    #customerProfilePanel {
+        padding: 17px;
+        border-radius: 13px;
+    }
+
+    #customerProfileName {
+        font-size: 19px;
+    }
+
+    #customerProfilePanel .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    #customerProfilePanel .stat-card {
+        padding: 14px;
+    }
+
+    #customerProfilePanel .stat-card h2 {
+        font-size: 21px;
+    }
+
+    .customer-profile-details {
+        grid-template-columns: 1fr;
+        gap: 11px;
+    }
+
+    .customer-profile-address {
+        grid-column: auto;
+    }
+
+    .customer-profile-item {
+        padding: 16px;
+    }
+
+    #customerProfilePanel .card-heading {
+        align-items: flex-start;
+    }
+
+    #closeCustomerProfile {
+        width: 100%;
+    }
+}
