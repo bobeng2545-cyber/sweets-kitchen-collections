@@ -6096,3 +6096,37 @@ body.dark-mode .product-details-quantity-controls span {
         max-width: 135px !important;
     }
 }
+
+
+/* =====================================================
+   KEEP PRODUCT ROWS ONE BELOW ANOTHER
+===================================================== */
+
+#productsGrid,
+#newArrivalsGrid {
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+
+    gap: 24px !important;
+}
+
+/* Each horizontal scrolling row occupies its own line */
+
+#productsGrid > .product-row,
+#newArrivalsGrid > .product-row {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
