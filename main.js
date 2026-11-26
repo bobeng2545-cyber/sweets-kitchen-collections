@@ -356,6 +356,60 @@ async function connectStoreProductIds() {
             .replace(/[^a-z0-9]/g, "");
     }
 
+   // ================================================
+// INDEPENDENT HORIZONTAL PRODUCT ROWS
+// ================================================
+
+function unwrapProductRows(grid) {
+    if (!grid) return;
+
+    Array.from(
+        grid.querySelectorAll(":scope > .product-row")
+    ).forEach(row => {
+
+        while (row.firstChild) {
+            grid.insertBefore(row.firstChild, row);
+        }
+
+        row.remove();
+    });
+}
+
+function arrangeProductsIntoRows(grid, cardsPerRow = 8) {
+
+    if (!grid) return;
+
+    // Prevent nested rows when products reload.
+    unwrapProductRows(grid);
+
+    // Collect only direct product cards.
+    const cards = Array.from(grid.children).filter(child =>
+        child.classList &&
+        child.classList.contains("product-card")
+    );
+
+    // Create independent rows containing up to 8 products.
+    for (let index = 0; index < cards.length; index += cardsPerRow) {
+
+        const row = document.createElement("div");
+
+        row.className = "product-row";
+
+        row.setAttribute("role", "group");
+
+        row.setAttribute(
+            "aria-label",
+            `Product row ${Math.floor(index / cardsPerRow) + 1}`
+        );
+
+        cards.slice(index, index + cardsPerRow).forEach(card => {
+            row.appendChild(card);
+        });
+
+        grid.appendChild(row);
+    }
+}
+
    // ======================================
 // DISPLAY PRODUCT STOCK QUANTITY
 // ======================================
@@ -710,6 +764,30 @@ function updateProductStock(card, stock) {
         newArrivalsSection.hidden =
             newArrivalProducts.length === 0;
     }
+
+   // ================================================
+// ARRANGE FEATURED PRODUCTS AND NEW ARRIVALS
+// ================================================
+
+// Featured Products: maximum 8 cards per row.
+arrangeProductsIntoRows(productsGrid, 8);
+
+// New Arrivals: separate independent scrolling rows.
+if (newArrivalsGrid) {
+    arrangeProductsIntoRows(newArrivalsGrid, 8);
+}
+
+console.log("Independent product rows created:", {
+    featuredRows: productsGrid.querySelectorAll(
+        ":scope > .product-row"
+    ).length,
+
+    newArrivalRows: newArrivalsGrid
+        ? newArrivalsGrid.querySelectorAll(
+            ":scope > .product-row"
+        ).length
+        : 0
+});
 
     console.log(
         "Store products loaded successfully:",
