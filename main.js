@@ -4541,11 +4541,11 @@ if (markAllNotificationsRead) {
 
 
     
-    /* =================================================
-       15J. CLEAR ALL NOTIFICATIONS
-    ================================================= */
-
     
+/* =================================================
+   15J. CLEAR ALL NOTIFICATIONS
+================================================= */
+
 if (clearNotifications) {
     clearNotifications.addEventListener(
         "click",
@@ -4563,10 +4563,16 @@ if (clearNotifications) {
                 return;
             }
 
+            clearNotifications.disabled = true;
+
             try {
 
+                let registeredCleared = false;
+                let guestCleared = 0;
+                let guestFailed = 0;
+
                 // ==========================================
-                // 1. CHECK CUSTOMER LOGIN SESSION
+                // 1. CHECK CUSTOMER SESSION
                 // ==========================================
 
                 const {
@@ -4581,7 +4587,7 @@ if (clearNotifications) {
                 const session = sessionData?.session;
 
                 // ==========================================
-                // 2. CLEAR REGISTERED CUSTOMER NOTIFICATIONS
+                // 2. CLEAR REGISTERED NOTIFICATIONS
                 // ==========================================
 
                 if (session?.user) {
@@ -4603,13 +4609,15 @@ if (clearNotifications) {
                         throw new Error(
                             data?.message ||
                             error?.message ||
-                            "Could not clear registered customer notifications."
+                            "Could not clear account notifications."
                         );
                     }
+
+                    registeredCleared = true;
                 }
 
                 // ==========================================
-                // 3. CLEAR ALL SAVED GUEST ORDER NOTIFICATIONS
+                // 3. CLEAR GUEST NOTIFICATIONS INDEPENDENTLY
                 // ==========================================
 
                 const savedOrders =
@@ -4617,38 +4625,107 @@ if (clearNotifications) {
 
                 for (const savedOrder of savedOrders) {
 
-                    const {
-                        data,
-                        error
-                    } = await supabaseClient.functions.invoke(
-                        "manage-order-notifications",
-                        {
-                            body: {
-                                action: "clear",
-                                customer_type: "guest",
-                                reference: savedOrder.reference,
-                                notification_token: savedOrder.token
-                            }
-                        }
-                    );
+                    try {
 
-                    if (error || data?.success !== true) {
-                        throw new Error(
-                            data?.message ||
-                            error?.message ||
-                            "Could not clear guest order notifications."
+                        const {
+                            data,
+                            error
+                        } = await supabaseClient.functions.invoke(
+                            "manage-order-notifications",
+                            {
+                                body: {
+                                    action: "clear",
+                                    customer_type: "guest",
+                                    reference: savedOrder.reference,
+                                    notification_token: savedOrder.token
+                                }
+                            }
+                        );
+
+                        if (error || data?.success !== true) {
+                            guestFailed++;
+
+                            console.warn(
+                                "Guest notification clearing failed:",
+                                savedOrder.reference,
+                                data?.message || error?.message
+                            );
+
+                            continue;
+                        }
+
+                        guestCleared++;
+
+                    } catch (guestError) {
+
+                        guestFailed++;
+
+                        console.warn(
+                            "Guest notification clearing error:",
+                            guestError
                         );
                     }
                 }
 
                 // ==========================================
-                // 4. CLEAR LOCAL NOTIFICATION DISPLAY
+                // 4. CLEAR LOCAL DISPLAY AFTER ACCOUNT SUCCESS
                 // ==========================================
 
-                customerNotifications = [];
+                if (registeredCleared || guestCleared > 0) {
 
-                saveCustomerNotifications();
-                renderCustomerNotifications();
+                    // Remove only notifications that have been
+                    // successfully cleared from the database.
+
+                    const savedReferences = new Set(
+                        savedOrders.map(order => order.reference)
+                    );
+
+                    customerNotifications =
+                        customerNotifications.filter(item => {
+
+                            if (item.source !== "database") {
+                                return false;
+                            }
+
+                            if (
+                                registeredCleared &&
+                                !savedReferences.has(item.reference)
+                            ) {
+                                return false;
+                            }
+
+                            if (
+                                savedReferences.has(item.reference) &&
+                                guestCleared > 0
+                            ) {
+                                return false;
+                            }
+
+                            return true;
+                        });
+
+                    saveCustomerNotifications();
+                    renderCustomerNotifications();
+
+                } else {
+                    throw new Error(
+                        "No notifications could be cleared."
+                    );
+                }
+
+                // ==========================================
+                // 5. REPORT RESULT
+                // ==========================================
+
+                if (guestFailed > 0) {
+
+                    alert(
+                        "Your account notifications were cleared, " +
+                        "but " + guestFailed +
+                        " guest notification request(s) could not be cleared."
+                    );
+
+                }
 
             } catch (error) {
 
@@ -4658,8 +4735,14 @@ if (clearNotifications) {
                 );
 
                 alert(
-                    "Could not clear all notifications. Please try again."
+                    error.message ||
+                    "Could not clear notifications. Please try again."
                 );
+
+            } finally {
+
+                clearNotifications.disabled = false;
+
             }
         }
     );
