@@ -587,28 +587,224 @@
             </section>
 
 
-            <!-- CUSTOMERS -->
+            
+      <!-- ==========================================
+                  CUSTOMER MANAGEMENT
+      ========================================== -->
+            
+            
             <section class="dashboard-section" id="section-customers">
-
+                
                 <div class="section-heading">
                     <div>
                         <h2>Customer Management</h2>
-                        <p>Customer information and purchasing activity.</p>
+                        <p>View customers, purchasing activity and order history.</p>
                     </div>
+                    
+                    <button
+                        type="button"
+                        class="primary-button compact"
+                        id="refreshCustomersButton"
+                    >
+                        Refresh Customers
+                    </button>
                 </div>
-
+                
+                <!-- CUSTOMER STATISTICS -->
+                
+                <div class="stats-grid">
+                    
+                    <article class="stat-card">
+                        <div class="stat-icon blue">
+                            <span class="material-symbols-outlined">groups</span>
+                        </div>
+                        <p>Total Customers</p>
+                        <h2 id="customerTotal">0</h2>
+                        <span>All identified customers</span>
+                    </article>
+                    
+                    <article class="stat-card">
+                        <div class="stat-icon green">
+                            <span class="material-symbols-outlined">person</span>
+                        </div>
+                        <p>Registered Customers</p>
+                        <h2 id="registeredCustomerTotal">0</h2>
+                        <span>Supabase accounts</span>
+                    </article>
+                    
+                    <article class="stat-card">
+                        <div class="stat-icon orange">
+                            <span class="material-symbols-outlined">person_search</span>
+                        </div>
+                        <p>Guest Customers</p>
+                        <h2 id="guestCustomerTotal">0</h2>
+                        <span>Customers without accounts</span>
+                    </article>
+                    
+                    <article class="stat-card">
+                        <div class="stat-icon purple">
+                            <span class="material-symbols-outlined">shopping_bag</span>
+                        </div>
+                        <p>Total Customer Orders</p>
+                        <h2 id="customerOrderTotal">0</h2>
+                        <span>Orders received</span>
+                    </article>
+                
+                </div>
+                
+                <!-- CUSTOMER DIRECTORY -->
+                
                 <div class="content-card">
-                    <div class="empty-state">
-                        <span class="material-symbols-outlined">groups</span>
-                        <h3>Customer records</h3>
-                        <p>
-                            Customer management will be connected after
-                            confirming your customer database structure.
-                        </p>
+                    
+                    <div class="card-heading">
+                        <div>
+                            <h2>Customer Directory</h2>
+                            <p>Search and inspect your store customers.</p>
+                        </div>
                     </div>
+                    
+                    <div class="toolbar">
+                        <input
+                            type="search"
+                            id="customerSearchInput"
+                            placeholder="Search name, email or phone..."
+                            autocomplete="off"
+                            aria-label="Search customers"
+                            >
+                        
+                        <select id="customerTypeFilter">
+                            <option value="">All customer types</option>
+                            <option value="registered">Registered</option>
+                            <option value="guest">Guest</option>
+                        </select>
+                    </div>
+                    
+                    <p
+                        id="customersMessage"
+                        class="table-message"
+                        role="status"
+                        aria-live="polite"
+                        >
+                        Customer records will appear here.
+                    </p>
+                    
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Type</th>
+                                    <th>Orders</th>
+                                    <th>Total Spent</th>
+                                    <th>Last Order</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            
+                            <tbody id="customersTableBody">
+                                <tr>
+                                    <td colspan="8" class="empty-cell">
+                                        Sign in to load customer records.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                
                 </div>
-
+                
+                <!-- CUSTOMER PROFILE -->
+                
+                <div class="content-card" id="customerProfilePanel" hidden>
+                    
+                    <div class="card-heading">
+                        <div>
+                            <h2 id="customerProfileName">Customer Profile</h2>
+                            <p id="customerProfileType">Customer information</p>
+                        </div>
+                        
+                        <button
+                            type="button"
+                            class="secondary-button"
+                            id="closeCustomerProfile"
+                            >
+                            Close Profile
+                        </button>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        
+                        <article class="stat-card">
+                            <p>Total Orders</p>
+                            <h2 id="profileCustomerOrders">0</h2>
+                        </article>
+                        
+                        <article class="stat-card">
+                            <p>Total Spent</p>
+                            <h2 id="profileCustomerSpent">GH₵0.00</h2>
+                        </article>
+                    
+                    </div>
+                    
+                    <div class="platform-information">
+                        
+                        <div>
+                            <span>Email Address</span>
+                            <strong id="profileCustomerEmail">—</strong>
+                        </div>
+                        
+                        <div>
+                            <span>Phone Number</span>
+                            <strong id="profileCustomerPhone">—</strong>
+                        </div>
+                        
+                        <div>
+                            <span>Account Created</span>
+                            <strong id="profileCustomerJoined">—</strong>
+                        </div>
+                        
+                        <div>
+                            <span>Last Sign In</span>
+                            <strong id="profileCustomerLastSignIn">—</strong>
+                        </div>
+                        
+                        <div>
+                            <span>Last Delivery Address</span>
+                            <strong id="profileCustomerAddress">—</strong>
+                        </div>
+                    
+                    </div>
+                    
+                    <h3>Customer Order History</h3>
+                    
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order Reference</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Payment</th>
+                                    <th>Order Status</th>
+                                </tr>
+                            </thead>
+                            
+                            <tbody id="customerOrderHistoryBody">
+                                <tr>
+                                    <td colspan="5" class="empty-cell">
+                                        Select a customer to view their orders.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                
+                </div>
+            
             </section>
+
 
         </main>
 
