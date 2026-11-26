@@ -1398,13 +1398,12 @@ addProductToCart(button, quantity);
                 displayedCategory === selectedCategory;
 
             if (matchesSearch && matchesCategory) {
-
-                card.style.display = "";
-                matchingProducts++;
-
+               // Restore the product card's normal CSS display.
+               card.style.removeProperty("display");
+               matchingProducts++;
             } else {
-
-                card.style.display = "none";
+               // Ensure CSS cannot override category filtering.
+               card.style.setProperty("display", "none", "important");
             }
         });
 
