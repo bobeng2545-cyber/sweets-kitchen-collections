@@ -3558,14 +3558,28 @@ const customerElements = {
 };
 
 function customerDate(value) {
-    return value ? formatDate(value) : "—";
+    if (!value || String(value).trim() === "") {
+        return "Not provided";
+    }
+
+    return formatDate(value);
 }
 
+
 function customerText(value) {
-    return value === null || value === undefined || value === ""
-        ? "—"
-        : String(value);
+
+    if (
+        value === null ||
+        value === undefined ||
+        String(value).trim() === "" ||
+        String(value).trim() === "—"
+    ) {
+        return "Not provided";
+    }
+
+    return String(value).trim();
 }
+
 
 function customerTypeLabel(type) {
     const labels = {
