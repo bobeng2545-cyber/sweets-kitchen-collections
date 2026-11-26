@@ -2838,6 +2838,11 @@ async function loadStoreFlashSales() {
     const profileButton = document.getElementById("profileButton");
     const profileArea = document.getElementById("profileArea");
     const profileMenu = document.getElementById("profileMenu");
+   const guestProfileContent =
+    document.getElementById("guestProfileContent");
+   
+   const authenticatedProfileContent =
+      document.getElementById("authenticatedProfileContent");
 
     const profileName = document.getElementById("profileName");
     const profileNameDisplay = document.getElementById("profileNameDisplay");
@@ -2909,68 +2914,102 @@ async function loadStoreFlashSales() {
     // ======================================
     // SIGNED OUT DISPLAY
     // ======================================
+   
+   
+   function showSignedOut() {
+      currentUser = null;
+      
+      // Display guest profile name
+      if (profileName) {
+         profileName.textContent = "Sign in";
+      }
+      
+      // Show guest menu
+      if (guestProfileContent) {
+         guestProfileContent.hidden = false;
+      }
+      
+      // Hide authenticated customer menu
+      if (authenticatedProfileContent) {
+         authenticatedProfileContent.hidden = true;
+      }
+      
+      if (profileNameDisplay) {
+         profileNameDisplay.textContent = "My Account";
+      }
+      
+      if (profileEmail) {
+         profileEmail.textContent = "";
+      }
+      
+      if (logoutButton) {
+         logoutButton.hidden = true;
+      }
+      
+      displayProfilePicture(null);
+      
+      if (profilePictureMessage) {
+         profilePictureMessage.textContent = "";
+      }
+   }
 
-    function showSignedOut() {
-        currentUser = null;
 
-        if (profileName) profileName.textContent = "Sign in";
-
-        if (profileNameDisplay) {
-            profileNameDisplay.textContent = "My Account";
-        }
-
-        if (profileEmail) profileEmail.textContent = "";
-
-        if (logoutButton) logoutButton.hidden = true;
-
-        displayProfilePicture(null);
-
-        if (profileMenu) profileMenu.hidden = true;
-
-        if (profileButton) {
-            profileButton.setAttribute("aria-expanded", "false");
-        }
-    }
-
-    // ======================================
-    // SIGNED IN DISPLAY
-    // ======================================
-
-    function showSignedIn(user) {
-        currentUser = user;
-
-        const fullName =
-    user.user_metadata?.full_name ||
-    user.user_metadata?.name ||
-    user.email?.split("@")[0] ||
-    "Customer";
-
-const firstName = fullName.trim().split(/\s+/)[0];
-
-        if (profileName) {
-            profileName.textContent = firstName;
-        }
-
-        if (profileNameDisplay) {
-            profileNameDisplay.textContent = firstName;
-        }
-
-        if (profileEmail) {
-            profileEmail.textContent = user.email || "";
-        }
-
-        if (logoutButton) {
-            logoutButton.hidden = false;
-        }
-
-        const avatarUrl = user.user_metadata?.avatar_url || null;
-
-        displayProfilePicture(avatarUrl);
-
-        if (profilePictureMessage) {
-            profilePictureMessage.textContent = "";
-        }
-    }
+    
+   // ======================================
+  // SIGNED IN DISPLAY
+ // ======================================
+   
+   function showSignedIn(user) {
+      currentUser = user;
+      
+      // Hide guest menu
+      if (guestProfileContent) {
+         guestProfileContent.hidden = true;
+      }
+      
+      // Show authenticated customer menu
+      if (authenticatedProfileContent) {
+         authenticatedProfileContent.hidden = false;
+      }
+      
+      // Get customer's name
+      const fullName =
+         user.user_metadata?.full_name ||
+         user.user_metadata?.name ||
+         user.email?.split("@")[0] ||
+         "Customer";
+      
+      const firstName = fullName.trim().split(/\s+/)[0];
+      
+      // Display customer's name
+      if (profileName) {
+         profileName.textContent = firstName;
+      }
+      
+      if (profileNameDisplay) {
+         profileNameDisplay.textContent = firstName;
+      }
+      
+      // Display customer's email
+      if (profileEmail) {
+         profileEmail.textContent = user.email || "";
+      }
+      
+      // Show logout button
+      if (logoutButton) {
+         logoutButton.hidden = false;
+      }
+      
+      // Display customer's profile picture
+      const avatarUrl = user.user_metadata?.avatar_url || null;
+      
+      displayProfilePicture(avatarUrl);
+      
+      // Clear previous messages
+      if (profilePictureMessage) {
+         profilePictureMessage.textContent = "";
+      }
+   }
 
     // ======================================
     // PROFILE MENU TOGGLE
