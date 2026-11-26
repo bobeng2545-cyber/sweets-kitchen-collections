@@ -1312,163 +1312,267 @@ addProductToCart(button, quantity);
     updateCart();
 
 
-    /* =================================================
-       11. PRODUCT SEARCH AND CATEGORY FILTERING
-    ================================================= */
+    
+/* =================================================
+   11. PRODUCT SEARCH AND CATEGORY FILTERING
+================================================= */
 
-    const searchInput =
-        document.getElementById("searchInput");
+const searchInput =
+    document.getElementById("searchInput");
 
-    const searchButton =
-        document.getElementById("searchButton");
+const searchButton =
+    document.getElementById("searchButton");
 
-    const categoryButtons =
-        document.querySelectorAll(".category-btn");
+const categoryButtons =
+    document.querySelectorAll(".category-btn");
 
-    const productSection =
-        document.getElementById("products");
+const productSection =
+    document.getElementById("products");
 
-    const productsGrid =
-        document.getElementById("productsGrid");
+const productsGrid =
+    document.getElementById("productsGrid");
 
-    let selectedCategory = "all";
+let selectedCategory = "all";
 
-    let searchMessage =
-        document.getElementById("searchMessage");
+let searchMessage =
+    document.getElementById("searchMessage");
+
+// Keep the original catalogue order.
+// This prevents filtering from permanently changing product order.
+let originalProductOrder = [];
+
+if (productsGrid) {
+
+    originalProductOrder = Array.from(
+        productsGrid.querySelectorAll(
+            ".product-card:not(.flash-sale-card)"
+        )
+    );
+}
+
+if (!searchMessage && productsGrid) {
+
+    searchMessage = document.createElement("p");
+
+    searchMessage.id = "searchMessage";
+    searchMessage.textContent = "No matching products found.";
+    searchMessage.style.textAlign = "center";
+    searchMessage.style.padding = "20px";
+    searchMessage.style.display = "none";
+
+    productsGrid.insertAdjacentElement(
+        "afterend",
+        searchMessage
+    );
+}
 
 
-    if (!searchMessage && productsGrid) {
+/* =================================================
+   FILTER PRODUCTS AND REBUILD ROWS OF EIGHT
+================================================= */
 
-        searchMessage = document.createElement("p");
+function filterProducts() {
 
-        searchMessage.id = "searchMessage";
-        searchMessage.textContent = "No matching products found.";
-        searchMessage.style.textAlign = "center";
-        searchMessage.style.padding = "20px";
-        searchMessage.style.display = "none";
+    const searchTerm = searchInput
+        ? searchInput.value.trim().toLowerCase()
+        : "";
 
-        productsGrid.insertAdjacentElement(
-            "afterend",
-            searchMessage
-        );
-    }
+    if (!productsGrid) return;
+
+    let matchingProducts = 0;
+
+    const visibleCards = [];
+    const hiddenCards = [];
+
+    // Check every catalogue product in its original order.
+    originalProductOrder.forEach(function (card) {
+
+        const productName = (
+            card.dataset.name ||
+            card.querySelector("h3")?.textContent ||
+            ""
+        ).trim().toLowerCase();
+
+        const productCategory = (
+            card.dataset.category || ""
+        ).trim().toLowerCase();
+
+        const displayedCategory = (
+            card.querySelector(".products-category")?.textContent ||
+            ""
+        ).trim().toLowerCase();
+
+        const matchesSearch =
+            searchTerm === "" ||
+            productName.includes(searchTerm) ||
+            productCategory.includes(searchTerm) ||
+            displayedCategory.includes(searchTerm);
+
+        const matchesCategory =
+            selectedCategory === "all" ||
+            productCategory === selectedCategory ||
+            displayedCategory === selectedCategory;
+
+        if (matchesSearch && matchesCategory) {
+
+            card.style.removeProperty("display");
+
+            visibleCards.push(card);
+            matchingProducts++;
+
+        } else {
+
+            card.style.setProperty(
+                "display",
+                "none",
+                "important"
+            );
+
+            hiddenCards.push(card);
+        }
+    });
 
 
-    function filterProducts() {
-
-        const searchTerm = searchInput
-            ? searchInput.value.trim().toLowerCase()
-            : "";
-
-        // Filter only products inside the main Sweet Products catalogue.
-       // New Arrivals and Flash Sales remain separate.
-       const productCards = productsGrid
-          ? productsGrid.querySelectorAll(
-             ".product-card:not(.flash-sale-card)"
-          )
-          : [];
-
-        let matchingProducts = 0;
-
-        productCards.forEach(function (card) {
-
-            const productName = (
-                card.dataset.name ||
-                card.querySelector("h3")?.textContent ||
-                ""
-            ).toLowerCase();
-
-            const productCategory = (
-                card.dataset.category || ""
-            ).toLowerCase();
-
-            const displayedCategory = (
-                card.querySelector(".products-category")?.textContent ||
-                ""
-            ).trim().toLowerCase();
-
-            const matchesSearch =
-                productName.includes(searchTerm) ||
-                productCategory.includes(searchTerm) ||
-                displayedCategory.includes(searchTerm);
-
-            const matchesCategory =
-                selectedCategory === "all" ||
-                productCategory === selectedCategory ||
-                displayedCategory === selectedCategory;
-
-            if (matchesSearch && matchesCategory) {
-               // Restore the product card's normal CSS display.
-               card.style.removeProperty("display");
-               matchingProducts++;
-            } else {
-               // Ensure CSS cannot override category filtering.
-               card.style.setProperty("display", "none", "important");
-            }
+    // Remove existing product-row wrappers.
+    // The product cards themselves are preserved.
+    productsGrid
+        .querySelectorAll(":scope > .product-row")
+        .forEach(function (row) {
+            row.remove();
         });
 
-        if (searchMessage) {
-            searchMessage.style.display =
-                matchingProducts === 0 ? "block" : "none";
+
+    // Create fresh horizontal rows containing
+    // a maximum of 8 products each.
+    function createProductRows(cards, hideRows = false) {
+
+        for (let index = 0; index < cards.length; index += 8) {
+
+            const row = document.createElement("div");
+
+            row.className = "product-row";
+
+            row.dataset.rowNumber = String(
+                Math.floor(index / 8) + 1
+            );
+
+            row.setAttribute("role", "group");
+
+            row.setAttribute(
+                "aria-label",
+                `Product row ${Math.floor(index / 8) + 1}`
+            );
+
+            if (hideRows) {
+                row.hidden = true;
+            }
+
+            cards.slice(index, index + 8).forEach(function (card) {
+                row.appendChild(card);
+            });
+
+            productsGrid.appendChild(row);
         }
     }
 
 
-    function searchAndScroll() {
+    // Display matching products in rows of eight.
+    createProductRows(visibleCards);
+
+    // Keep non-matching products hidden but available
+    // for the next category or search selection.
+    createProductRows(hiddenCards, true);
+
+
+    // Display the no-results message when necessary.
+    if (searchMessage) {
+
+        searchMessage.style.display =
+            matchingProducts === 0 ? "block" : "none";
+    }
+}
+
+
+/* =================================================
+   SEARCH AND SCROLL
+================================================= */
+
+function searchAndScroll() {
+
+    filterProducts();
+
+    if (productSection) {
+
+        productSection.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }
+}
+
+
+if (searchButton) {
+
+    searchButton.addEventListener(
+        "click",
+        searchAndScroll
+    );
+}
+
+
+if (searchInput) {
+
+    searchInput.addEventListener(
+        "input",
+        filterProducts
+    );
+
+    searchInput.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Enter") {
+
+                event.preventDefault();
+
+                searchAndScroll();
+            }
+        }
+    );
+}
+
+
+/* =================================================
+   CATEGORY BUTTONS
+================================================= */
+
+categoryButtons.forEach(function (button) {
+
+    button.addEventListener("click", function () {
+
+        selectedCategory = (
+            button.dataset.category || "all"
+        ).trim().toLowerCase();
+
+        categoryButtons.forEach(function (categoryButton) {
+
+            categoryButton.classList.remove("active");
+        });
+
+        button.classList.add("active");
 
         filterProducts();
 
         if (productSection) {
+
             productSection.scrollIntoView({
                 behavior: "smooth",
                 block: "start"
             });
         }
-    }
-
-
-    if (searchButton) {
-        searchButton.addEventListener("click", searchAndScroll);
-    }
-
-    if (searchInput) {
-
-        searchInput.addEventListener("input", filterProducts);
-
-        searchInput.addEventListener("keydown", function (event) {
-
-            if (event.key === "Enter") {
-                event.preventDefault();
-                searchAndScroll();
-            }
-        });
-    }
-
-
-    categoryButtons.forEach(function (button) {
-
-        button.addEventListener("click", function () {
-
-            selectedCategory = (
-                button.dataset.category || "all"
-            ).trim().toLowerCase();
-
-            categoryButtons.forEach(function (categoryButton) {
-                categoryButton.classList.remove("active");
-            });
-
-            button.classList.add("active");
-
-            filterProducts();
-
-            if (productSection) {
-                productSection.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-            }
-        });
     });
+});
+
 
 
     /* =================================================
