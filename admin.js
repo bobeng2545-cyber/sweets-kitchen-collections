@@ -941,6 +941,10 @@ function navigateToSection(sectionName) {
 
     pageTitle.textContent =
         sectionTitles[sectionName] || "Dashboard";
+   
+   if (sectionName === "customers") {
+      loadCustomers();
+   }
 
     closeSidebar();
 }
@@ -3444,6 +3448,370 @@ async function deleteFlashSale(id) {
     await loadFlashSales();
 
     showGlobalMessage("Flash sale deleted successfully.");
+}
+
+   
+/* ==============================================
+   CUSTOMER MANAGEMENT
+   Secure Supabase Edge Function integration
+============================================== */
+
+let storeCustomers = [];
+
+const customerElements = {
+    refresh: $("refreshCustomersButton"),
+    search: $("customerSearchInput"),
+    filter: $("customerTypeFilter"),
+    message: $("customersMessage"),
+    table: $("customersTableBody"),
+
+    total: $("customerTotal"),
+    registered: $("registeredCustomerTotal"),
+    guests: $("guestCustomerTotal"),
+    orders: $("customerOrderTotal"),
+
+    profile: $("customerProfilePanel"),
+    profileName: $("customerProfileName"),
+    profileType: $("customerProfileType"),
+    profileOrders: $("profileCustomerOrders"),
+    profileSpent: $("profileCustomerSpent"),
+    profileEmail: $("profileCustomerEmail"),
+    profilePhone: $("profileCustomerPhone"),
+    profileJoined: $("profileCustomerJoined"),
+    profileLastSignIn: $("profileCustomerLastSignIn"),
+    profileAddress: $("profileCustomerAddress"),
+    history: $("customerOrderHistoryBody"),
+    closeProfile: $("closeCustomerProfile")
+};
+
+function customerDate(value) {
+    if (!value) return "—";
+
+    return formatDate(value);
+}
+
+function customerText(value) {
+    return value === null || value === undefined || value === ""
+        ? "—"
+        : String(value);
+}
+
+function renderCustomerStatistics() {
+    if (customerElements.total) {
+        customerElements.total.textContent =
+            storeCustomers.length;
+    }
+
+    if (customerElements.registered) {
+        customerElements.registered.textContent =
+            storeCustomers.filter(c => c.type === "registered").length;
+    }
+
+    if (customerElements.guests) {
+        customerElements.guests.textContent =
+            storeCustomers.filter(c => c.type === "guest").length;
+    }
+
+    if (customerElements.orders) {
+        customerElements.orders.textContent =
+            storeCustomers.reduce(
+                (sum, c) => sum + Number(c.order_count || 0),
+                0
+            );
+    }
+}
+
+function renderCustomers() {
+    const body = customerElements.table;
+
+    if (!body) return;
+
+    const query = (
+        customerElements.search?.value || ""
+    ).trim().toLowerCase();
+
+    const type = customerElements.filter?.value || "";
+
+    const filtered = storeCustomers.filter(customer => {
+
+        const searchable = [
+            customer.name,
+            customer.email,
+            customer.phone
+        ].join(" ").toLowerCase();
+
+        return searchable.includes(query) &&
+            (!type || customer.type === type);
+    });
+
+    body.replaceChildren();
+
+    if (!filtered.length) {
+        emptyRow(body, "No matching customers found.", 8);
+        return;
+    }
+
+    filtered.forEach(customer => {
+
+        const row = document.createElement("tr");
+
+        const nameCell = document.createElement("td");
+        const name = document.createElement("strong");
+
+        name.textContent = customer.name || "Unnamed customer";
+        nameCell.appendChild(name);
+
+        row.append(
+            nameCell,
+            cell(customerText(customer.email)),
+            cell(customerText(customer.phone))
+        );
+
+        const typeCell = document.createElement("td");
+        typeCell.appendChild(
+            badge(customer.type)
+        );
+        row.appendChild(typeCell);
+
+        row.append(
+            cell(String(customer.order_count || 0)),
+            cell(formatMoney(customer.total_spent || 0)),
+            cell(customerDate(customer.last_order_at))
+        );
+
+        const actionCell = document.createElement("td");
+
+        const button = actionButton(
+            "View Profile",
+            "view-customer",
+            customer.id
+        );
+
+        actionCell.appendChild(button);
+        row.appendChild(actionCell);
+
+        body.appendChild(row);
+    });
+}
+
+async function loadCustomers() {
+
+    if (!currentAdmin) {
+        showMessage(
+            customerElements.message,
+            "Administrator verification is required.",
+            "error"
+        );
+        return;
+    }
+
+    loading(
+        customerElements.refresh,
+        true,
+        "Loading customers..."
+    );
+
+    showMessage(
+        customerElements.message,
+        "Retrieving customer records securely...",
+        "info"
+    );
+
+    if (customerElements.table) {
+        emptyRow(
+            customerElements.table,
+            "Loading customer records...",
+            8
+        );
+    }
+
+    try {
+
+        const { data, error } = await supabase.functions.invoke(
+            "admin-customer-records",
+            {
+                body: {}
+            }
+        );
+
+        if (error) throw error;
+
+        if (!data || data.success !== true ||
+            !Array.isArray(data.customers)) {
+            throw new Error(
+                data?.error || "The customer service returned an invalid response."
+            );
+        }
+
+        storeCustomers = data.customers;
+
+        renderCustomerStatistics();
+        renderCustomers();
+
+        showMessage(
+            customerElements.message,
+            storeCustomers.length +
+                " customer record(s) loaded successfully.",
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error("Customer records error:", error);
+
+        storeCustomers = [];
+        renderCustomerStatistics();
+
+        if (customerElements.table) {
+            emptyRow(
+                customerElements.table,
+                "Customer records could not be loaded.",
+                8
+            );
+        }
+
+        showMessage(
+            customerElements.message,
+            error.message || "Unable to load customer records.",
+            "error"
+        );
+
+    } finally {
+
+        loading(customerElements.refresh, false);
+
+    }
+}
+
+function openCustomerProfile(customerId) {
+
+    const customer = storeCustomers.find(
+        item => String(item.id) === String(customerId)
+    );
+
+    if (!customer || !customerElements.profile) return;
+
+    customerElements.profile.hidden = false;
+
+    customerElements.profileName.textContent =
+        customer.name || "Unnamed customer";
+
+    customerElements.profileType.textContent =
+        customer.type === "registered"
+            ? "Registered customer"
+            : "Guest customer";
+
+    customerElements.profileOrders.textContent =
+        String(customer.order_count || 0);
+
+    customerElements.profileSpent.textContent =
+        formatMoney(customer.total_spent || 0);
+
+    customerElements.profileEmail.textContent =
+        customerText(customer.email);
+
+    customerElements.profilePhone.textContent =
+        customerText(customer.phone);
+
+    customerElements.profileJoined.textContent =
+        customerDate(customer.created_at);
+
+    customerElements.profileLastSignIn.textContent =
+        customerDate(customer.last_sign_in_at);
+
+    customerElements.profileAddress.textContent =
+        customerText(customer.last_delivery_address);
+
+    const history = customerElements.history;
+
+    if (history) {
+
+        history.replaceChildren();
+
+        const customerOrders = Array.isArray(customer.order_history)
+            ? customer.order_history
+            : [];
+
+        if (!customerOrders.length) {
+
+            emptyRow(
+                history,
+                "This customer has not placed an order.",
+                5
+            );
+
+        } else {
+
+            customerOrders.forEach(order => {
+
+                const row = document.createElement("tr");
+
+                row.append(
+                    cell(order.order_reference || order.id),
+                    cell(customerDate(order.created_at)),
+                    cell(formatMoney(order.total_amount)),
+                    cell(order.payment_status || "—"),
+                    cell(order.order_status || "—")
+                );
+
+                history.appendChild(row);
+
+            });
+
+        }
+
+    }
+
+    customerElements.profile.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+}
+
+if (customerElements.table) {
+
+    customerElements.table.addEventListener("click", event => {
+
+        const button = event.target.closest(
+            'button[data-action="view-customer"]'
+        );
+
+        if (!button) return;
+
+        openCustomerProfile(button.dataset.id);
+
+    });
+
+}
+
+if (customerElements.search) {
+    customerElements.search.addEventListener(
+        "input",
+        renderCustomers
+    );
+}
+
+if (customerElements.filter) {
+    customerElements.filter.addEventListener(
+        "change",
+        renderCustomers
+    );
+}
+
+if (customerElements.refresh) {
+    customerElements.refresh.addEventListener(
+        "click",
+        loadCustomers
+    );
+}
+
+if (customerElements.closeProfile) {
+    customerElements.closeProfile.addEventListener(
+        "click",
+        () => {
+            customerElements.profile.hidden = true;
+        }
+    );
 }
 
 
