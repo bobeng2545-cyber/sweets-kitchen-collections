@@ -1745,3 +1745,296 @@ td {
         width: 100%;
     }
 }
+
+
+/* =====================================================
+   PROFESSIONAL STOREFRONT VISIBILITY CONTROL
+   SWEET'S KITCHEN & COLLECTIONS
+===================================================== */
+
+.storefront-control-card {
+    padding: 26px;
+    margin-bottom: 24px;
+    background: #ffffff;
+    border: 1px solid #e5eaf1;
+    border-radius: 16px;
+    box-shadow: 0 5px 22px rgba(15, 23, 42, 0.045);
+}
+
+/* HEADER */
+
+.storefront-control-top {
+    display: flex;
+    align-items: center;
+    gap: 17px;
+    flex-wrap: wrap;
+}
+
+.storefront-control-icon {
+    width: 54px;
+    height: 54px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef2ff;
+    color: #4f46e5;
+    border-radius: 14px;
+}
+
+.storefront-control-icon .material-symbols-outlined {
+    font-size: 28px;
+}
+
+.storefront-control-heading {
+    flex: 1;
+    min-width: 180px;
+}
+
+.storefront-control-eyebrow {
+    display: block;
+    margin-bottom: 5px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+}
+
+.storefront-control-heading h3 {
+    margin: 0;
+    color: #172b4d;
+    font-size: 19px;
+    font-weight: 750;
+}
+
+.storefront-control-heading p {
+    margin: 7px 0 0;
+    color: #718096;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* STATUS BADGE */
+
+.storefront-control-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 8px 13px;
+    border-radius: 30px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* DIVIDER */
+
+.storefront-control-divider {
+    height: 1px;
+    margin: 24px 0;
+    background: #edf0f4;
+}
+
+/* MAIN CONTROL */
+
+.storefront-control-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.storefront-control-information {
+    flex: 1;
+    min-width: 0;
+}
+
+.storefront-control-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.storefront-control-title-row .material-symbols-outlined {
+    color: #64748b;
+    font-size: 21px;
+}
+
+.storefront-control-title-row h4 {
+    margin: 0;
+    color: #243b53;
+    font-size: 15px;
+    font-weight: 750;
+}
+
+.storefront-control-information > p {
+    margin: 9px 0 0;
+    max-width: 560px;
+    color: #718096;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.storefront-control-toggle-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid #e8edf3;
+    border-radius: 14px;
+}
+
+/* TOGGLE SWITCH */
+
+.storefront-switch {
+    position: relative;
+    display: inline-block;
+    width: 62px;
+    height: 34px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.storefront-switch input {
+    width: 0;
+    height: 0;
+    opacity: 0;
+}
+
+.storefront-slider {
+    position: absolute;
+    inset: 0;
+    background: #cbd5e1;
+    border-radius: 30px;
+    transition: background 0.25s ease;
+}
+
+.storefront-slider::before {
+    content: "";
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    left: 4px;
+    top: 4px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
+    transition: transform 0.25s ease;
+}
+
+.storefront-switch input:checked + .storefront-slider {
+    background: #dc5252;
+}
+
+.storefront-switch input:checked + .storefront-slider::before {
+    transform: translateX(28px);
+}
+
+.storefront-switch input:focus-visible + .storefront-slider {
+    outline: 3px solid rgba(79, 70, 229, 0.25);
+    outline-offset: 3px;
+}
+
+.storefront-switch input:disabled + .storefront-slider {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* INFORMATION NOTICE */
+
+.storefront-control-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    margin-top: 23px;
+    padding: 14px 16px;
+    background: #f8fafc;
+    border: 1px solid #e8edf3;
+    border-radius: 11px;
+}
+
+.storefront-control-notice .material-symbols-outlined {
+    color: #64748b;
+    font-size: 19px;
+    flex-shrink: 0;
+}
+
+.storefront-control-notice p {
+    margin: 0;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* STATUS MESSAGE */
+
+.storefront-control-message {
+    margin-top: 12px;
+}
+
+/* MOBILE */
+
+@media (max-width: 650px) {
+
+    .storefront-control-card {
+        padding: 18px;
+        border-radius: 13px;
+    }
+
+    .storefront-control-top {
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .storefront-control-icon {
+        width: 46px;
+        height: 46px;
+    }
+
+    .storefront-control-heading h3 {
+        font-size: 17px;
+    }
+
+    .storefront-control-status {
+        margin-left: 58px;
+    }
+
+    .storefront-control-divider {
+        margin: 19px 0;
+    }
+
+    .storefront-control-main {
+        align-items: center;
+        gap: 12px;
+    }
+
+    .storefront-control-title-row h4 {
+        font-size: 14px;
+    }
+
+    .storefront-control-toggle-area {
+        padding: 9px;
+    }
+
+    .storefront-control-notice {
+        padding: 12px;
+    }
+
+}
+
+@media (max-width: 380px) {
+
+    .storefront-control-main {
+        align-items: flex-start;
+    }
+
+    .storefront-control-toggle-area {
+        padding: 7px;
+    }
+
+}
