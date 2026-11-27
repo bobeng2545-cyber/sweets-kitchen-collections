@@ -363,48 +363,69 @@
     </div>
 
 
-    <!-- MASTER STOREFRONT VISIBILITY CONTROL -->
+    
+<!-- MASTER STOREFRONT VISIBILITY CONTROL -->
 
-    <div class="content-card storefront-control-card">
+<div class="content-card storefront-control-card">
 
-        <div class="storefront-control-header">
+    <div class="storefront-control-top">
 
-            <div>
+        <div class="storefront-control-icon">
+            <span class="material-symbols-outlined">storefront</span>
+        </div>
+
+        <div class="storefront-control-heading">
+            <span class="storefront-control-eyebrow">
+                STORE MANAGEMENT
+            </span>
+
+            <h3>Overall Storefront Control</h3>
+
+            <p>
+                Manage the visibility of all products displayed
+                on your customer-facing storefront.
+            </p>
+        </div>
+
+        <span
+            id="storefrontControlStatus"
+            class="storefront-control-status"
+            role="status"
+        >
+            Loading status...
+        </span>
+
+    </div>
+
+
+    <div class="storefront-control-divider"></div>
+
+
+    <div class="storefront-control-main">
+
+        <div class="storefront-control-information">
+
+            <div class="storefront-control-title-row">
                 <span class="material-symbols-outlined">
-                    storefront
+                    visibility_off
                 </span>
 
-                <h3>Overall Storefront Control</h3>
-
-                <p>
-                    Temporarily hide all products from customers
-                    while you update your inventory.
-                </p>
+                <h4>Product Visibility</h4>
             </div>
 
-            <span
-                id="storefrontControlStatus"
-                class="storefront-control-status"
-            >
-                Loading status...
-            </span>
+            <p id="storefrontControlDescription">
+                Checking storefront visibility...
+            </p>
 
         </div>
 
 
-        <div class="storefront-control-action">
-
-            <div>
-                <strong>Hide All Storefront Products</strong>
-
-                <p id="storefrontControlDescription">
-                    Checking storefront visibility...
-                </p>
-            </div>
+        <div class="storefront-control-toggle-area">
 
             <label
                 class="storefront-switch"
                 for="storefrontVisibilityToggle"
+                aria-label="Hide all storefront products"
             >
 
                 <input
@@ -419,15 +440,33 @@
 
         </div>
 
+    </div>
 
-        <p
-            id="storefrontControlMessage"
-            class="table-message"
-            role="status"
-            aria-live="polite"
-        ></p>
+
+    <div class="storefront-control-notice">
+
+        <span class="material-symbols-outlined">
+            info
+        </span>
+
+        <p>
+            Your products, prices, stock levels and orders remain
+            saved. This setting only controls whether customers
+            can see your products.
+        </p>
 
     </div>
+
+
+    <p
+        id="storefrontControlMessage"
+        class="table-message storefront-control-message"
+        role="status"
+        aria-live="polite"
+    ></p>
+
+</div>
+
 
 
     <!-- PRODUCT INVENTORY TABLE -->
